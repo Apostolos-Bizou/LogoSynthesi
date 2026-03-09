@@ -835,20 +835,29 @@ async function deleteMember(id) {
 function renderMemberList() {
   const el = document.getElementById('memberList');
   if (!_members.length) { el.innerHTML='<div style="color:var(--cream-dim);font-style:italic;font-size:13px;">Δεν υπάρχουν μέλη ακόμα.</div>'; return; }
-  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;">' + _members.map(m=>`
-    <div class="event-row">
-      <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0;">
-        ${m.photo?`<img src="${m.photo}" style="width:44px;height:44px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);flex-shrink:0;" onerror="this.style.display='none'">`:'<div style="width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-line);flex-shrink:0;background:var(--black3);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;">👤</div>'}
-        <div class="event-row-info">
-          <div class="event-row-title">${m.name}</div>
-          <div class="event-row-meta"><span style="color:var(--gold)">${m.role}</span>${m.bio?`<span>${m.bio.substring(0,60)}${m.bio.length>60?'…':''}</span>`:''}</div>
-        </div>
-      </div>
-      <div class="event-row-actions">
-        <button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button>
-        <button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button>
-      </div>
-    </div>`).join('') + '</div>';
+  let html = '';
+  _members.forEach(m => {
+    const photo = m.photo
+      ? `<img src="${m.photo}" style="width:44px;height:44px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);vertical-align:middle;" onerror="this.style.display='none'">`
+      : `<div style="width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-line);background:var(--black3);display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;vertical-align:middle;">👤</div>`;
+    const bio = m.bio ? m.bio.replace(/<[^>]*>/g,'').substring(0,60) + (m.bio.length>60?'…':'') : '';
+    html += `<div style="width:100%;box-sizing:border-box;background:var(--black2);border:1px solid var(--gold-line);padding:14px 16px;margin-bottom:8px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="width:54px;vertical-align:middle;">${photo}</td>
+          <td style="vertical-align:middle;padding-left:12px;">
+            <div style="font-family:var(--font-serif);font-size:16px;">${m.name}</div>
+            <div style="font-size:10px;color:var(--cream-dim);margin-top:3px;"><span style="color:var(--gold)">${m.role}</span>${bio?` &nbsp;${bio}`:''}</div>
+          </td>
+          <td style="width:120px;vertical-align:middle;text-align:right;white-space:nowrap;">
+            <button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button>
+            <button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button>
+          </td>
+        </tr>
+      </table>
+    </div>`;
+  });
+  el.innerHTML = html;
 }
 
 // ── QUILL EDITORS ──
