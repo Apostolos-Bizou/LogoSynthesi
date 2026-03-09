@@ -56,12 +56,12 @@ header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(14,13,11,
 .featured{display:grid;grid-template-columns:1fr;border-bottom:1px solid var(--gline);}
 @media(min-width:680px){.featured{grid-template-columns:2fr 1fr;}}
 @media(min-width:1000px){.featured{grid-template-columns:3fr 1fr 1fr;}}
-.fmain{position:relative;cursor:pointer;overflow:hidden;min-height:300px;max-height:500px;}
+.fmain{position:relative;cursor:pointer;overflow:hidden;min-height:300px;max-height:480px;}
 .fmain .fo{position:absolute;inset:0;background:linear-gradient(to top,rgba(14,13,11,.93) 0%,rgba(14,13,11,.2) 55%,transparent 100%);transition:background .3s;z-index:1;}
 .fmain:hover .fo{background:linear-gradient(to top,rgba(14,13,11,.97) 0%,rgba(14,13,11,.45) 55%,transparent 100%);}
-.fmain img{width:100%;height:100%;object-fit:cover;object-position:top;min-height:300px;max-height:500px;display:block;transition:transform .5s;}
+.fmain img{width:100%;height:100%;object-fit:cover;object-position:top;min-height:300px;max-height:480px;display:block;transition:transform .5s;}
 .fmain:hover img{transform:scale(1.03);}
-.fmain .ph{width:100%;min-height:300px;max-height:500px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
+.fmain .ph{width:100%;min-height:300px;max-height:480px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
 .fbody{position:absolute;bottom:0;left:0;right:0;padding:20px 18px;z-index:2;}
 .fbadge{position:absolute;top:14px;left:14px;z-index:2;background:var(--gold);color:var(--black);font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;padding:3px 9px;}
 .fcat{font-family:var(--sans);font-size:8px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
@@ -291,7 +291,7 @@ footer{border-top:1px solid var(--gline);padding:26px 24px;text-align:center;bac
       <span class="pname">Επικοινωνία</span>
     </div>
     <div class="pbody" style="display:flex;flex-direction:column;gap:26px;">
-      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Email</div><div style="font-family:var(--serif);font-size:18px;"><a href="/cdn-cgi/l/email-protection#5935363e362a20372d313c2a306b696b6f193e34383035773a3634" style="color:var(--cdim);text-decoration:none;"><span class="__cf_email__" data-cfemail="3a56555d554943544e525f4953080a080c7a5d575b535614595557">[email&#160;protected]</span></a></div></div>
+      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Email</div><div style="font-family:var(--serif);font-size:18px;"><a href="/cdn-cgi/l/email-protection#8fe3e0e8e0fcf6e1fbe7eafce6bdbfbdb9cfe8e2eee6e3a1ece0e2" style="color:var(--cdim);text-decoration:none;"><span class="__cf_email__" data-cfemail="b7dbd8d0d8c4ced9c3dfd2c4de85878581f7d0dad6dedb99d4d8da">[email&#160;protected]</span></a></div></div>
       <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Τοποθεσία</div><div style="font-family:var(--serif);font-size:18px;color:var(--cdim);">Λευκάδα, Ελλάδα</div></div>
       <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Website</div><div style="font-family:var(--serif);font-size:18px;"><a href="https://logosynthesi.gr" style="color:var(--cdim);text-decoration:none;">logosynthesi.gr</a></div></div>
     </div>
@@ -322,7 +322,6 @@ async function initApp(){
 }
 window.addEventListener('firebase-ready',initApp);
 if(window._db||window._firebase){initApp();}
-// Timeout fallback: αν Firebase δεν απαντήσει σε 5 δευτερόλεπτα, δείχνει DEMO
 setTimeout(()=>{if(!window._ev){window._ev=DEMO;renderAll(DEMO);}},5000);
 function renderAll(ev){
   const f=CAT==='all'?ev:ev.filter(e=>e.category===CAT);
@@ -391,9 +390,7 @@ function openEv(id){
         ${ev.venue?`<div class="mrow"><span class="mlbl">Χώρος</span><span class="mval">${ev.venue}</span></div>`:''}
         ${ev.country?`<div class="mrow"><span class="mlbl">Χώρα/Έτος</span><span class="mval">${ev.country}</span></div>`:''}
       </div>
-      ${desc?`<div class="mdesc">${desc}</div>`:''}
-      ${ev.people&&ev.people.length?`<div class="mpeople">${ev.people.map(p=>`<span class="ptag">${p}</span>`).join('')}</div>`:''}
-      ${ev.ticketUrl?`<a href="${ev.ticketUrl}" target="_blank" rel="noopener" class="tbtn">🎟 Αγορά Εισιτηρίου</a>`:''}
+      ${desc?`<tn">🎟 Αγορά Εισιτηρίου</a>`:''}
       ${ev.trailerUrl?`<div class="mtrailer"><iframe src="${ev.trailerUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`:''}
       <div class="vbox" id="vb-${ev.id}">
         <div class="vtit">★ Ψήφισέ το</div><div class="vsub">Βαθμολόγησε αυτή την εκδήλωση.</div>
@@ -428,4 +425,22 @@ function ss(a){let s='';for(let i=1;i<=5;i++)s+=a>=i?'★':'☆';return s;}
 function vresH(v){const tot=Object.values(v).reduce((a,b)=>a+b,0);if(!tot)return '';const avg=cavg(v);return `<div class="vres"><div class="vreslbl">Αποτελέσματα · ${avg.toFixed(1)}/5 · ${tot} ψήφοι</div>${[5,4,3,2,1].map(s=>{const c=v[s]||0,p=tot?Math.round(c/tot*100):0;return`<div class="vbw"><span class="vbl">${s}</span><div class="vbt"><div class="vbf" style="width:${p}%"></div></div><span class="vbc">${c}</span></div>`;}).join('')}</div>`;}
 let _lc=0,_lt=null;
 function secretClick(e){_lc++;if(_lt)clearTimeout(_lt);_lt=setTimeout(()=>_lc=0,2000);if(_lc>=5){_lc=0;window.location.href='admin.html';}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeM
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal(null,true);closeAllP();}});
+const obs=new IntersectionObserver(en=>en.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+// Expose all functions globally for onclick handlers
+window.setLang=setLang;
+window.filterCat=filterCat;
+window.openPanel=openPanel;
+window.closePanel=closePanel;
+window.pBgClick=pBgClick;
+window.closeAllP=closeAllP;
+window.openEv=openEv;
+window.selS=selS;
+window.subV=subV;
+window.closeModal=closeModal;
+window.secretClick=secretClick;
+</script>
+</body>
+</html>
