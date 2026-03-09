@@ -298,7 +298,7 @@ footer{border-top:1px solid var(--gline);padding:26px 24px;text-align:center;bac
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 const DEMO=[
   {id:'d1',category:'cinehub',title:'Ο Ψύλλος',titleEn:'The Flea',date:'2026-03-15',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μια συγκλονιστική ταινία. Ο Ηλίας ζει σε ένα ορεινό χωριό.',country:'Ελλάδα, 1990, 90΄',people:['Σκηνοθεσία: Δημήτρης Σπύρος'],votes:{1:2,2:5,3:8,4:15,5:22}},
   {id:'d2',category:'cinehub',title:'Αντιγόνη',date:'2026-04-10',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μεταφορά της τραγωδίας του Σοφοκλή.',country:'Καναδάς, 2019',people:['Σκηνοθεσία: Sophie Deraspe'],votes:{1:1,2:3,3:6,4:18,5:30}},
@@ -310,7 +310,7 @@ const DEMO=[
 let L='el',CAT='all',SS={};
 function setLang(l){L=l;document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l));if(window._ev)renderAll(window._ev);}
 function filterCat(c){CAT=c;document.querySelectorAll('.snbtn').forEach(b=>b.classList.toggle('active',b.dataset.cat===c));if(window._ev)renderAll(window._ev);window.scrollTo({top:0,behavior:'smooth'});}
-window.addEventListener('firebase-ready',async()=>{
+async function initApp(){
   try{
     if(!window._db)throw 0;
     const{collection,getDocs,orderBy,query}=window._firebase;
@@ -319,7 +319,11 @@ window.addEventListener('firebase-ready',async()=>{
     window._ev=ev.length?ev:DEMO;
   }catch{window._ev=DEMO;}
   renderAll(window._ev);loadAbout();loadMembers();
-});
+}
+window.addEventListener('firebase-ready',initApp);
+if(window._db||window._firebase){initApp();}
+// Timeout fallback: αν Firebase δεν απαντήσει σε 5 δευτερόλεπτα, δείχνει DEMO
+setTimeout(()=>{if(!window._ev){window._ev=DEMO;renderAll(DEMO);}},5000);
 function renderAll(ev){
   const f=CAT==='all'?ev:ev.filter(e=>e.category===CAT);
   const s=[...f].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
