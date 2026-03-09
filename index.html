@@ -56,12 +56,12 @@ header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(14,13,11,
 .featured{display:grid;grid-template-columns:1fr;border-bottom:1px solid var(--gline);}
 @media(min-width:680px){.featured{grid-template-columns:2fr 1fr;}}
 @media(min-width:1000px){.featured{grid-template-columns:3fr 1fr 1fr;}}
-.fmain{position:relative;cursor:pointer;overflow:hidden;min-height:300px;}
+.fmain{position:relative;cursor:pointer;overflow:hidden;min-height:300px;max-height:500px;}
 .fmain .fo{position:absolute;inset:0;background:linear-gradient(to top,rgba(14,13,11,.93) 0%,rgba(14,13,11,.2) 55%,transparent 100%);transition:background .3s;z-index:1;}
 .fmain:hover .fo{background:linear-gradient(to top,rgba(14,13,11,.97) 0%,rgba(14,13,11,.45) 55%,transparent 100%);}
-.fmain img{width:100%;height:100%;object-fit:cover;min-height:300px;display:block;transition:transform .5s;}
+.fmain img{width:100%;height:100%;object-fit:cover;object-position:top;min-height:300px;max-height:500px;display:block;transition:transform .5s;}
 .fmain:hover img{transform:scale(1.03);}
-.fmain .ph{width:100%;min-height:300px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
+.fmain .ph{width:100%;min-height:300px;max-height:500px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
 .fbody{position:absolute;bottom:0;left:0;right:0;padding:20px 18px;z-index:2;}
 .fbadge{position:absolute;top:14px;left:14px;z-index:2;background:var(--gold);color:var(--black);font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;padding:3px 9px;}
 .fcat{font-family:var(--sans);font-size:8px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
@@ -87,9 +87,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(14,13,11,
 .ecard{background:var(--black2);cursor:pointer;transition:background .2s;overflow:hidden;}
 .ecard:hover{background:var(--black3);}.ecard:hover .etitle{color:var(--gold);}
 .eimg-w{overflow:hidden;}
-.eimg{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;transition:transform .4s;}
+.eimg{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;transition:transform .4s;}
 .ecard:hover .eimg{transform:scale(1.04);}
-.eph{width:100%;aspect-ratio:16/9;background:var(--black3);display:flex;align-items:center;justify-content:center;}
+.eph{width:100%;aspect-ratio:2/3;background:var(--black3);display:flex;align-items:center;justify-content:center;}
 .ebody{padding:13px 14px 15px;}
 .ecat{font-family:var(--sans);font-size:8px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
 .etitle{font-family:var(--serif);font-size:17px;font-weight:400;line-height:1.3;margin-bottom:6px;transition:color .2s;}
@@ -112,7 +112,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(14,13,11,
 .mcbar{position:sticky;top:0;display:flex;justify-content:flex-end;padding:9px 13px;background:var(--black2);border-bottom:1px solid rgba(200,169,110,.1);z-index:1;}
 .mcbar button{background:none;border:1px solid var(--gline);color:var(--cdim);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;border-radius:2px;}
 .mcbar button:hover{border-color:var(--gold);color:var(--gold);}
-.mposter{width:100%;max-height:260px;object-fit:cover;display:block;}
+.mposter{width:100%;max-height:420px;object-fit:contain;display:block;background:#000;}
 .mbody{padding:20px 18px;}
 .mcat{font-family:var(--sans);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
 .mtitle{font-family:var(--serif);font-size:clamp(20px,5vw,30px);font-weight:400;margin-bottom:14px;line-height:1.2;}
@@ -291,14 +291,14 @@ footer{border-top:1px solid var(--gline);padding:26px 24px;text-align:center;bac
       <span class="pname">Επικοινωνία</span>
     </div>
     <div class="pbody" style="display:flex;flex-direction:column;gap:26px;">
-      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Email</div><div style="font-family:var(--serif);font-size:18px;"><a href="mailto:logosynthesi2026@gmail.com" style="color:var(--cdim);text-decoration:none;">logosynthesi2026@gmail.com</a></div></div>
+      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Email</div><div style="font-family:var(--serif);font-size:18px;"><a href="/cdn-cgi/l/email-protection#5935363e362a20372d313c2a306b696b6f193e34383035773a3634" style="color:var(--cdim);text-decoration:none;"><span class="__cf_email__" data-cfemail="3a56555d554943544e525f4953080a080c7a5d575b535614595557">[email&#160;protected]</span></a></div></div>
       <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Τοποθεσία</div><div style="font-family:var(--serif);font-size:18px;color:var(--cdim);">Λευκάδα, Ελλάδα</div></div>
       <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Website</div><div style="font-family:var(--serif);font-size:18px;"><a href="https://logosynthesi.gr" style="color:var(--cdim);text-decoration:none;">logosynthesi.gr</a></div></div>
     </div>
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const DEMO=[
   {id:'d1',category:'cinehub',title:'Ο Ψύλλος',titleEn:'The Flea',date:'2026-03-15',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μια συγκλονιστική ταινία. Ο Ηλίας ζει σε ένα ορεινό χωριό.',country:'Ελλάδα, 1990, 90΄',people:['Σκηνοθεσία: Δημήτρης Σπύρος'],votes:{1:2,2:5,3:8,4:15,5:22}},
   {id:'d2',category:'cinehub',title:'Αντιγόνη',date:'2026-04-10',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μεταφορά της τραγωδίας του Σοφοκλή.',country:'Καναδάς, 2019',people:['Σκηνοθεσία: Sophie Deraspe'],votes:{1:1,2:3,3:6,4:18,5:30}},
@@ -424,9 +424,4 @@ function ss(a){let s='';for(let i=1;i<=5;i++)s+=a>=i?'★':'☆';return s;}
 function vresH(v){const tot=Object.values(v).reduce((a,b)=>a+b,0);if(!tot)return '';const avg=cavg(v);return `<div class="vres"><div class="vreslbl">Αποτελέσματα · ${avg.toFixed(1)}/5 · ${tot} ψήφοι</div>${[5,4,3,2,1].map(s=>{const c=v[s]||0,p=tot?Math.round(c/tot*100):0;return`<div class="vbw"><span class="vbl">${s}</span><div class="vbt"><div class="vbf" style="width:${p}%"></div></div><span class="vbc">${c}</span></div>`;}).join('')}</div>`;}
 let _lc=0,_lt=null;
 function secretClick(e){_lc++;if(_lt)clearTimeout(_lt);_lt=setTimeout(()=>_lc=0,2000);if(_lc>=5){_lc=0;window.location.href='admin.html';}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal(null,true);closeAllP();}});
-const obs=new IntersectionObserver(en=>en.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08});
-document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
-</script>
-</body>
-</html>
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeM
