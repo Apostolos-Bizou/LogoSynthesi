@@ -333,9 +333,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <div class="form-hint">Χρησιμοποίησε το embed URL: youtube.com/embed/VIDEO_ID</div>
           </div>
           <div class="form-field">
-            <label>Poster URL (εικόνα)</label>
-            <input type="url" id="evPoster" placeholder="https://... (URL εικόνας)">
-            <div class="form-hint">Φόρτωσε την εικόνα σε Google Drive ή Imgur και βάλε τον link.</div>
+            <label>Αφίσα εκδήλωσης</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button type="button" onclick="uploadToCloudinary('evPoster','evPosterPreview')" style="background:var(--gold);color:#111;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:0.05em;">📁 Ανέβασμα εικόνας</button>
+              <span id="evPosterStatus" style="font-size:12px;color:var(--gold);opacity:0.7;"></span>
+            </div>
+            <input type="hidden" id="evPoster">
+            <div id="evPosterPreview" style="margin-top:10px;"></div>
           </div>
           <div class="form-field" style="border:1px solid rgba(200,169,110,0.25);padding:14px;border-radius:2px;">
             <label style="color:var(--gold);">🎟 Εισιτήρια (Eventbrite / Viva / άλλο)</label>
@@ -405,9 +409,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <textarea id="memBio" style="display:none;"></textarea>
           </div>
           <div class="form-field">
-            <label>Φωτογραφία (URL)</label>
-            <input type="url" id="memPhoto" placeholder="https://… (URL φωτογραφίας)">
-            <div class="form-hint">Ανέβασε φωτογραφία στο Google Drive (κοινόχρηστο) ή Imgur και βάλε τον link.</div>
+            <label>Φωτογραφία μέλους</label>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button type="button" onclick="uploadToCloudinary('memPhoto','memPhotoPreview')" style="background:var(--gold);color:#111;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:0.05em;">📁 Ανέβασμα φωτογραφίας</button>
+              <span id="memPhotoStatus" style="font-size:12px;color:var(--gold);opacity:0.7;"></span>
+            </div>
+            <input type="hidden" id="memPhoto">
+            <div id="memPhotoPreview" style="margin-top:10px;"></div>
           </div>
           <div class="form-field">
             <label>Σειρά εμφάνισης</label>
@@ -634,6 +642,7 @@ function editEvent(id) {
   document.getElementById('evPeople').value = (ev.people||[]).join('\n');
   document.getElementById('evTrailer').value = ev.trailerUrl||'';
   document.getElementById('evPoster').value = ev.posterUrl||'';
+  showImagePreview('evPosterPreview', ev.posterUrl||'', true);
   document.getElementById('evTicket').value = ev.ticketUrl||'';
   document.querySelector('#view-add-event .page-title').innerHTML = '✎ Επεξεργασία <span>Εκδήλωσης</span>';
   switchView('add-event');
@@ -803,6 +812,7 @@ function editMember(id) {
   document.getElementById('memRole').value=m.role||'';
   document.getElementById('memBio').value=m.bio||'';
   document.getElementById('memPhoto').value=m.photo||'';
+  showImagePreview('memPhotoPreview', m.photo||'', false);
   document.getElementById('memOrder').value=m.order||99;
   document.getElementById('memEditId').value=id;
   document.getElementById('memCancelEdit').style.display='inline-block';
@@ -955,6 +965,54 @@ window.switchView = function(v) {
     }, 100);
   }
 };
+
+// Cloudinary upload
+const CLOUDINARY_CLOUD = 'dxodgbx3o';
+const CLOUDINARY_PRESET = 'logosynthesi';
+
+function uploadToCloudinary(fieldId, previewId) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/webp';
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+    const statusId = fieldId === 'evPoster' ? 'evPosterStatus' : 'memPhotoStatus';
+    const statusEl = document.getElementById(statusId);
+    statusEl.textContent = 'Ανέβασμα...';
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    try {
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {method:'POST', body:fd});
+      const data = await res.json();
+      if (data.secure_url) {
+        document.getElementById(fieldId).value = data.secure_url;
+        statusEl.textContent = '✓ Ανέβηκε';
+        showImagePreview(previewId, data.secure_url, fieldId === 'evPoster');
+      } else { statusEl.textContent = '✗ Σφάλμα'; }
+    } catch(e) { statusEl.textContent = '✗ Σφάλμα σύνδεσης'; }
+  };
+  input.click();
+}
+
+function showImagePreview(previewId, url, isPoster) {
+  const el = document.getElementById(previewId);
+  if (!el || !url) return;
+  const maxH = isPoster ? '200px' : '80px';
+  const radius = isPoster ? '2px' : '50%';
+  const statusId = isPoster ? 'evPosterStatus' : 'memPhotoStatus';
+  el.innerHTML = `<div style="position:relative;display:inline-block;">
+    <img src="${url}" style="max-height:${maxH};border-radius:${radius};border:1px solid var(--gold-line);display:block;">
+    <button type="button" onclick="clearImage('${previewId}','${isPoster?'evPoster':'memPhoto'}','${statusId}')" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;line-height:20px;text-align:center;">x</button>
+  </div>`;
+}
+
+function clearImage(previewId, fieldId, statusId) {
+  document.getElementById(fieldId).value = '';
+  document.getElementById(previewId).innerHTML = '';
+  document.getElementById(statusId).textContent = '';
+}
 </script>
 </body>
 </html>
