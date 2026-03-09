@@ -835,7 +835,7 @@ async function deleteMember(id) {
 function renderMemberList() {
   const el = document.getElementById('memberList');
   if (!_members.length) { el.innerHTML='<div style="color:var(--cream-dim);font-style:italic;font-size:13px;">Δεν υπάρχουν μέλη ακόμα.</div>'; return; }
-  el.innerHTML = '<div class="event-list">' + _members.map(m=>`
+  el.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;">' + _members.map(m=>`
     <div class="event-row">
       <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:0;">
         ${m.photo?`<img src="${m.photo}" style="width:44px;height:44px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);flex-shrink:0;" onerror="this.style.display='none'">`:'<div style="width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-line);flex-shrink:0;background:var(--black3);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;">👤</div>'}
