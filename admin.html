@@ -423,13 +423,31 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
           <label>Ρόλος</label>
           <input type="text" id="mRole" placeholder="π.χ. Σύνδεσμος Φιλολόγων - Πρόεδρος">
         </div>
+
+        <!-- Photo upload -->
         <div class="field-group form-full">
-          <label>URL Φωτογραφίας (Cloudinary)</label>
-          <input type="url" id="mPhoto" placeholder="https://res.cloudinary.com/…">
+          <label>Φωτογραφία</label>
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+            <div id="mPhotoPreview" style="width:80px;height:80px;border:1px solid var(--gline);background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:9px;color:var(--cdim);">Χωρίς</span>
+            </div>
+            <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:8px;">
+              <label style="display:flex;align-items:center;gap:10px;border:1px solid var(--gline);padding:10px 14px;cursor:pointer;background:var(--bg3);transition:border .2s;" onmouseenter="this.style.borderColor='var(--gold)'" onmouseleave="this.style.borderColor='var(--gline)'">
+                <span style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">📷 Επιλογή αρχείου JPEG/PNG</span>
+                <input type="file" id="mPhotoFile" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="previewMemberPhoto(this)">
+              </label>
+              <div style="font-size:9px;color:var(--cdim);letter-spacing:0.1em;">— ή —</div>
+              <input type="url" id="mPhoto" placeholder="URL από Cloudinary (αν έχεις ήδη)" style="background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:12px;padding:8px 10px;outline:none;">
+              <div id="mUploadProgress" style="font-size:11px;color:var(--gold);display:none;">Ανέβασμα…</div>
+            </div>
+          </div>
         </div>
+
+        <!-- Bio with Quill -->
         <div class="field-group form-full">
-          <label>Βιογραφικό (προαιρετικό)</label>
-          <textarea id="mBio" placeholder="Σύντομο βιογραφικό…" style="min-height:70px;"></textarea>
+          <label>Βιογραφικό</label>
+          <div id="quillMemberBio" style="background:#1a1815;color:var(--cream);min-height:280px;border:1px solid var(--gline);font-family:var(--sans);font-size:13px;"></div>
+          <input type="hidden" id="mBio">
         </div>
       </div>
       <div class="form-actions" style="margin-top:14px;">
@@ -497,6 +515,7 @@ let quillEl = null;
 let quillEn = null;
 
 /* Init Quill editors after DOM ready */
+let quillBio = null;
 document.addEventListener('DOMContentLoaded', () => {
   const toolbarOptions = [
     [{ 'header': [1, 2, 3, false] }],
@@ -506,8 +525,9 @@ document.addEventListener('DOMContentLoaded', () => {
     [{ 'list': 'ordered'}, { 'list': 'bullet' }],
     ['clean']
   ];
-  quillEl = new Quill('#quillEl', { theme: 'snow', modules: { toolbar: toolbarOptions } });
-  quillEn = new Quill('#quillEn', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+  quillEl  = new Quill('#quillEl',  { theme: 'snow', modules: { toolbar: toolbarOptions } });
+  quillEn  = new Quill('#quillEn',  { theme: 'snow', modules: { toolbar: toolbarOptions } });
+  quillBio = new Quill('#quillMemberBio', { theme: 'snow', modules: { toolbar: toolbarOptions } });
 });
 
 /* ── HELPERS ── */
@@ -872,19 +892,51 @@ async function loadMembers() {
   }
 }
 
+/* ── PHOTO UPLOAD ── */
+const CLOUDINARY_CLOUD = 'dxodgbx3o';
+const CLOUDINARY_PRESET = 'logosynthesi';
+
+function previewMemberPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('mPhotoPreview');
+    preview.innerHTML = `<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;display:block;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadPhotoToCloudinary(file) {
+  const progress = document.getElementById('mUploadProgress');
+  progress.style.display = 'block';
+  progress.textContent = 'Ανέβασμα φωτογραφίας…';
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+    method: 'POST', body: formData
+  });
+  const data = await res.json();
+  progress.style.display = 'none';
+  if (data.secure_url) return data.secure_url;
+  throw new Error(data.error?.message || 'Upload failed');
+}
+
 function clearMemberForm() {
   document.getElementById('mEditId').value = '';
   document.getElementById('mName').value = '';
   document.getElementById('mRole').value = '';
   document.getElementById('mPhoto').value = '';
-  document.getElementById('mBio').value = '';
+  document.getElementById('mPhotoFile').value = '';
+  document.getElementById('mPhotoPreview').innerHTML = '<span style="font-size:9px;color:var(--cdim);">Χωρίς</span>';
+  if (quillBio) quillBio.root.innerHTML = '';
   document.getElementById('mBtnDelete').style.display = 'none';
   document.getElementById('memberFormTitle').textContent = '+ Νέο Μέλος';
   document.getElementById('memberMsg').textContent = '';
 }
 
 function editMember(id) {
-  // Find member data from DOM — reload from Firestore
   const { collection, getDocs } = window._fs;
   getDocs(collection(window._db,'members')).then(snap => {
     const d = snap.docs.find(x => x.id === id);
@@ -894,7 +946,18 @@ function editMember(id) {
     document.getElementById('mName').value  = m.name || '';
     document.getElementById('mRole').value  = m.role || '';
     document.getElementById('mPhoto').value = m.photoUrl || '';
-    document.getElementById('mBio').value   = m.bio || '';
+    // Show photo preview
+    if (m.photoUrl) {
+      document.getElementById('mPhotoPreview').innerHTML =
+        `<img src="${m.photoUrl}" style="width:80px;height:80px;object-fit:cover;display:block;" onerror="this.outerHTML='<span style=\\'font-size:9px;color:var(--cdim);\\'>Χωρίς</span>'">`;
+    }
+    // Load bio in Quill
+    if (quillBio) {
+      const bio = m.bio || '';
+      if (bio.startsWith('<')) quillBio.root.innerHTML = bio;
+      else if (bio) quillBio.setText(bio);
+      else quillBio.root.innerHTML = '';
+    }
     document.getElementById('mBtnDelete').style.display = 'block';
     document.getElementById('memberFormTitle').textContent = '✏️ Επεξεργασία Μέλους';
     document.getElementById('view-members').scrollIntoView({ behavior:'smooth' });
@@ -907,15 +970,31 @@ async function saveMember() {
     document.getElementById('memberMsg').innerHTML = '<span style="color:var(--red);">Το όνομα είναι υποχρεωτικό.</span>';
     return;
   }
+  const msg = document.getElementById('memberMsg');
+  msg.textContent = 'Αποθήκευση…';
+
+  // Handle photo: file upload takes priority over URL field
+  let photoUrl = document.getElementById('mPhoto').value.trim();
+  const fileInput = document.getElementById('mPhotoFile');
+  if (fileInput.files[0]) {
+    try {
+      photoUrl = await uploadPhotoToCloudinary(fileInput.files[0]);
+      document.getElementById('mPhoto').value = photoUrl;
+    } catch(e) {
+      msg.innerHTML = `<span style="color:var(--red);">Σφάλμα upload: ${e.message}</span>`;
+      return;
+    }
+  }
+
+  const bio = quillBio ? quillBio.root.innerHTML : '';
   const data = {
     name,
     role:     document.getElementById('mRole').value.trim(),
-    photoUrl: document.getElementById('mPhoto').value.trim(),
-    bio:      document.getElementById('mBio').value.trim(),
+    photoUrl,
+    bio,
     updatedAt: Date.now(),
   };
   const editId = document.getElementById('mEditId').value;
-  document.getElementById('memberMsg').textContent = 'Αποθήκευση…';
   try {
     const { collection, addDoc, doc, updateDoc } = window._fs;
     if (editId) {
@@ -928,8 +1007,9 @@ async function saveMember() {
     }
     clearMemberForm();
     loadMembers();
+    msg.innerHTML = '';
   } catch(e) {
-    document.getElementById('memberMsg').innerHTML = `<span style="color:var(--red);">Σφάλμα: ${e.message}</span>`;
+    msg.innerHTML = `<span style="color:var(--red);">Σφάλμα: ${e.message}</span>`;
   }
 }
 
