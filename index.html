@@ -1379,7 +1379,7 @@ footer {
     <div class="panel-body">
       <div class="contact-block">
         <div class="contact-lbl">Email</div>
-        <div class="contact-val"><a href="/cdn-cgi/l/email-protection#90fcfff7ffe3e9fee4f8f5e3f9a2a0a2a6d0f7fdf1f9fcbef3fffd"><span class="__cf_email__" data-cfemail="7f131018100c06110b171a0c164d4f4d493f18121e1613511c1012">[email&#160;protected]</span></a></div>
+        <div class="contact-val"><a href="mailto:logosynthesi2026@gmail.com">logosynthesi2026@gmail.com</a></div>
       </div>
       <div class="contact-block">
         <div class="contact-lbl">Τοποθεσία</div>
@@ -1393,7 +1393,17 @@ footer {
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
+/* ─── EARLY GLOBAL EXPOSURE ───
+   Expose stubs immediately so onclick handlers don't throw ReferenceError
+   even before async Firebase init completes. Real functions replace these. */
+(function earlyExpose() {
+  const noop = () => {};
+  ['setLang','filterCat','openPanel','closePanel','closeAllPanels',
+   'openEv','selS','subV','closeModal','secretClick','togglePosterFS',
+   'selectHub'].forEach(fn => { if (!window[fn]) window[fn] = noop; });
+})();
+
 /* ─── DEMO DATA ─── */
 const DEMO = [
   {id:'d1',category:'cinehub',title:'Blue Sky Jo',date:'2026-03-05',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια συγκινητική ταινία για τη δύναμη της ανθρώπινης σύνδεσης.',country:'Ισπανία 2023 · 98΄',people:['Σκηνοθεσία: María Ripoll'],votes:{1:1,2:3,3:8,4:15,5:22}},
