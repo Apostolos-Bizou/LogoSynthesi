@@ -1896,13 +1896,30 @@ async function loadAbout() {
     });
   } catch {}
 }
+let MEMBERS_MAP = {};
+function bioToHtml(text) {
+  if (!text) return '';
+  // If already contains HTML tags, use as-is
+  if (/<[a-z]/i.test(text)) return text;
+  // Otherwise convert \n\n or \\n\\n to paragraphs
+  return text
+    .replace(/\\n\\n/g, '\n\n')
+    .replace(/\\n/g, '\n')
+    .split(/\n\n+/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => `<p>${p.replace(/\n/g,'<br>')}</p>`)
+    .join('');
+}
 function renderMembers(mem) {
   if (!mem.length) {
     document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';
     return;
   }
+  MEMBERS_MAP = {};
+  mem.forEach(m => { MEMBERS_MAP[m.id] = m; });
   document.getElementById('membersGrid').innerHTML = mem.map(m =>
-    `<div class="member-card" onclick="openMemberBio(${JSON.stringify(JSON.stringify(m))})">
+    `<div class="member-card" data-mid="${m.id}" onclick="openMemberBio(this.dataset.mid)">
       ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name||''}">` : `<div class="member-ph">◈</div>`}
       <div class="member-name">${m.name||''}</div>
       <div class="member-role">${m.role||''}</div>
@@ -1945,9 +1962,10 @@ document.addEventListener('keydown', e => {
 });
 
 /* ─── MEMBER BIO OVERLAY ─── */
-function openMemberBio(jsonStr) {
-  const m = JSON.parse(jsonStr);
-  if (!m.bio) return;
+function openMemberBio(mid) {
+  const m = MEMBERS_MAP[mid];
+  if (!m || !m.bio) return;
+  const bioHtml = bioToHtml(m.bio);
   document.getElementById('memberBioContent').innerHTML = `
     ${m.photo
       ? `<img class="member-bio-photo" src="${m.photo}" alt="${m.name||''}">`
@@ -1955,7 +1973,7 @@ function openMemberBio(jsonStr) {
     <div class="member-bio-name">${m.name||''}</div>
     ${m.role ? `<div class="member-bio-role">${m.role}</div>` : ''}
     <div class="member-bio-divider"></div>
-    <div class="member-bio-text">${m.bio}</div>
+    <div class="member-bio-text">${bioHtml}</div>
   `;
   document.getElementById('memberBioOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
