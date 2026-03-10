@@ -741,15 +741,27 @@ function switchTabByName(name) {
 /* ── ABOUT ── */
 async function loadAbout() {
   try {
-    const { collection, getDocs } = window._fs;
+    const { collection, getDocs, query, orderBy } = window._fs;
     const snap = await getDocs(collection(window._db,'about'));
-    snap.forEach(d => {
-      const data = d.data();
-      if (data.el) document.getElementById('aboutEl').value = data.el;
-      if (data.en) document.getElementById('aboutEn').value = data.en;
-    });
     if (snap.empty) {
       document.getElementById('aboutMsg').innerHTML = '<span style="color:var(--cdim);">Δεν υπάρχει αποθηκευμένο κείμενο ακόμα.</span>';
+      return;
+    }
+    // Find the most recent doc with content
+    let best = null;
+    snap.forEach(d => {
+      const data = d.data();
+      const hasContent = data.el || data.en || data.text;
+      if (!hasContent) return;
+      if (!best || (data.updatedAt && (!best.updatedAt || data.updatedAt > best.updatedAt))) {
+        best = { id: d.id, ...data };
+      }
+    });
+    if (best) {
+      // Support both old format (text) and new format (el/en)
+      document.getElementById('aboutEl').value = best.el || best.text || '';
+      document.getElementById('aboutEn').value = best.en || '';
+      document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--cdim);font-size:10px;">Φορτώθηκε από ${snap.size} αποθηκευμένες εκδοχές.</span>`;
     }
   } catch(e) {
     document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--red);">Σφάλμα φόρτωσης: ${e.message}</span>`;
@@ -764,10 +776,17 @@ async function saveAbout() {
   try {
     const { collection, getDocs, addDoc, doc, updateDoc } = window._fs;
     const snap = await getDocs(collection(window._db,'about'));
-    if (snap.empty) {
-      await addDoc(collection(window._db,'about'), {el, en, updatedAt: Date.now()});
+    // Find most recent doc to update
+    let bestId = null;
+    snap.forEach(d => {
+      const data = d.data();
+      if (!bestId && (data.el || data.en || data.text)) bestId = d.id;
+    });
+    const data = { el, en, text: el, updatedAt: new Date().toISOString() };
+    if (bestId) {
+      await updateDoc(doc(window._db,'about',bestId), data);
     } else {
-      await updateDoc(doc(window._db,'about',snap.docs[0].id), {el, en, updatedAt: Date.now()});
+      await addDoc(collection(window._db,'about'), data);
     }
     msg.innerHTML = '<span style="color:var(--green);">✓ Αποθηκεύτηκε!</span>';
     toast('✓ Κείμενο αποθηκεύτηκε!');
