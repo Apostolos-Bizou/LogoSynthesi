@@ -39,7 +39,7 @@
   --cdim2: rgba(247,243,236,0.35);
   --serif: 'Cormorant Garamond', Georgia, serif;
   --sans: 'Raleway', sans-serif;
-  --nav-h: 102px;
+  --nav-h: 48px;
   --cat-h: 42px;
 }
 
@@ -84,8 +84,8 @@ header {
   height: var(--nav-h);
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 14px;
+  gap: 0;
 }
 
 .logo-link {
@@ -245,13 +245,17 @@ header {
 /* ─── CATEGORY BAR ─── */
 .cat-bar {
   display: flex;
-  height: var(--cat-h);
+  flex: 1;
+  height: var(--nav-h);
   align-items: center;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 0 8px;
+  padding: 0 6px;
   gap: 2px;
-  border-top: 1px solid rgba(200,169,110,0.1);
+  border-top: none;
+  border-left: 1px solid rgba(200,169,110,0.1);
+  border-right: 1px solid rgba(200,169,110,0.1);
+  margin: 0 10px;
 }
 .cat-bar::-webkit-scrollbar { display: none; }
 
@@ -276,7 +280,7 @@ header {
   -webkit-tap-highlight-color: transparent;
 }
 .cat-btn .icon { font-size: 11px; }
-.cat-icon { display: flex; align-items: center; flex-shrink: 0; }
+.cat-icon { display: none; }
 .cat-icon svg { display: block; }
 .cat-btn.active .cat-icon svg circle:first-child { fill: #0a0900; }
 .cat-btn.active .cat-icon svg { filter: brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg); }
@@ -1654,9 +1658,30 @@ footer {
       </div>
       <span class="logo-text">Λογο<em>Σύνθεση</em></span>
     </a>
+
+    <!-- Cat-bar inline -->
+    <div class="cat-bar">
+      <button class="cat-btn active" onclick="filterCat('all')" data-cat="all">Όλες</button>
+      <button class="cat-btn" onclick="filterCat('cinehub')" data-cat="cinehub">
+        <span class="cat-icon"><svg viewBox="0 0 120 120" width="16" height="16"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><rect x="24" y="38" width="72" height="48" rx="1.5" fill="none" stroke="#C8A96E" stroke-width="1.6"/><rect x="24" y="30" width="72" height="7" fill="none" stroke="#C8A96E" stroke-width="1"/><rect x="29" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="38" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="47" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="56" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="65" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="74" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="83" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><polygon points="48,50 48,74 74,62" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><circle cx="60" cy="62" r="2.2" fill="#C8A96E"/></svg></span>CineHub
+      </button>
+      <button class="cat-btn" onclick="filterCat('musichub')" data-cat="musichub">
+        <span class="cat-icon"><svg viewBox="0 0 120 120" width="16" height="16"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><path d="M38 50 A13 13 0 0 0 38 72" fill="none" stroke="#C8A96E" stroke-width="2"/><path d="M30 44 A21 21 0 0 0 30 78" fill="none" stroke="#C8A96E" stroke-width="1.4" opacity="0.5"/><path d="M82 50 A13 13 0 0 1 82 72" fill="none" stroke="#C8A96E" stroke-width="2"/><path d="M90 44 A21 21 0 0 1 90 78" fill="none" stroke="#C8A96E" stroke-width="1.4" opacity="0.5"/><line x1="65" y1="40" x2="65" y2="64" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/><path d="M65 40 Q76 45 72 55" fill="none" stroke="#C8A96E" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="61" cy="65" rx="6.5" ry="4.5" transform="rotate(-20 61 65)" fill="none" stroke="#C8A96E" stroke-width="2"/></svg></span>MusicHub
+      </button>
+      <button class="cat-btn" onclick="filterCat('logohub')" data-cat="logohub">
+        <span class="cat-icon"><svg viewBox="0 0 120 120" width="16" height="16"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><path d="M34 72 L34 44 Q60 40 60 44 L60 72" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><path d="M86 72 L86 44 Q60 40 60 44 L60 72" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><path d="M34 72 Q60 69 60 72 Q60 69 86 72" fill="none" stroke="#C8A96E" stroke-width="1.6"/><line x1="38" y1="53" x2="57" y2="52" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="38" y1="58" x2="57" y2="57" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="38" y1="63" x2="57" y2="62" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="52" x2="82" y2="53" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="57" x2="82" y2="58" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="62" x2="82" y2="63" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><circle cx="60" cy="41" r="2.5" fill="#C8A96E"/></svg></span>LogoHub
+      </button>
+      <button class="cat-btn" onclick="filterCat('arthub')" data-cat="arthub">
+        <span class="cat-icon"><svg viewBox="0 0 120 120" width="16" height="16"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><circle cx="60" cy="26" r="7" fill="none" stroke="#C8A96E" stroke-width="2"/><circle cx="60" cy="26" r="2.5" fill="#C8A96E"/><path d="M22 32 Q30 24 42 30 Q52 35 50 44" fill="none" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round" opacity="0.65"/><path d="M98 32 Q90 24 78 30 Q68 35 70 44" fill="none" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round" opacity="0.65"/><path d="M18 75 Q28 64 42 70 Q54 75 62 66 Q72 57 86 66 Q92 70 98 68" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><path d="M18 83 Q26 75 38 79 Q50 83 58 74 Q66 65 78 73 Q88 79 98 75" fill="none" stroke="#C8A96E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>ArtHub
+      </button>
+      <button class="cat-btn" onclick="filterCat('stagehub')" data-cat="stagehub">
+        <span class="cat-icon"><svg viewBox="0 0 120 120" width="16" height="16"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><line x1="24" y1="82" x2="96" y2="82" stroke="#C8A96E" stroke-width="1.3"/><path d="M24 28 Q30 40 27 55 Q25 67 32 80" fill="none" stroke="#C8A96E" stroke-width="1.8"/><path d="M96 28 Q90 40 93 55 Q95 67 88 80" fill="none" stroke="#C8A96E" stroke-width="1.8"/><path d="M60 30 L42 80 L78 80Z" fill="#C8A96E" opacity="0.07"/><line x1="60" y1="30" x2="42" y2="80" stroke="#C8A96E" stroke-width="0.8" opacity="0.4"/><line x1="60" y1="30" x2="78" y2="80" stroke="#C8A96E" stroke-width="0.8" opacity="0.4"/><circle cx="60" cy="28" r="4" fill="none" stroke="#C8A96E" stroke-width="1.5"/><circle cx="60" cy="28" r="1.8" fill="#C8A96E"/></svg></span>StageHub
+      </button>
+    </div>
+
     <div class="nav-right">
       <button class="nav-btn" onclick="openCalendar()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Ημερολόγιο
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Ημερολόγιο
       </button>
       <button class="nav-btn" onclick="openPanel('about')">Για εμάς</button>
       <button class="nav-btn" onclick="openPanel('members')">Μέλη</button>
@@ -1684,29 +1709,6 @@ footer {
       <button class="lang-btn active" onclick="setLang('el')">ΕΛ</button>
       <button class="lang-btn" onclick="setLang('en')">EN</button>
     </div>
-  </div>
-  <div class="cat-bar">
-    <button class="cat-btn active" onclick="filterCat('all')" data-cat="all">Όλες</button>
-
-    <button class="cat-btn" onclick="filterCat('cinehub')" data-cat="cinehub">
-      <span class="cat-icon"><svg viewBox="0 0 120 120" width="18" height="18"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><rect x="24" y="38" width="72" height="48" rx="1.5" fill="none" stroke="#C8A96E" stroke-width="1.6"/><rect x="24" y="30" width="72" height="7" fill="none" stroke="#C8A96E" stroke-width="1"/><rect x="29" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="38" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="47" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="56" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="65" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="74" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><rect x="83" y="31.5" width="4.5" height="3.5" rx="0.5" fill="#C8A96E" opacity="0.8"/><polygon points="48,50 48,74 74,62" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><circle cx="60" cy="62" r="2.2" fill="#C8A96E"/></svg></span>CineHub
-    </button>
-
-    <button class="cat-btn" onclick="filterCat('musichub')" data-cat="musichub">
-      <span class="cat-icon"><svg viewBox="0 0 120 120" width="18" height="18"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><path d="M38 50 A13 13 0 0 0 38 72" fill="none" stroke="#C8A96E" stroke-width="2"/><path d="M30 44 A21 21 0 0 0 30 78" fill="none" stroke="#C8A96E" stroke-width="1.4" opacity="0.5"/><path d="M82 50 A13 13 0 0 1 82 72" fill="none" stroke="#C8A96E" stroke-width="2"/><path d="M90 44 A21 21 0 0 1 90 78" fill="none" stroke="#C8A96E" stroke-width="1.4" opacity="0.5"/><line x1="65" y1="40" x2="65" y2="64" stroke="#C8A96E" stroke-width="2" stroke-linecap="round"/><path d="M65 40 Q76 45 72 55" fill="none" stroke="#C8A96E" stroke-width="1.8" stroke-linecap="round"/><ellipse cx="61" cy="65" rx="6.5" ry="4.5" transform="rotate(-20 61 65)" fill="none" stroke="#C8A96E" stroke-width="2"/></svg></span>MusicHub
-    </button>
-
-    <button class="cat-btn" onclick="filterCat('logohub')" data-cat="logohub">
-      <span class="cat-icon"><svg viewBox="0 0 120 120" width="18" height="18"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><path d="M34 72 L34 44 Q60 40 60 44 L60 72" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><path d="M86 72 L86 44 Q60 40 60 44 L60 72" fill="none" stroke="#C8A96E" stroke-width="1.6" stroke-linejoin="round"/><path d="M34 72 Q60 69 60 72 Q60 69 86 72" fill="none" stroke="#C8A96E" stroke-width="1.6"/><line x1="38" y1="53" x2="57" y2="52" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="38" y1="58" x2="57" y2="57" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="38" y1="63" x2="57" y2="62" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="52" x2="82" y2="53" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="57" x2="82" y2="58" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><line x1="63" y1="62" x2="82" y2="63" stroke="#C8A96E" stroke-width="0.9" opacity="0.6"/><circle cx="60" cy="41" r="2.5" fill="#C8A96E"/></svg></span>LogoHub
-    </button>
-
-    <button class="cat-btn" onclick="filterCat('arthub')" data-cat="arthub">
-      <span class="cat-icon"><svg viewBox="0 0 120 120" width="18" height="18"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><circle cx="60" cy="26" r="7" fill="none" stroke="#C8A96E" stroke-width="2"/><circle cx="60" cy="26" r="2.5" fill="#C8A96E"/><path d="M22 32 Q30 24 42 30 Q52 35 50 44" fill="none" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round" opacity="0.65"/><path d="M98 32 Q90 24 78 30 Q68 35 70 44" fill="none" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round" opacity="0.65"/><path d="M18 75 Q28 64 42 70 Q54 75 62 66 Q72 57 86 66 Q92 70 98 68" fill="none" stroke="#C8A96E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><path d="M18 83 Q26 75 38 79 Q50 83 58 74 Q66 65 78 73 Q88 79 98 75" fill="none" stroke="#C8A96E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>ArtHub
-    </button>
-
-    <button class="cat-btn" onclick="filterCat('stagehub')" data-cat="stagehub">
-      <span class="cat-icon"><svg viewBox="0 0 120 120" width="18" height="18"><circle cx="60" cy="60" r="60" fill="#111009"/><circle cx="60" cy="60" r="56" fill="none" stroke="#C8A96E" stroke-width="1.2"/><line x1="24" y1="82" x2="96" y2="82" stroke="#C8A96E" stroke-width="1.3"/><path d="M24 28 Q30 40 27 55 Q25 67 32 80" fill="none" stroke="#C8A96E" stroke-width="1.8"/><path d="M96 28 Q90 40 93 55 Q95 67 88 80" fill="none" stroke="#C8A96E" stroke-width="1.8"/><path d="M60 30 L42 80 L78 80Z" fill="#C8A96E" opacity="0.07"/><line x1="60" y1="30" x2="42" y2="80" stroke="#C8A96E" stroke-width="0.8" opacity="0.4"/><line x1="60" y1="30" x2="78" y2="80" stroke="#C8A96E" stroke-width="0.8" opacity="0.4"/><circle cx="60" cy="28" r="4" fill="none" stroke="#C8A96E" stroke-width="1.5"/><circle cx="60" cy="28" r="1.8" fill="#C8A96E"/></svg></span>StageHub
-    </button>
   </div>
 </header>
 
