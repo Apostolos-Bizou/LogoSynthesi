@@ -23,7 +23,7 @@
     const db = getFirestore(app);
     window._db = db;
     window._firebase = { collection, getDocs, addDoc, query, where, orderBy };
-  } catch(e) {}
+  } catch(e) { console.warn('Firebase init error:', e); }
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
@@ -1662,10 +1662,11 @@ footer {
 /* Stubs in <head>: defined before body parses so onclick attrs never throw */
 (function(){
   var fns=['setLang','filterCat','openPanel','closePanel','closeAllPanels',
-           'openEv','selS','subV','closeModal','secretClick','togglePosterFS','selectHub'];
-  fns.forEach(function(fn){ window[fn]=function(){
-    (window._q=window._q||[]).push([fn,[].slice.call(arguments)]);
-  };});
+           'openEv','selS','subV','closeModal','secretClick','togglePosterFS','selectHub',
+           'openCalendar','closeCalendar','toggleMobileMenu','closeMobileMenu',
+           'closeMemberBio','calMove','openMemberBio'];
+  fns.forEach(function(fn){ window[fn]=window[fn]||function(){
+    (window._q=window._q||[]).push([fn,[].slice.call(arguments)]);\n  };});
 })();
 </script>
 <body>
@@ -2065,8 +2066,11 @@ async function initApp() {
 
 // Start immediately — don't wait for firebase-ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Give Firebase 1.5s to init, then start regardless
-  setTimeout(initApp, 100);
+  // Give Firebase module time to init (ES modules load async)
+  setTimeout(initApp, 500);
+  // Fallback: retry at 2s and 5s if events still empty
+  setTimeout(() => { if (!ALL_EV.length) initApp(); }, 2000);
+  setTimeout(() => { if (!ALL_EV.length) initApp(); }, 5000);
 });
 window.addEventListener('firebase-ready', () => {
   // If firebase loaded, re-run to get real data
