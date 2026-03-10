@@ -2313,13 +2313,15 @@ function renderMembers(mem) {
   }
   MEMBERS_MAP = {};
   mem.forEach(m => { MEMBERS_MAP[m.id] = m; });
-  document.getElementById('membersGrid').innerHTML = mem.map(m =>
-    `<div class="member-card" data-mid="${m.id}" onclick="openMemberBio(this.dataset.mid)">
-      ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name||''}">` : `<div class="member-ph">◈</div>`}
+  document.getElementById('membersGrid').innerHTML = mem.map(m => {
+    const photo = m.photoUrl || m.photo || '';
+    return `<div class="member-card" data-mid="${m.id}" onclick="openMemberBio(this.dataset.mid)">
+      ${photo ? `<img class="member-photo" src="${photo}" alt="${m.name||''}" onerror="this.outerHTML='<div class=\\'member-ph\\'>◈</div>'">` : `<div class="member-ph">◈</div>`}
       <div class="member-name">${m.name||''}</div>
       <div class="member-role">${m.role||''}</div>
       ${m.bio ? `<div class="member-more-btn">Περισσότερα ›</div>` : ''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 async function loadMembers() {
   const grid = document.getElementById('membersGrid');
@@ -2361,9 +2363,10 @@ function openMemberBio(mid) {
   const m = MEMBERS_MAP[mid];
   if (!m || !m.bio) return;
   const bioHtml = bioToHtml(m.bio);
+  const photo = m.photoUrl || m.photo || '';
   document.getElementById('memberBioContent').innerHTML = `
-    ${m.photo
-      ? `<img class="member-bio-photo" src="${m.photo}" alt="${m.name||''}">`
+    ${photo
+      ? `<img class="member-bio-photo" src="${photo}" alt="${m.name||''}" onerror="this.outerHTML='<div class=\\'member-bio-ph\\'>◈</div>'">`
       : `<div class="member-bio-ph">◈</div>`}
     <div class="member-bio-name">${m.name||''}</div>
     ${m.role ? `<div class="member-bio-role">${m.role}</div>` : ''}
