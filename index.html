@@ -2024,18 +2024,25 @@ function logoSVG(sz) {
 
 /* ─── INIT ─── */
 async function initApp() {
-  // Always render immediately with DEMO so page is never blank
-  if (!ALL_EV.length) { ALL_EV = DEMO; renderAll(); }
+  renderAll(); // render with whatever is in ALL_EV (empty = shows loading/empty state)
   loadMembers();
   loadAbout();
-  // Then try to load real events from Firebase in background
+  // Load real events from Firebase
   try {
     if (!window._db || !window._firebase) return;
     const {collection, getDocs, orderBy, query} = window._firebase;
     const snap = await getDocs(query(collection(window._db,'events'), orderBy('date','asc')));
     const ev = snap.docs.map(d => ({id:d.id, ...d.data()}));
-    if (ev.length) { ALL_EV = ev; renderAll(); }
-  } catch {}
+    ALL_EV = ev; // even if empty, replace — never show DEMO as real data
+    renderAll();
+  } catch(err) {
+    console.warn('Firebase load error:', err);
+    // Only if completely offline AND no real data, show demo with clear label
+    if (!ALL_EV.length) {
+      ALL_EV = DEMO.map(d => ({...d, _isDemo: true}));
+      renderAll();
+    }
+  }
 }
 
 // Start immediately — don't wait for firebase-ready
@@ -2067,8 +2074,20 @@ function renderGrid(ev) {
   const names = {all:'Πρόγραμμα Εκδηλώσεων',cinehub:'CineHub — Κινηματογράφος',logohub:'LogoHub — Βιβλίο & Διαλέξεις',musichub:'MusicHub — Μουσική',arthub:'ArtHub — Εικαστικά',stagehub:'StageHub — Παραστατικές Τέχνες'};
   gl.textContent = names[CAT] || 'Εκδηλώσεις';
   gc.textContent = ev.length ? `${ev.length} εκδηλώσεις` : '';
-  if (!ev.length) { gr.innerHTML = '<div class="empty-state">Δεν υπάρχουν εκδηλώσεις σε αυτή την κατηγορία.</div>'; return; }
-  gr.innerHTML = ev.map((e, i) => {
+  if (!ev.length) {
+    // If Firebase hasn't loaded yet, show loading dots
+    const firebaseReady = window._db && window._firebase;
+    if (!firebaseReady) {
+      gr.innerHTML = '<div class="empty-state" style="opacity:0.5;">Φόρτωση εκδηλώσεων…</div>';
+    } else {
+      gr.innerHTML = '<div class="empty-state">Δεν υπάρχουν εκδηλώσεις σε αυτή την κατηγορία.</div>';
+    }
+    return;
+  }
+  // Warn if showing demo data
+  const isDemo = ev.some(e => e._isDemo);
+  const demoWarning = isDemo ? `<div style="grid-column:1/-1;text-align:center;padding:8px;background:rgba(200,100,100,0.1);border:1px solid rgba(200,100,100,0.3);border-radius:3px;font-family:var(--sans);font-size:9px;letter-spacing:0.15em;color:rgba(200,100,100,0.8);margin-bottom:8px;">⚠ DEMO DATA — Δεν υπάρχει σύνδεση με Firebase</div>` : '';
+  gr.innerHTML = demoWarning + ev.map((e, i) => {
     const avg = cavg(e.votes);
     return `<div class="ecard fade-up" style="transition-delay:${i*30}ms" onclick="openEv('${e.id}')">
       <div class="ecard-poster">
