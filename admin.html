@@ -423,6 +423,10 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
           <label>Ρόλος</label>
           <input type="text" id="mRole" placeholder="π.χ. Σύνδεσμος Φιλολόγων - Πρόεδρος">
         </div>
+        <div class="field-group" style="max-width:160px;">
+          <label>Σειρά εμφάνισης (1–99)</label>
+          <input type="number" id="mOrder" min="1" max="99" placeholder="1" style="background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:18px;font-weight:600;text-align:center;padding:10px;outline:none;width:100%;">
+        </div>
 
         <!-- Photo upload -->
         <div class="field-group form-full">
@@ -865,25 +869,28 @@ async function loadMembers() {
     const { collection, getDocs } = window._fs;
     const snap = await getDocs(collection(window._db,'members'));
     if (snap.empty) { c.innerHTML = '<div class="empty-msg">Δεν βρέθηκαν μέλη. Πρόσθεσε το πρώτο παραπάνω.</div>'; return; }
-    const rows = snap.docs.map(d => {
-      const m = d.data();
+    const members = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Sort by order field
+    members.sort((a, b) => (a.order || 99) - (b.order || 99));
+    const rows = members.map(m => {
       const photo = m.photoUrl
         ? `<img src="${m.photoUrl}" style="width:52px;height:52px;object-fit:cover;border:1px solid var(--gline);display:block;" onerror="this.outerHTML='<div style=\\'width:52px;height:52px;border:1px solid var(--gline);background:var(--bg3);display:flex;align-items:center;justify-content:center;\\'><span style=\\'font-size:9px;color:var(--cdim);\\'>Χωρίς</span></div>'">`
         : `<div style="width:52px;height:52px;border:1px solid var(--gline);background:var(--bg3);display:flex;align-items:center;justify-content:center;"><span style="font-size:9px;color:var(--cdim);">—</span></div>`;
       return `<tr>
+        <td style="color:var(--gold);font-size:16px;font-weight:600;text-align:center;width:40px;">${m.order || '—'}</td>
         <td>${photo}</td>
         <td style="font-family:var(--serif);font-size:15px;font-weight:600;">${m.name||'—'}</td>
         <td style="color:var(--cdim);font-size:11px;max-width:400px;">${m.role||'—'}</td>
         <td>
           <div style="display:flex;gap:6px;">
-            <button class="act-btn" onclick="editMember('${d.id}')">✏️ Επεξεργασία</button>
-            <button class="act-btn del" onclick="confirmDeleteMember('${d.id}','${(m.name||'').replace(/'/g,"\\'")}')">🗑 Διαγραφή</button>
+            <button class="act-btn" onclick="editMember('${m.id}')">✏️ Επεξεργασία</button>
+            <button class="act-btn del" onclick="confirmDeleteMember('${m.id}','${(m.name||'').replace(/'/g,"\\'")}')">🗑 Διαγραφή</button>
           </div>
         </td>
       </tr>`;
     }).join('');
     c.innerHTML = `<table class="ev-table">
-      <thead><tr><th>Φωτό</th><th>Όνομα</th><th>Ρόλος</th><th>Ενέργειες</th></tr></thead>
+      <thead><tr><th>#</th><th>Φωτό</th><th>Όνομα</th><th>Ρόλος</th><th>Ενέργειες</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <div style="margin-top:10px;font-size:10px;color:var(--cdim);letter-spacing:0.15em;">${snap.size} μέλη</div>`;
@@ -927,6 +934,7 @@ function clearMemberForm() {
   document.getElementById('mEditId').value = '';
   document.getElementById('mName').value = '';
   document.getElementById('mRole').value = '';
+  document.getElementById('mOrder').value = '';
   document.getElementById('mPhoto').value = '';
   document.getElementById('mPhotoFile').value = '';
   document.getElementById('mPhotoPreview').innerHTML = '<span style="font-size:9px;color:var(--cdim);">Χωρίς</span>';
@@ -945,6 +953,7 @@ function editMember(id) {
     document.getElementById('mEditId').value = id;
     document.getElementById('mName').value  = m.name || '';
     document.getElementById('mRole').value  = m.role || '';
+    document.getElementById('mOrder').value = m.order || '';
     document.getElementById('mPhoto').value = m.photoUrl || '';
     // Show photo preview
     if (m.photoUrl) {
@@ -987,9 +996,11 @@ async function saveMember() {
   }
 
   const bio = quillBio ? quillBio.root.innerHTML : '';
+  const orderVal = parseInt(document.getElementById('mOrder').value) || 99;
   const data = {
     name,
     role:     document.getElementById('mRole').value.trim(),
+    order:    Math.min(99, Math.max(1, orderVal)),
     photoUrl,
     bio,
     updatedAt: Date.now(),
