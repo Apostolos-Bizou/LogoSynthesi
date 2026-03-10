@@ -2,7 +2,7 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='28' height='24' rx='1' fill='none' stroke='%23C8A96E' stroke-width='2'/%3E%3Crect x='5' y='7' width='22' height='18' rx='0.5' fill='none' stroke='%23C8A96E' stroke-width='0.8' opacity='0.5'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23C8A96E'/%3E%3Cpath d='M9 13 Q12 16 9 19' fill='none' stroke='%23ffffff' stroke-width='1.2' stroke-linecap='round'/%3E%3Cpath d='M23 13 Q20 16 23 19' fill='none' stroke='%23C8A96E' stroke-width='1.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='28' height='24' rx='1' fill='none' stroke='%23C8A96E' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23C8A96E'/%3E%3Cpath d='M9 13 Q12 16 9 19' fill='none' stroke='%23ffffff' stroke-width='1.2'/%3E%3Cpath d='M23 13 Q20 16 23 19' fill='none' stroke='%23C8A96E' stroke-width='1.2'/%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ΛογοΣύνθεση | Σύνδεσμος Φιλολόγων Λευκάδος</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +23,7 @@
     const db = getFirestore(app);
     window._db = db;
     window._firebase = { collection, getDocs, addDoc, query, where, orderBy };
-  } catch(e) { console.warn('Firebase init error:', e); }
+  } catch(e) {}
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
@@ -41,7 +41,6 @@
   --serif: 'Cormorant Garamond', Georgia, serif;
   --sans: 'Raleway', sans-serif;
   --nav-h: 48px;
-  --footer-h: 44px;
   --cat-h: 42px;
 }
 
@@ -54,7 +53,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   padding-top: var(--nav-h);
-  padding-bottom: var(--footer-h);
+  padding-bottom: 44px;
 }
 ::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -173,16 +172,16 @@ header {
 .lang-btn {
   background: none;
   border: none;
-  color: rgba(247,243,236,0.75);
+  color: var(--cdim);
   font-family: var(--sans);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  padding: 6px 12px;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
   cursor: pointer;
   transition: all .2s;
 }
-.lang-btn.active { background: var(--gdim); color: var(--gold); font-weight: 600; }
+.lang-btn.active { background: var(--gdim); color: var(--gold); }
 
 /* Hamburger for mobile */
 .nav-hamburger {
@@ -217,7 +216,7 @@ header {
   z-index: 199;
   border-bottom: 1px solid rgba(200,169,110,0.3);
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  max-height: calc(100vh - var(--nav-h) - var(--footer-h));
+  max-height: calc(100vh - var(--nav-h) - 44px);
   overflow-y: auto;
 }
 .nav-mobile-menu.open { display: flex; }
@@ -245,8 +244,7 @@ header {
 .nav-mobile-langs {
   display: flex;
   gap: 0;
-  padding: 14px 24px;
-  border-top: 1px solid rgba(200,169,110,0.2);
+  padding: 10px 20px;
 }
 
 @media(max-width: 680px) {
@@ -468,7 +466,6 @@ header {
   align-items: center;
   justify-content: center;
   transition: transform .3s ease;
-  filter: brightness(1.3);
 }
 .hub-card:hover .hub-icon-wrap { transform: scale(1.1); }
 .hub-card.active-hub .hub-icon-wrap { transform: scale(1.08); }
@@ -493,7 +490,7 @@ header {
   .hub-card { padding: 14px 6px; min-width: 60px; }
   .hub-icon-wrap { width: 32px; height: 32px; }
   .hub-icon-wrap svg { width: 32px; height: 32px; }
-  .hub-label { font-size: 8.5px; letter-spacing: 0.10em; font-weight: 500; }
+  .hub-label { font-size: 7.5px; letter-spacing: 0.12em; }
   .landing-frame { width: calc(100vw - 40px); }
   .landing-title { font-size: clamp(20px, 7vw, 32px); }
 }
@@ -1665,8 +1662,11 @@ footer {
            'openEv','selS','subV','closeModal','secretClick','togglePosterFS','selectHub',
            'openCalendar','closeCalendar','toggleMobileMenu','closeMobileMenu',
            'closeMemberBio','calMove','openMemberBio'];
-  fns.forEach(function(fn){ window[fn]=window[fn]||function(){
-    (window._q=window._q||[]).push([fn,[].slice.call(arguments)]);\n  };});
+  fns.forEach(function(fn){
+    window[fn] = window[fn] || function(){
+      (window._q = window._q || []).push([fn, [].slice.call(arguments)]);
+    };
+  });
 })();
 </script>
 <body>
@@ -1960,7 +1960,7 @@ footer {
       <div style="width:100%;max-width:480px;margin:0 auto;">
         <div class="contact-block">
           <div class="contact-lbl">Email</div>
-          <div class="contact-val"><a href="/cdn-cgi/l/email-protection#14787b737b676d7a607c71677d26242622547379757d783a777b79"><span class="__cf_email__" data-cfemail="e78b888088949e89938f82948ed5d7d5d1a7808a868e8bc984888a">[email&#160;protected]</span></a></div>
+          <div class="contact-val"><a href="/cdn-cgi/l/email-protection#7e121119110d07100a161b0d174c4e4c483e19131f1712501d1113"><span class="__cf_email__" data-cfemail="a3cfccc4ccd0dacdd7cbc6d0ca91939195e3c4cec2cacf8dc0ccce">[email&#160;protected]</span></a></div>
         </div>
         <div class="contact-block">
           <div class="contact-lbl">Τοποθεσία</div>
@@ -2066,9 +2066,8 @@ async function initApp() {
 
 // Start immediately — don't wait for firebase-ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Give Firebase module time to init (ES modules load async)
+  // Give Firebase 1.5s to init, then start regardless
   setTimeout(initApp, 500);
-  // Fallback: retry at 2s and 5s if events still empty
   setTimeout(() => { if (!ALL_EV.length) initApp(); }, 2000);
   setTimeout(() => { if (!ALL_EV.length) initApp(); }, 5000);
 });
