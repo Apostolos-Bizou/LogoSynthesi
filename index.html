@@ -997,8 +997,11 @@ header {
 
 .members-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 .member-card {
   background: var(--bg3);
@@ -1561,15 +1564,15 @@ footer {
 </div>
 
 <!-- MEMBERS PANEL -->
-<div class="panel-overlay" id="panelMembers" onclick="pBgClick(event,'panelMembers')">
-  <div class="panel">
-    <div class="panel-header">
+<div class="member-bio-overlay" id="panelMembers" onclick="if(event.target===this)closePanel('panelMembers')">
+  <div class="member-bio-modal">
+    <div class="member-bio-header">
       <button class="panel-back" onclick="closePanel('panelMembers')">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
       </button>
-      <span class="panel-name">Τα Μέλη μας</span>
+      <span class="member-bio-label">Τα Μέλη μας</span>
     </div>
-    <div class="panel-body">
+    <div style="padding: 30px 22px 60px;">
       <div class="members-grid" id="membersGrid">
         <div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Φόρτωση…</div>
       </div>
