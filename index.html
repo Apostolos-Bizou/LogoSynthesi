@@ -1289,38 +1289,40 @@ header {
 /* ─── FOOTER ─── */
 footer {
   border-top: 1px solid var(--gline);
-  padding: 28px 20px;
-  text-align: center;
+  padding: 10px 20px;
   background: var(--bg2);
   position: relative;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .footer-logo {
   font-family: var(--serif);
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 300;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   color: var(--cream);
-  margin-bottom: 4px;
 }
 .footer-sub {
   font-family: var(--sans);
-  font-size: 8px;
-  letter-spacing: 0.3em;
+  font-size: 7.5px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--cdim2);
-  margin-bottom: 16px;
 }
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
+  align-items: center;
+  gap: 10px;
 }
 .footer-links a {
   font-family: var(--sans);
-  font-size: 9px;
-  letter-spacing: 0.22em;
+  font-size: 8px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--cdim2);
   text-decoration: none;
@@ -1502,33 +1504,21 @@ footer {
 </div>
 
 <footer>
-  <div class="footer-logo">Λογο<span style="color:var(--gold);">Σύνθεση</span></div>
-  <div class="footer-sub">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="footer-logo">Λογο<span style="color:var(--gold);">Σύνθεση</span></div>
+    <div class="footer-sub">· Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
+  </div>
   <div class="footer-links">
     <a href="#" onclick="filterCat('all');return false;">Εκδηλώσεις</a>
     <a href="#" onclick="openPanel('about');return false;">Για εμάς</a>
     <a href="#" onclick="openPanel('members');return false;">Μέλη</a>
     <a href="#" onclick="openPanel('contact');return false;">Επικοινωνία</a>
     <a href="admin.html">Διαχείριση ↗</a>
-  </div>
-
-  <!-- Social Media -->
-  <div class="footer-social">
-    <a href="https://www.instagram.com/logosynthesi/" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
-      <svg class="ig-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- outer rounded square -->
-        <rect x="4" y="4" width="40" height="40" rx="12" ry="12"
-              stroke="#C8A96E" stroke-width="2.2" fill="none"/>
-        <!-- inner circle -->
-        <circle cx="24" cy="24" r="9.5"
-                stroke="#C8A96E" stroke-width="2.2" fill="none"/>
-        <!-- lens dot -->
-        <circle cx="35" cy="13" r="2.2" fill="#C8A96E"/>
-      </svg>
-      <span class="social-label">@logosynthesi</span>
+    <a href="https://www.instagram.com/logosynthesi/" target="_blank" rel="noopener" style="color:var(--gold);display:flex;align-items:center;gap:5px;">
+      <svg width="13" height="13" viewBox="0 0 48 48" fill="none"><rect x="4" y="4" width="40" height="40" rx="12" stroke="#C8A96E" stroke-width="2.5" fill="none"/><circle cx="24" cy="24" r="9.5" stroke="#C8A96E" stroke-width="2.5" fill="none"/><circle cx="35" cy="13" r="2.2" fill="#C8A96E"/></svg>
+      @logosynthesi
     </a>
   </div>
-
 </footer>
 
 <!-- EVENT MODAL -->
