@@ -2,10 +2,10 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Λογοσύνθεση | Σύνδεσμος Φιλολόγων Λευκάδος</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs, addDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -26,220 +26,1218 @@
   window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
-:root{--black:#0e0d0b;--black2:#161410;--black3:#1e1b16;--gold:#C8A96E;--gdim:rgba(200,169,110,0.12);--gline:rgba(200,169,110,0.28);--cream:#F7F3EC;--cdim:rgba(247,243,236,0.58);--serif:'Cormorant Garamond',Georgia,serif;--sans:'Raleway',sans-serif;--hh:56px;--sh:40px;}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--cream);font-family:var(--serif);min-height:100vh;overflow-x:hidden;padding-top:calc(var(--hh) + var(--sh));}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--black);}::-webkit-scrollbar-thumb{background:var(--gline);}
+:root {
+  --bg: #080706;
+  --bg2: #0f0e0b;
+  --bg3: #161410;
+  --gold: #C8A96E;
+  --gold2: #e8c98e;
+  --gdim: rgba(200,169,110,0.10);
+  --gline: rgba(200,169,110,0.22);
+  --cream: #F7F3EC;
+  --cdim: rgba(247,243,236,0.55);
+  --cdim2: rgba(247,243,236,0.35);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Raleway', sans-serif;
+  --nav-h: 60px;
+  --cat-h: 42px;
+}
 
-/* HEADER */
-header{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(14,13,11,0.97);backdrop-filter:blur(16px);}
-.htop{height:var(--hh);display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--gline);}
-.hlogo{display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer;}
-.lmini{position:relative;width:26px;height:36px;border:1px solid var(--gold);flex-shrink:0;}
-.lmini::after{content:'';position:absolute;inset:3px;border:0.5px solid var(--gline);}
-.hw{font-family:var(--serif);font-size:15px;font-weight:400;letter-spacing:0.12em;color:var(--cream);}
-.hw span{color:var(--gold);}
-.hright{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
-.lt{display:flex;}
-.lb{background:none;border:1px solid var(--gline);color:var(--cdim);padding:3px 8px;cursor:pointer;font-family:var(--sans);font-size:10px;letter-spacing:0.12em;transition:all .2s;}
-.lb:first-child{border-radius:2px 0 0 2px;}.lb:last-child{border-radius:0 2px 2px 0;border-left:none;}
-.lb.active{background:var(--gdim);color:var(--gold);border-color:var(--gold);}
-.hbtn{background:none;border:none;color:var(--cdim);font-family:var(--sans);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;padding:5px 10px;border-radius:2px;transition:all .2s;white-space:nowrap;}
-.hbtn:hover{color:var(--gold);background:var(--gdim);}
-.subnav{height:var(--sh);display:flex;align-items:center;overflow-x:auto;scrollbar-width:none;padding:0 14px;border-bottom:1px solid rgba(200,169,110,0.14);}
-.subnav::-webkit-scrollbar{display:none;}
-.snbtn{flex-shrink:0;background:none;border:none;color:var(--cdim);font-family:var(--sans);font-size:9.5px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;padding:0 14px;height:var(--sh);border-bottom:2px solid transparent;transition:all .22s;white-space:nowrap;}
-.snbtn:hover{color:var(--gold);}.snbtn.active{color:var(--gold);border-bottom-color:var(--gold);}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--cream);
+  font-family: var(--serif);
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-top: calc(var(--nav-h) + var(--cat-h));
+}
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--gline); }
 
-/* FEATURED */
-.featured{display:grid;grid-template-columns:1fr;border-bottom:1px solid var(--gline);}
-@media(min-width:680px){.featured{grid-template-columns:2fr 1fr;}}
-@media(min-width:1000px){.featured{grid-template-columns:3fr 1fr 1fr;}}
-.fmain{position:relative;cursor:pointer;overflow:hidden;min-height:300px;max-height:480px;}
-.fmain .fo{position:absolute;inset:0;background:linear-gradient(to top,rgba(14,13,11,.93) 0%,rgba(14,13,11,.2) 55%,transparent 100%);transition:background .3s;z-index:1;}
-.fmain:hover .fo{background:linear-gradient(to top,rgba(14,13,11,.97) 0%,rgba(14,13,11,.45) 55%,transparent 100%);}
-.fmain img{width:100%;height:100%;object-fit:cover;object-position:top;min-height:300px;max-height:480px;display:block;transition:transform .5s;}
-.fmain:hover img{transform:scale(1.03);}
-.fmain .ph{width:100%;min-height:300px;max-height:480px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
-.fbody{position:absolute;bottom:0;left:0;right:0;padding:20px 18px;z-index:2;}
-.fbadge{position:absolute;top:14px;left:14px;z-index:2;background:var(--gold);color:var(--black);font-family:var(--sans);font-size:8px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;padding:3px 9px;}
-.fcat{font-family:var(--sans);font-size:8px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
-.ftitle{font-family:var(--serif);font-size:clamp(16px,2.5vw,24px);font-weight:400;line-height:1.2;margin-bottom:5px;}
-.fmeta{font-family:var(--sans);font-size:10px;font-weight:300;color:var(--cdim);}
-.fside{display:flex;flex-direction:column;}
-.fsmall{position:relative;cursor:pointer;overflow:hidden;flex:1;border-left:1px solid var(--gline);border-bottom:1px solid var(--gline);min-height:150px;}
-.fsmall:last-child{border-bottom:none;}
-@media(min-width:680px){.fsmall:last-child{border-top:1px solid var(--gline);border-bottom:none;}}
-.fsmall .fo{position:absolute;inset:0;background:linear-gradient(to top,rgba(14,13,11,.92) 0%,transparent 70%);z-index:1;transition:background .3s;}
-.fsmall:hover .fo{background:linear-gradient(to top,rgba(14,13,11,.97) 0%,rgba(14,13,11,.3) 70%);}
-.fsmall img{width:100%;height:100%;object-fit:cover;min-height:150px;display:block;transition:transform .4s;}
-.fsmall:hover img{transform:scale(1.04);}
-.fsmall .ph{width:100%;min-height:150px;background:var(--black3);display:flex;align-items:center;justify-content:center;}
-.fsmall .fbody{padding:12px 14px;}.fsmall .ftitle{font-size:14px;}
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 256px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+}
 
-/* GRID */
-.main-wrap{max-width:1140px;margin:0 auto;padding:34px 18px 70px;}
-.ghdr{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--gline);}
-.glbl{font-family:var(--sans);font-size:9px;font-weight:400;letter-spacing:0.42em;text-transform:uppercase;color:var(--gold);}
-.gcnt{font-family:var(--sans);font-size:9px;color:var(--cdim);}
-.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1px;background:var(--gline);}
-.ecard{background:var(--black2);cursor:pointer;transition:background .2s;overflow:hidden;}
-.ecard:hover{background:var(--black3);}.ecard:hover .etitle{color:var(--gold);}
-.eimg-w{overflow:hidden;}
-.eimg{width:100%;aspect-ratio:2/3;object-fit:cover;display:block;transition:transform .4s;}
-.ecard:hover .eimg{transform:scale(1.04);}
-.eph{width:100%;aspect-ratio:2/3;background:var(--black3);display:flex;align-items:center;justify-content:center;}
-.ebody{padding:13px 14px 15px;}
-.ecat{font-family:var(--sans);font-size:8px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
-.etitle{font-family:var(--serif);font-size:17px;font-weight:400;line-height:1.3;margin-bottom:6px;transition:color .2s;}
-.emeta{font-family:var(--sans);font-size:10px;font-weight:300;color:var(--cdim);display:flex;flex-direction:column;gap:2px;}
-.efoot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:1px solid rgba(200,169,110,.1);}
-.erat{display:flex;align-items:center;gap:3px;}
-.sdisp{color:var(--gold);font-size:11px;letter-spacing:1px;}
-.rcnt{font-family:var(--sans);font-size:9px;color:var(--cdim);}
-.tbsm{display:inline-block;padding:4px 9px;border:1px solid var(--gline);color:var(--gold);font-family:var(--sans);font-size:8px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;border-radius:2px;transition:all .2s;}
-.tbsm:hover{background:var(--gold);color:var(--black);border-color:var(--gold);}
-.empty,.loading{text-align:center;padding:60px 24px;font-family:var(--serif);font-style:italic;color:var(--cdim);font-size:15px;grid-column:1/-1;}
+/* ─── NAVBAR ─── */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(8,7,6,0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--gline);
+}
 
-/* MODAL */
-.moverlay{position:fixed;inset:0;background:rgba(10,9,8,.92);z-index:400;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
-.moverlay.open{opacity:1;pointer-events:all;}
-@media(min-width:640px){.moverlay{align-items:center;}}
-.modal{background:var(--black2);border:1px solid var(--gline);border-bottom:none;width:100%;max-width:640px;max-height:92svh;overflow-y:auto;border-radius:4px 4px 0 0;transform:translateY(40px);transition:transform .4s ease;scrollbar-width:thin;scrollbar-color:var(--gline) transparent;}
-.moverlay.open .modal{transform:none;}
-@media(min-width:640px){.modal{border:1px solid var(--gline);border-radius:4px;transform:translateY(16px) scale(.98);}.moverlay.open .modal{transform:none;}}
-.mcbar{position:sticky;top:0;display:flex;justify-content:flex-end;padding:9px 13px;background:var(--black2);border-bottom:1px solid rgba(200,169,110,.1);z-index:1;}
-.mcbar button{background:none;border:1px solid var(--gline);color:var(--cdim);width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s;border-radius:2px;}
-.mcbar button:hover{border-color:var(--gold);color:var(--gold);}
-.mposter{width:100%;max-height:420px;object-fit:contain;display:block;background:#000;}
-.mbody{padding:20px 18px;}
-.mcat{font-family:var(--sans);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
-.mtitle{font-family:var(--serif);font-size:clamp(20px,5vw,30px);font-weight:400;margin-bottom:14px;line-height:1.2;}
-.minfo{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;padding:12px;background:rgba(200,169,110,.04);border:1px solid rgba(200,169,110,.1);}
-.mrow{display:flex;gap:10px;font-family:var(--sans);font-size:11px;font-weight:300;}
-.mlbl{color:var(--gold);letter-spacing:0.1em;min-width:78px;flex-shrink:0;}.mval{color:var(--cdim);}
-.mdesc{font-family:var(--serif);font-size:16px;font-weight:300;line-height:1.8;color:var(--cdim);margin-bottom:16px;}
-.mdesc h1,.mdesc h2,.mdesc h3{color:var(--gold);margin:10px 0 4px;}.mdesc p{margin-bottom:4px;}.mdesc a{color:var(--gold);}
-.mpeople{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
-.ptag{font-family:var(--sans);font-size:9px;letter-spacing:0.12em;color:var(--cdim);padding:4px 9px;border:1px solid var(--gline);}
-.mtrailer{margin-bottom:18px;}.mtrailer iframe{width:100%;aspect-ratio:16/9;border:1px solid var(--gline);display:block;}
-.tbtn{display:inline-block;margin:12px 0 8px;padding:10px 24px;border:1px solid var(--gold);color:var(--gold);font-family:var(--sans);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;text-decoration:none;border-radius:2px;transition:all .25s;}
-.tbtn:hover{background:var(--gold);color:var(--black);}
+.nav-top {
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
 
-/* VOTING */
-.vbox{border:1px solid var(--gline);padding:15px;background:rgba(200,169,110,.03);}
-.vtit{font-family:var(--serif);font-size:14px;color:var(--gold);margin-bottom:3px;}
-.vsub{font-family:var(--sans);font-size:10px;color:var(--cdim);margin-bottom:11px;}
-.sinput{display:flex;gap:5px;margin-bottom:10px;}
-.sbtn{font-size:22px;background:none;border:none;cursor:pointer;color:var(--gline);transition:color .15s,transform .15s;padding:2px;line-height:1;}
-.sbtn.active,.sbtn:hover{color:var(--gold);transform:scale(1.2);}
-.vemail{width:100%;background:var(--black);border:1px solid var(--gline);color:var(--cream);padding:8px 12px;font-family:var(--sans);font-size:12px;border-radius:2px;margin-bottom:8px;outline:none;transition:border-color .2s;}
-.vemail:focus{border-color:var(--gold);}.vemail::placeholder{color:rgba(247,243,236,.3);}
-.vsbmt{width:100%;background:none;border:1px solid var(--gold);color:var(--gold);padding:8px;font-family:var(--sans);font-size:10px;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .25s;}
-.vsbmt:hover{background:var(--gold);color:var(--black);}.vsbmt:disabled{opacity:.4;cursor:not-allowed;}
-.vres{margin-top:11px;padding-top:11px;border-top:1px solid rgba(200,169,110,.12);}
-.vreslbl{font-family:var(--sans);font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;}
-.vbw{display:flex;align-items:center;gap:7px;margin-bottom:4px;}
-.vbl{font-size:11px;color:var(--gold);width:12px;text-align:right;flex-shrink:0;}
-.vbt{flex:1;height:3px;background:rgba(200,169,110,.1);border-radius:2px;overflow:hidden;}
-.vbf{height:100%;background:var(--gold);border-radius:2px;transition:width .6s ease;}
-.vbc{font-family:var(--sans);font-size:9px;color:var(--cdim);width:22px;flex-shrink:0;}
-.vmsg{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--gold);margin-top:8px;text-align:center;}
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
 
-/* PANELS */
-.poverlay{position:fixed;inset:0;background:rgba(10,9,8,0);z-index:300;pointer-events:none;transition:background .4s;}
-.poverlay.open{background:rgba(10,9,8,.7);pointer-events:all;}
-.panel{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:660px;background:var(--black2);border-left:1px solid var(--gline);overflow-y:auto;transform:translateX(100%);transition:transform .42s cubic-bezier(.4,0,.2,1);z-index:301;scrollbar-width:thin;scrollbar-color:var(--gline) transparent;}
-.poverlay.open .panel{transform:none;}
-.phdr{position:sticky;top:0;background:var(--black2);border-bottom:1px solid var(--gline);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;z-index:1;}
-.pback{display:flex;align-items:center;gap:7px;background:none;border:none;color:var(--cdim);font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:color .2s;}
-.pback:hover{color:var(--gold);}
-.pback svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.5;}
-.pname{font-family:var(--serif);font-size:13px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);}
-.pbody{padding:32px 26px 60px;}
+/* Mini logo mark */
+.logo-mark {
+  position: relative;
+  width: 24px;
+  height: 34px;
+  border: 1.5px solid var(--gold);
+  flex-shrink: 0;
+}
+.logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 0.5px solid rgba(200,169,110,0.35);
+}
+.logo-mark svg {
+  position: absolute;
+  inset: 0;
+}
 
-/* About */
-.atext{font-family:var(--serif);font-size:17px;font-weight:300;line-height:1.85;color:var(--cdim);}
-.atext h1,.atext h2,.atext h3{color:var(--gold);margin:14px 0 5px;}.atext p{margin-bottom:5px;}
-.atext em{font-style:italic;color:var(--gold);}.atext a{color:var(--gold);}
-.atext ul,.atext ol{padding-left:1.5em;margin-bottom:8px;}.atext li{margin-bottom:3px;}
-.atext .ql-align-center{text-align:center;}.atext .ql-align-right{text-align:right;}
-.aquote{border-left:2px solid var(--gold);padding:12px 18px;margin:26px 0;font-family:var(--serif);font-style:italic;font-size:19px;color:var(--cream);line-height:1.6;}
+.logo-text {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  line-height: 1;
+}
+.logo-text em {
+  color: var(--gold);
+  font-style: normal;
+}
 
-/* Members */
-.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:18px;}
-.mcard{background:var(--black3);border:1px solid var(--gline);padding:22px 14px;text-align:center;transition:border-color .3s;}
-.mcard:hover{border-color:var(--gold);}
-.mphoto{width:76px;height:76px;border-radius:50%;object-fit:cover;border:1px solid var(--gline);margin:0 auto 12px;display:block;}
-.mphph{width:76px;height:76px;border-radius:50%;border:1px solid var(--gline);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;background:var(--black);color:var(--gold);font-size:24px;}
-.mname{font-family:var(--serif);font-size:16px;font-weight:400;margin-bottom:3px;}
-.mrole{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:9px;}
-.mbio{font-size:12px;color:var(--cdim);line-height:1.6;}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 
-/* Footer */
-footer{border-top:1px solid var(--gline);padding:26px 24px;text-align:center;background:var(--black2);}
-.flogo{font-family:var(--serif);font-size:17px;font-weight:300;letter-spacing:0.18em;color:var(--cream);margin-bottom:4px;}
-.fsub{font-family:var(--sans);font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gline);margin-bottom:12px;}
-.flinks{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;}
-.flinks a{font-family:var(--sans);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cdim);text-decoration:none;transition:color .2s;}
-.flinks a:hover{color:var(--gold);}
-.fade-in{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease;}
-.fade-in.visible{opacity:1;transform:none;}
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--cdim);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 2px;
+  transition: color .2s, background .2s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.nav-btn:hover { color: var(--gold); background: var(--gdim); }
+
+.lang-toggle {
+  display: flex;
+  border: 1px solid var(--gline);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: 4px;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  color: var(--cdim);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.lang-btn.active { background: var(--gdim); color: var(--gold); }
+
+/* ─── CATEGORY BAR ─── */
+.cat-bar {
+  height: var(--cat-h);
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 8px;
+  gap: 2px;
+  border-top: 1px solid rgba(200,169,110,0.1);
+}
+.cat-bar::-webkit-scrollbar { display: none; }
+
+.cat-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--cdim2);
+  font-family: var(--sans);
+  font-size: 9.5px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 5px 12px;
+  border-radius: 20px;
+  transition: all .22s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-btn .icon { font-size: 11px; }
+.cat-btn:hover { color: var(--gold); border-color: var(--gline); }
+.cat-btn.active {
+  color: var(--bg);
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 500;
+}
+
+/* ─── HERO SECTION ─── */
+.hero {
+  position: relative;
+  min-height: 70svh;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--gline);
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: var(--bg2);
+}
+.hero-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  opacity: 0.45;
+  display: block;
+  transition: opacity .5s, transform 8s ease;
+}
+.hero-bg img.loaded { opacity: 0.45; }
+
+/* Gradient overlay */
+.hero-grad {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, var(--bg) 0%, rgba(8,7,6,0.6) 40%, rgba(8,7,6,0.1) 70%, transparent 100%),
+    linear-gradient(to right, rgba(8,7,6,0.5) 0%, transparent 60%);
+  z-index: 1;
+}
+
+/* Gold line accents */
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  z-index: 3;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 32px 20px 28px;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  width: fit-content;
+}
+.hero-badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+.hero-badge-txt {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.hero-cat {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: rgba(200,169,110,0.7);
+  margin-bottom: 8px;
+}
+
+.hero-title {
+  font-family: var(--serif);
+  font-size: clamp(26px, 7vw, 52px);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  margin-bottom: 8px;
+  color: var(--cream);
+}
+.hero-title em {
+  font-style: italic;
+  color: var(--gold2);
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-bottom: 18px;
+}
+.hero-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--cdim);
+}
+.hero-meta-item .dot {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--gline);
+  flex-shrink: 0;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 22px;
+  background: var(--gold);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .25s;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-cta:hover { background: var(--gold2); transform: translateY(-1px); }
+.hero-cta-sec {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: none;
+  border: 1px solid var(--gline);
+  color: var(--cdim);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .25s;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero-cta-sec:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Side thumbnails on hero */
+.hero-thumb-strip {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  display: none;
+  flex-direction: column;
+}
+@media(min-width: 600px) { .hero-thumb-strip { display: flex; } }
+
+.hero-thumb {
+  flex: 1;
+  overflow: hidden;
+  border-left: 1px solid rgba(200,169,110,0.2);
+  cursor: pointer;
+  position: relative;
+}
+.hero-thumb + .hero-thumb { border-top: 1px solid rgba(200,169,110,0.15); }
+.hero-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  transition: opacity .3s, transform .4s;
+  display: block;
+}
+.hero-thumb:hover img { opacity: 0.8; transform: scale(1.05); }
+.hero-thumb-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 8px;
+  background: linear-gradient(to top, rgba(8,7,6,0.9), transparent);
+}
+.hero-thumb-title {
+  font-family: var(--serif);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--cream);
+  line-height: 1.3;
+}
+.hero-thumb-date {
+  font-family: var(--sans);
+  font-size: 8px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+.hero-ph {
+  width: 100%;
+  height: 100%;
+  min-height: 70svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg2);
+}
+
+/* ─── GRID SECTION ─── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 14px 80px;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(200,169,110,0.15);
+}
+.section-title {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.section-count {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  color: var(--cdim2);
+  letter-spacing: 0.1em;
+}
+
+/* ─── EVENT GRID ─── */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media(min-width: 500px) { .events-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; } }
+@media(min-width: 720px) { .events-grid { grid-template-columns: repeat(3, 1fr); } }
+@media(min-width: 960px) { .events-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.ecard {
+  background: var(--bg2);
+  border: 1px solid rgba(200,169,110,0.1);
+  cursor: pointer;
+  transition: border-color .25s, transform .25s;
+  border-radius: 3px;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.ecard:hover {
+  border-color: rgba(200,169,110,0.4);
+  transform: translateY(-3px);
+}
+.ecard:active { transform: translateY(-1px); }
+
+.ecard-poster {
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  background: var(--bg3);
+}
+.ecard-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .5s ease;
+}
+.ecard:hover .ecard-poster img { transform: scale(1.04); }
+
+.ecard-poster-ph {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ecard-cat-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(8,7,6,0.8);
+  border: 1px solid var(--gline);
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 7px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 1px;
+  backdrop-filter: blur(8px);
+}
+
+.ecard-body {
+  padding: 11px 12px 13px;
+}
+.ecard-date {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+.ecard-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--cream);
+  margin-bottom: 4px;
+  transition: color .2s;
+}
+.ecard:hover .ecard-title { color: var(--gold2); }
+.ecard-venue {
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  color: var(--cdim2);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ecard-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(200,169,110,0.08);
+}
+.ecard-stars {
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.ecard-ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--sans);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  border: 1px solid var(--gline);
+  padding: 3px 7px;
+  border-radius: 1px;
+  transition: all .2s;
+}
+.ecard-ticket:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+.loading-state, .empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--cdim2);
+}
+.loading-dots {
+  display: inline-flex;
+  gap: 5px;
+  margin-top: 12px;
+}
+.loading-dots span {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: ldot 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ldot {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4,3,2,0.88);
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+@media(min-width: 640px) { .modal-overlay { align-items: center; } }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--gline);
+  border-bottom: none;
+  width: 100%;
+  max-width: 600px;
+  max-height: 93svh;
+  overflow-y: auto;
+  border-radius: 6px 6px 0 0;
+  transform: translateY(50px);
+  transition: transform .38s cubic-bezier(.2,.8,.3,1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gline) transparent;
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+@media(min-width: 640px) {
+  .modal {
+    border-bottom: 1px solid var(--gline);
+    border-radius: 6px;
+    transform: translateY(20px) scale(0.97);
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+}
+
+/* Drag handle on mobile */
+.modal-handle {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+}
+.modal-handle-bar {
+  width: 36px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--gline);
+}
+@media(min-width: 640px) { .modal-handle { display: none; } }
+
+.modal-topbar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(15,14,11,0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(200,169,110,0.1);
+  z-index: 1;
+}
+.modal-cat-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 300;
+}
+.modal-close {
+  background: none;
+  border: 1px solid var(--gline);
+  color: var(--cdim);
+  width: 30px; height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  border-radius: 2px;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.modal-close:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Poster — fullscreen on mobile tap */
+.modal-poster-wrap {
+  position: relative;
+  cursor: pointer;
+}
+.modal-poster {
+  width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+  display: block;
+  background: #000;
+  transition: max-height .3s ease;
+}
+.modal-poster-wrap.fullscreen .modal-poster {
+  max-height: 100svh;
+}
+.modal-poster-hint {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: rgba(200,169,110,0.6);
+  background: rgba(8,7,6,0.7);
+  padding: 3px 7px;
+  border-radius: 1px;
+}
+@media(min-width: 640px) { .modal-poster-hint { display: none; } }
+
+.modal-body { padding: 20px 18px 32px; }
+.modal-title {
+  font-family: var(--serif);
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 300;
+  line-height: 1.2;
+  margin-bottom: 14px;
+  color: var(--cream);
+}
+.modal-infobox {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 14px;
+  background: rgba(200,169,110,0.04);
+  border: 1px solid rgba(200,169,110,0.12);
+  border-radius: 2px;
+  margin-bottom: 16px;
+}
+.modal-row {
+  display: flex;
+  gap: 12px;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 300;
+}
+.modal-lbl {
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  min-width: 84px;
+  flex-shrink: 0;
+}
+.modal-val { color: var(--cdim); }
+.modal-desc {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--cdim);
+  margin-bottom: 18px;
+}
+.modal-desc h1,.modal-desc h2,.modal-desc h3 { color: var(--gold); margin: 10px 0 4px; }
+.modal-desc p { margin-bottom: 4px; }
+.modal-desc a { color: var(--gold); }
+.modal-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.person-tag {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--cdim);
+  padding: 4px 10px;
+  border: 1px solid var(--gline);
+  border-radius: 20px;
+}
+.modal-trailer { margin-bottom: 20px; }
+.modal-trailer iframe {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 1px solid var(--gline);
+  display: block;
+  border-radius: 2px;
+}
+.ticket-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 20px;
+  padding: 12px 28px;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: all .25s;
+}
+.ticket-btn:hover { background: var(--gold); color: var(--bg); }
+
+/* ─── VOTING ─── */
+.vote-box {
+  border: 1px solid var(--gline);
+  padding: 16px;
+  background: rgba(200,169,110,0.02);
+  border-radius: 3px;
+}
+.vote-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.vote-sub {
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--cdim2);
+  margin-bottom: 12px;
+}
+.stars-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.star-btn {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gline);
+  transition: color .15s, transform .15s;
+  padding: 2px;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.star-btn.active, .star-btn:hover { color: var(--gold); transform: scale(1.15); }
+.vote-email {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--gline);
+  color: var(--cream);
+  padding: 10px 14px;
+  font-family: var(--sans);
+  font-size: 12px;
+  border-radius: 2px;
+  margin-bottom: 8px;
+  outline: none;
+  transition: border-color .2s;
+}
+.vote-email:focus { border-color: var(--gold); }
+.vote-email::placeholder { color: rgba(247,243,236,0.25); }
+.vote-submit {
+  width: 100%;
+  background: none;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 10px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all .25s;
+}
+.vote-submit:hover { background: var(--gold); color: var(--bg); }
+.vote-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+.vote-results {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(200,169,110,0.12);
+}
+.vote-results-lbl {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.vote-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.vbl { font-size: 11px; color: var(--gold); width: 12px; text-align: right; flex-shrink: 0; }
+.vbt { flex: 1; height: 2px; background: rgba(200,169,110,0.1); border-radius: 2px; overflow: hidden; }
+.vbf { height: 100%; background: var(--gold); border-radius: 2px; transition: width .6s ease; }
+.vbc { font-family: var(--sans); font-size: 9px; color: var(--cdim2); width: 22px; flex-shrink: 0; }
+.vote-msg {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gold);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ─── SIDE PANELS ─── */
+.panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4,3,2,0);
+  z-index: 300;
+  pointer-events: none;
+  transition: background .35s;
+}
+.panel-overlay.open {
+  background: rgba(4,3,2,0.75);
+  pointer-events: all;
+}
+.panel {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: min(100vw, 640px);
+  background: var(--bg2);
+  border-left: 1px solid var(--gline);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform .4s cubic-bezier(.4,0,.2,1);
+  z-index: 301;
+  scrollbar-width: thin;
+  scrollbar-color: var(--gline) transparent;
+}
+.panel-overlay.open .panel { transform: translateX(0); }
+
+.panel-header {
+  position: sticky;
+  top: 0;
+  background: rgba(15,14,11,0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gline);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1;
+}
+.panel-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--cdim);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.panel-back:hover { color: var(--gold); }
+.panel-back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.panel-name {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.panel-body { padding: 30px 22px 60px; }
+
+.about-text {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 300;
+  line-height: 1.85;
+  color: var(--cdim);
+}
+.about-text h1,.about-text h2,.about-text h3 { color: var(--gold); margin: 14px 0 5px; }
+.about-text p { margin-bottom: 5px; }
+.about-text em { font-style: italic; color: var(--gold); }
+.about-text a { color: var(--gold); }
+.about-quote {
+  border-left: 2px solid var(--gold);
+  padding: 14px 20px;
+  margin: 28px 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  color: var(--cream);
+  line-height: 1.65;
+}
+
+.members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.member-card {
+  background: var(--bg3);
+  border: 1px solid var(--gline);
+  padding: 20px 14px;
+  text-align: center;
+  border-radius: 3px;
+  transition: border-color .3s, transform .25s;
+}
+.member-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.member-photo {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gline);
+  margin: 0 auto 12px;
+  display: block;
+}
+.member-ph {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 1px solid var(--gline);
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--gold);
+  font-size: 22px;
+}
+.member-name {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 3px;
+}
+.member-role {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 9px;
+}
+.member-bio { font-size: 12px; color: var(--cdim); line-height: 1.6; }
+
+/* Contact */
+.contact-block { margin-bottom: 28px; }
+.contact-lbl {
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.contact-val {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--cdim);
+}
+.contact-val a { color: var(--cdim); text-decoration: none; transition: color .2s; }
+.contact-val a:hover { color: var(--gold); }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--gline);
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--bg2);
+  position: relative;
+  z-index: 2;
+}
+.footer-logo {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: var(--cream);
+  margin-bottom: 4px;
+}
+.footer-sub {
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cdim2);
+  margin-bottom: 16px;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.footer-links a {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cdim2);
+  text-decoration: none;
+  transition: color .2s;
+}
+.footer-links a:hover { color: var(--gold); }
+
+/* ─── ANIMATIONS ─── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
-  <div class="htop">
-    <a class="hlogo" id="logoLink" href="#" onclick="secretClick(event);return false;">
-      <div class="lmini">
-        <svg width="26" height="36" viewBox="0 0 26 36" style="position:absolute;inset:0;" fill="none">
-          <path d="M2 4 Q-1 18 2 32" stroke="#F7F3EC" stroke-width="0.6" stroke-linecap="round" opacity="0.25"/>
-          <path d="M24 4 Q27 18 24 32" stroke="#C8A96E" stroke-width="0.6" stroke-linecap="round" opacity="0.3"/>
-          <path d="M5 7 Q2 18 5 29" stroke="#F7F3EC" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
-          <path d="M21 7 Q24 18 21 29" stroke="#C8A96E" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>
-          <path d="M9 11 Q6 18 9 25" stroke="#F7F3EC" stroke-width="1.2" stroke-linecap="round"/>
-          <path d="M17 11 Q20 18 17 25" stroke="#C8A96E" stroke-width="1.2" stroke-linecap="round"/>
-          <circle cx="13" cy="18" r="2.2" fill="#C8A96E" opacity="0.9"/>
+  <div class="nav-top">
+    <a class="logo-link" id="logoLink" href="#" onclick="secretClick(event);return false;">
+      <div class="logo-mark">
+        <svg width="24" height="34" viewBox="0 0 24 34" fill="none">
+          <path d="M2 4 Q-1 17 2 30" stroke="#F7F3EC" stroke-width="0.6" stroke-linecap="round" opacity="0.22"/>
+          <path d="M22 4 Q25 17 22 30" stroke="#C8A96E" stroke-width="0.6" stroke-linecap="round" opacity="0.28"/>
+          <path d="M5 7 Q2 17 5 27" stroke="#F7F3EC" stroke-width="0.9" stroke-linecap="round" opacity="0.45"/>
+          <path d="M19 7 Q22 17 19 27" stroke="#C8A96E" stroke-width="0.9" stroke-linecap="round" opacity="0.45"/>
+          <path d="M9 11 Q6 17 9 23" stroke="#F7F3EC" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M15 11 Q18 17 15 23" stroke="#C8A96E" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="12" cy="17" r="2.2" fill="#C8A96E" opacity="0.9"/>
         </svg>
       </div>
-      <span class="hw">Λογο<span>Σύνθεση</span></span>
+      <span class="logo-text">Λογο<em>Σύνθεση</em></span>
     </a>
-    <div class="hright">
-      <button class="hbtn" onclick="openPanel('about')">Για εμάς</button>
-      <button class="hbtn" onclick="openPanel('members')">Μέλη</button>
-      <button class="hbtn" onclick="openPanel('contact')">Επικοινωνία</button>
-      <div class="lt">
-        <button class="lb active" onclick="setLang('el')">ΕΛ</button>
-        <button class="lb" onclick="setLang('en')">EN</button>
+    <div class="nav-right">
+      <button class="nav-btn" onclick="openPanel('about')">Για εμάς</button>
+      <button class="nav-btn" onclick="openPanel('members')">Μέλη</button>
+      <button class="nav-btn" onclick="openPanel('contact')">Επικοινωνία</button>
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('el')">ΕΛ</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
       </div>
     </div>
   </div>
-  <div class="subnav">
-    <button class="snbtn active" onclick="filterCat('all')" data-cat="all">Όλες</button>
-    <button class="snbtn" onclick="filterCat('cinehub')" data-cat="cinehub">🎬 CineHub</button>
-    <button class="snbtn" onclick="filterCat('logohub')" data-cat="logohub">📚 LogoHub</button>
-    <button class="snbtn" onclick="filterCat('musichub')" data-cat="musichub">🎵 MusicHub</button>
-    <button class="snbtn" onclick="filterCat('photohub')" data-cat="photohub">📷 PhotoHub</button>
-    <button class="snbtn" onclick="filterCat('schoolhub')" data-cat="schoolhub">🏫 SchoolHub</button>
+  <div class="cat-bar">
+    <button class="cat-btn active" onclick="filterCat('all')" data-cat="all">Όλες</button>
+    <button class="cat-btn" onclick="filterCat('cinehub')" data-cat="cinehub"><span class="icon">🎬</span>CineHub</button>
+    <button class="cat-btn" onclick="filterCat('logohub')" data-cat="logohub"><span class="icon">📚</span>LogoHub</button>
+    <button class="cat-btn" onclick="filterCat('musichub')" data-cat="musichub"><span class="icon">🎵</span>MusicHub</button>
+    <button class="cat-btn" onclick="filterCat('photohub')" data-cat="photohub"><span class="icon">📷</span>PhotoHub</button>
+    <button class="cat-btn" onclick="filterCat('schoolhub')" data-cat="schoolhub"><span class="icon">🏫</span>SchoolHub</button>
   </div>
 </header>
 
-<div class="featured" id="featuredStrip"></div>
-
-<div class="main-wrap">
-  <div class="ghdr">
-    <span class="glbl" id="gridLabel">Πρόγραμμα Εκδηλώσεων</span>
-    <span class="gcnt" id="gridCount"></span>
+<!-- HERO -->
+<div class="hero" id="heroSection">
+  <div class="hero-bg" id="heroBg">
+    <div class="hero-ph" id="heroPlaceholder">
+      <svg width="64" height="90" viewBox="0 0 64 90" fill="none" opacity="0.15">
+        <rect x="2" y="2" width="60" height="86" rx="1" stroke="#C8A96E" stroke-width="1.5"/>
+        <rect x="8" y="8" width="48" height="74" rx="0.5" stroke="#C8A96E" stroke-width="0.5"/>
+        <path d="M12 18 Q8 45 12 72" stroke="#F7F3EC" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M52 18 Q56 45 52 72" stroke="#C8A96E" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="32" cy="45" r="5" fill="#C8A96E"/>
+      </svg>
+    </div>
   </div>
-  <div class="egrid" id="eventsGrid"><div class="loading">Φόρτωση εκδηλώσεων…</div></div>
+  <div class="hero-grad"></div>
+  <div class="hero-thumb-strip" id="heroThumbs"></div>
+  <div class="hero-content" id="heroContent">
+    <div class="hero-badge">
+      <div class="hero-badge-dot"></div>
+      <span class="hero-badge-txt">Επερχόμενη εκδήλωση</span>
+    </div>
+    <div class="hero-cat" id="herocat">—</div>
+    <h1 class="hero-title" id="herotitle">Λογοσύνθεση</h1>
+    <div class="hero-meta" id="herometa"></div>
+    <div class="hero-actions" id="heroactions"></div>
+  </div>
+</div>
+
+<!-- GRID -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-title" id="gridLabel">Πρόγραμμα Εκδηλώσεων</span>
+    <span class="section-count" id="gridCount"></span>
+  </div>
+  <div class="events-grid" id="eventsGrid">
+    <div class="loading-state">
+      Φόρτωση
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
 </div>
 
 <footer>
-  <div class="flogo">Λογοσύνθεση</div>
-  <div class="fsub">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
-  <div class="flinks">
+  <div class="footer-logo">Λογοσύνθεση</div>
+  <div class="footer-sub">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
+  <div class="footer-links">
     <a href="#" onclick="filterCat('all');return false;">Εκδηλώσεις</a>
     <a href="#" onclick="openPanel('about');return false;">Για εμάς</a>
     <a href="#" onclick="openPanel('members');return false;">Μέλη</a>
@@ -249,198 +1247,448 @@ footer{border-top:1px solid var(--gline);padding:26px 24px;text-align:center;bac
 </footer>
 
 <!-- EVENT MODAL -->
-<div class="moverlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal">
-    <div class="mcbar"><button onclick="closeModal(null,true)">✕</button></div>
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-handle"><div class="modal-handle-bar"></div></div>
+    <div class="modal-topbar">
+      <span class="modal-cat-label" id="modalCatLabel">—</span>
+      <button class="modal-close" onclick="closeModal(null,true)">✕</button>
+    </div>
     <div id="modalContent"></div>
   </div>
 </div>
 
 <!-- ABOUT PANEL -->
-<div class="poverlay" id="panelAbout" onclick="pBgClick(event,'panelAbout')">
+<div class="panel-overlay" id="panelAbout" onclick="pBgClick(event,'panelAbout')">
   <div class="panel">
-    <div class="phdr">
-      <button class="pback" onclick="closePanel('panelAbout')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή</button>
-      <span class="pname">Για εμάς</span>
+    <div class="panel-header">
+      <button class="panel-back" onclick="closePanel('panelAbout')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
+      </button>
+      <span class="panel-name">Για εμάς</span>
     </div>
-    <div class="pbody">
-      <div class="atext" id="aboutTextEl"><p>Η <em>ΛογοΣύνθεση</em> είναι μια πολιτιστική δράση του Συνδέσμου Φιλολόγων Λευκάδος.</p></div>
-      <blockquote class="aquote" id="aboutQuoteEl">«Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη, ο άνθρωπος συναντά τον άλλο άνθρωπο.»</blockquote>
+    <div class="panel-body">
+      <div class="about-text" id="aboutTextEl">
+        <p>Η <em>ΛογοΣύνθεση</em> είναι μια πολιτιστική δράση του Συνδέσμου Φιλολόγων Λευκάδος.</p>
+      </div>
+      <blockquote class="about-quote" id="aboutQuoteEl">
+        «Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη, ο άνθρωπος συναντά τον άλλο άνθρωπο.»
+      </blockquote>
     </div>
   </div>
 </div>
 
 <!-- MEMBERS PANEL -->
-<div class="poverlay" id="panelMembers" onclick="pBgClick(event,'panelMembers')">
+<div class="panel-overlay" id="panelMembers" onclick="pBgClick(event,'panelMembers')">
   <div class="panel">
-    <div class="phdr">
-      <button class="pback" onclick="closePanel('panelMembers')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή</button>
-      <span class="pname">Τα Μέλη μας</span>
+    <div class="panel-header">
+      <button class="panel-back" onclick="closePanel('panelMembers')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
+      </button>
+      <span class="panel-name">Τα Μέλη μας</span>
     </div>
-    <div class="pbody">
-      <div class="mgrid" id="membersGrid"><div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim);padding:20px 0;">Φόρτωση…</div></div>
+    <div class="panel-body">
+      <div class="members-grid" id="membersGrid">
+        <div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Φόρτωση…</div>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- CONTACT PANEL -->
-<div class="poverlay" id="panelContact" onclick="pBgClick(event,'panelContact')">
+<div class="panel-overlay" id="panelContact" onclick="pBgClick(event,'panelContact')">
   <div class="panel">
-    <div class="phdr">
-      <button class="pback" onclick="closePanel('panelContact')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή</button>
-      <span class="pname">Επικοινωνία</span>
+    <div class="panel-header">
+      <button class="panel-back" onclick="closePanel('panelContact')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
+      </button>
+      <span class="panel-name">Επικοινωνία</span>
     </div>
-    <div class="pbody" style="display:flex;flex-direction:column;gap:26px;">
-      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Email</div><div style="font-family:var(--serif);font-size:18px;"><a href="/cdn-cgi/l/email-protection#8fe3e0e8e0fcf6e1fbe7eafce6bdbfbdb9cfe8e2eee6e3a1ece0e2" style="color:var(--cdim);text-decoration:none;"><span class="__cf_email__" data-cfemail="b7dbd8d0d8c4ced9c3dfd2c4de85878581f7d0dad6dedb99d4d8da">[email&#160;protected]</span></a></div></div>
-      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Τοποθεσία</div><div style="font-family:var(--serif);font-size:18px;color:var(--cdim);">Λευκάδα, Ελλάδα</div></div>
-      <div><div style="font-family:var(--sans);font-size:8px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Website</div><div style="font-family:var(--serif);font-size:18px;"><a href="https://logosynthesi.gr" style="color:var(--cdim);text-decoration:none;">logosynthesi.gr</a></div></div>
+    <div class="panel-body">
+      <div class="contact-block">
+        <div class="contact-lbl">Email</div>
+        <div class="contact-val"><a href="mailto:logosynthesi2026@gmail.com">logosynthesi2026@gmail.com</a></div>
+      </div>
+      <div class="contact-block">
+        <div class="contact-lbl">Τοποθεσία</div>
+        <div class="contact-val">Λευκάδα, Ελλάδα</div>
+      </div>
+      <div class="contact-block">
+        <div class="contact-lbl">Website</div>
+        <div class="contact-val"><a href="https://logosynthesi.gr">logosynthesi.gr</a></div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-const DEMO=[
-  {id:'d1',category:'cinehub',title:'Ο Ψύλλος',titleEn:'The Flea',date:'2026-03-15',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μια συγκλονιστική ταινία. Ο Ηλίας ζει σε ένα ορεινό χωριό.',country:'Ελλάδα, 1990, 90΄',people:['Σκηνοθεσία: Δημήτρης Σπύρος'],votes:{1:2,2:5,3:8,4:15,5:22}},
-  {id:'d2',category:'cinehub',title:'Αντιγόνη',date:'2026-04-10',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',posterUrl:'',description:'Μεταφορά της τραγωδίας του Σοφοκλή.',country:'Καναδάς, 2019',people:['Σκηνοθεσία: Sophie Deraspe'],votes:{1:1,2:3,3:6,4:18,5:30}},
-  {id:'d3',category:'logohub',title:'Παρουσίαση Βιβλίου',date:'2026-05-08',time:'19:30',venue:'Βιβλιοθήκη Λευκάδας',posterUrl:'',description:'Παρουσίαση νέου λογοτεχνικού έργου.',people:['Συγγραφέας: προς ανακοίνωση'],votes:{1:0,2:2,3:4,4:10,5:14}},
-  {id:'d4',category:'musichub',title:'Συναυλία Κλασικής Μουσικής',date:'2026-06-12',time:'21:00',venue:'Θέατρο Λευκάδας',posterUrl:'',description:'Βραδιά κλασικής μουσικής.',people:['Μουσική Διεύθυνση: προς ανακοίνωση'],votes:{1:0,2:1,3:3,4:12,5:20}},
-  {id:'d5',category:'photohub',title:'Έκθεση Φωτογραφίας',date:'2026-07-01',venue:'Δημαρχείο Λευκάδας',posterUrl:'',description:'«Η Λευκάδα μέσα από τον φακό».',people:['Επιμέλεια: Σύνδεσμος Φιλολόγων'],votes:{1:0,2:0,3:2,4:8,5:16}},
-  {id:'d6',category:'schoolhub',title:'Κινηματογράφος στα Σχολεία',date:'2026-03-20',time:'10:00',venue:'Γυμνάσιο Λευκάδας',posterUrl:'',description:'Ειδική προβολή για μαθητές.',people:['Συντονισμός: Σύνδεσμος Φιλολόγων'],votes:{1:0,2:1,3:4,4:9,5:11}}
+/* ─── DEMO DATA ─── */
+const DEMO = [
+  {id:'d1',category:'cinehub',title:'Blue Sky Jo',date:'2026-03-05',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια συγκινητική ταινία για τη δύναμη της ανθρώπινης σύνδεσης.',country:'Ισπανία 2023 · 98΄',people:['Σκηνοθεσία: María Ripoll'],votes:{1:1,2:3,3:8,4:15,5:22}},
+  {id:'d2',category:'cinehub',title:'Αντιγόνη',date:'2026-03-19',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μεταφορά της τραγωδίας του Σοφοκλή σε σύγχρονο πλαίσιο.',country:'Καναδάς 2019 · 110΄',people:['Σκηνοθεσία: Sophie Deraspe'],votes:{1:1,2:3,3:6,4:18,5:30}},
+  {id:'d3',category:'cinehub',title:'Rocca',date:'2026-03-26',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια ταινία για τη φιλία και την ανακάλυψη του εαυτού.',country:'Γερμανία 2017 · 95΄',people:['Σκηνοθεσία: Katja Benrath'],votes:{1:0,2:2,3:5,4:12,5:18}},
+  {id:'d4',category:'cinehub',title:'Kauwboy',date:'2026-04-02',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Ένας δεκάχρονος βρίσκει ένα τραυματισμένο πτηνό. Βραβείο Berlinale 2012.',country:'Ολλανδία 2012 · 90΄',people:['Σκηνοθεσία: Boudewijn Koole'],votes:{1:0,2:1,3:4,4:14,5:22}},
+  {id:'d5',category:'cinehub',title:'Der Führer bin ich!',date:'2026-04-09',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Σατιρική ταινία για τον ολοκληρωτισμό και τη μνήμη.',country:'Αυστρία 2023 · 88΄',people:['Σκηνοθεσία: Franziska Pflaum'],votes:{1:0,2:1,3:3,4:10,5:16}},
+  {id:'d6',category:'cinehub',title:'Vitus',date:'2026-04-16',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Ένα παιδί-θαύμα ανακαλύπτει ότι η ευτυχία δεν βρίσκεται στη φήμη.',country:'Ελβετία 2006 · 123΄',people:['Σκηνοθεσία: Fredi M. Murer'],votes:{1:0,2:1,3:3,4:12,5:20}},
+  {id:'d7',category:'cinehub',title:'Ο Ψύλλος',date:'2026-04-30',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Αριστουργηματική ελληνική ταινία.',country:'Ελλάδα 1990 · 90΄',people:['Σκηνοθεσία: Νίκος Κούνδουρος'],votes:{1:0,2:2,3:6,4:14,5:20}},
+  {id:'d8',category:'cinehub',title:'Η Μπότινη',date:'2026-05-07',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια αξέχαστη ιστορία οικογένειας και αγάπης.',country:'Ιταλία 2022 · 97΄',people:['Σκηνοθεσία: Andrea Jublin'],votes:{1:0,2:1,3:3,4:9,5:14}},
+  {id:'d9',category:'cinehub',title:'Animation',date:'2026-05-14',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Αριστούργημα του κινουμένου σχεδίου.',country:'Γαλλία 2021 · 80΄',people:['Σκηνοθεσία: προς ανακοίνωση'],votes:{1:0,2:0,3:2,4:8,5:12}},
+  {id:'d10',category:'schoolhub',title:'Κινηματογράφος στα Σχολεία',date:'2026-03-20',time:'10:00',venue:'Γυμνάσιο Λευκάδας',posterUrl:'',description:'Ειδική προβολή για μαθητές.',people:['Συντονισμός: Σύνδεσμος Φιλολόγων'],votes:{1:0,2:1,3:4,4:9,5:11}}
 ];
-let L='el',CAT='all',SS={};
-function setLang(l){L=l;document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l));if(window._ev)renderAll(window._ev);}
-function filterCat(c){CAT=c;document.querySelectorAll('.snbtn').forEach(b=>b.classList.toggle('active',b.dataset.cat===c));if(window._ev)renderAll(window._ev);window.scrollTo({top:0,behavior:'smooth'});}
-async function initApp(){
-  try{
-    if(!window._db)throw 0;
-    const{collection,getDocs,orderBy,query}=window._firebase;
-    const snap=await getDocs(query(collection(window._db,'events'),orderBy('date','asc')));
-    const ev=snap.docs.map(d=>({id:d.id,...d.data()}));
-    window._ev=ev.length?ev:DEMO;
-  }catch{window._ev=DEMO;}
-  renderAll(window._ev);loadAbout();loadMembers();
+
+let LANG = 'el', CAT = 'all', SS = {}, ALL_EV = [];
+
+/* ─── HELPERS ─── */
+function clbl(c) {
+  return {cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'}[c] || c;
 }
-window.addEventListener('firebase-ready',initApp);
-if(window._db||window._firebase){initApp();}
-setTimeout(()=>{if(!window._ev){window._ev=DEMO;renderAll(DEMO);}},5000);
-function renderAll(ev){
-  const f=CAT==='all'?ev:ev.filter(e=>e.category===CAT);
-  const s=[...f].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  renderFeat(s.slice(0,3));renderGrid(s);
+function fd(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return isNaN(dt) ? d : dt.toLocaleDateString('el-GR', {day:'numeric',month:'long',year:'numeric'});
 }
-function lsvg(sz){return `<svg width="${sz}" height="${sz}" viewBox="0 0 64 64" fill="none" opacity="0.22"><path d="M8 10 Q0 32 8 54" stroke="#F7F3EC" stroke-width="1" stroke-linecap="round"/><path d="M56 10 Q64 32 56 54" stroke="#C8A96E" stroke-width="1" stroke-linecap="round"/><path d="M22 20 Q17 32 22 44" stroke="#F7F3EC" stroke-width="1.4" stroke-linecap="round"/><path d="M42 20 Q47 32 42 44" stroke="#C8A96E" stroke-width="1.4" stroke-linecap="round"/><circle cx="32" cy="32" r="4" fill="#C8A96E"/></svg>`;}
-function renderFeat(ev){
-  const el=document.getElementById('featuredStrip');
-  if(!ev.length){el.style.display='none';return;}el.style.display='';
-  const[m,...s]=ev;
-  el.innerHTML=`<div class="fmain" onclick="openEv('${m.id}')">
-    <div class="fbadge">Επερχόμενη</div>
-    ${m.posterUrl?`<img src="${m.posterUrl}" alt="${m.title}">`:`<div class="ph">${lsvg(72)}</div>`}
-    <div class="fo"></div>
-    <div class="fbody"><div class="fcat">${clbl(m.category)}</div><div class="ftitle">${L==='en'&&m.titleEn?m.titleEn:m.title}</div><div class="fmeta">📅 ${fd(m.date)}${m.time?' · '+m.time:''}${m.venue?' · '+m.venue:''}</div></div>
-  </div>${s.length?`<div class="fside">${s.map(e=>`<div class="fsmall" onclick="openEv('${e.id}')">
-    ${e.posterUrl?`<img src="${e.posterUrl}" alt="${e.title}">`:`<div class="ph">${lsvg(36)}</div>`}
-    <div class="fo"></div>
-    <div class="fbody"><div class="fcat">${clbl(e.category)}</div><div class="ftitle">${L==='en'&&e.titleEn?e.titleEn:e.title}</div><div class="fmeta">${fd(e.date)}${e.time?' · '+e.time:''}</div></div>
-  </div>`).join('')}</div>`:''}`;
+function cavg(v) {
+  if (!v) return 0;
+  const t = Object.values(v).reduce((a,b)=>a+b,0);
+  if (!t) return 0;
+  return Object.entries(v).reduce((a,[k,n])=>a+parseInt(k)*n,0)/t;
 }
-function renderGrid(ev){
-  const gl=document.getElementById('gridLabel'),gc=document.getElementById('gridCount'),gr=document.getElementById('eventsGrid');
-  const nm={all:'Πρόγραμμα Εκδηλώσεων',cinehub:'CineHub — Κινηματογράφος',logohub:'LogoHub — Βιβλίο & Διαλέξεις',musichub:'MusicHub — Μουσική',photohub:'PhotoHub — Φωτογραφία',schoolhub:'SchoolHub — Σχολεία'};
-  gl.textContent=nm[CAT]||'Εκδηλώσεις';gc.textContent=ev.length?`${ev.length} εκδηλώσεις`:'';
-  if(!ev.length){gr.innerHTML='<div class="empty">Δεν υπάρχουν εκδηλώσεις.</div>';return;}
-  gr.innerHTML=ev.map(e=>{
-    const tot=e.votes?Object.values(e.votes).reduce((a,b)=>a+b,0):0,avg=tot?cavg(e.votes):0;
-    return `<div class="ecard fade-in" onclick="openEv('${e.id}')">
-      <div class="eimg-w">${e.posterUrl?`<img class="eimg" src="${e.posterUrl}" alt="${e.title}" loading="lazy">`:`<div class="eph">${lsvg(32)}</div>`}</div>
-      <div class="ebody">
-        <div class="ecat">${clbl(e.category)}</div>
-        <div class="etitle">${L==='en'&&e.titleEn?e.titleEn:e.title}</div>
-        <div class="emeta"><span>📅 ${fd(e.date)}${e.time?' · '+e.time:''}</span>${e.venue?`<span>📍 ${e.venue}</span>`:''}</div>
-        <div class="efoot">${avg?`<div class="erat"><span class="sdisp">${ss(avg)}</span><span class="rcnt">${avg.toFixed(1)}</span></div>`:'<div></div>'}${e.ticketUrl?`<a href="${e.ticketUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="tbsm">🎟 Εισιτήρια</a>`:''}</div>
+function ss(a) { return [1,2,3,4,5].map(i=>a>=i?'★':'☆').join(''); }
+function vresH(v) {
+  const tot = Object.values(v||{}).reduce((a,b)=>a+b,0);
+  if (!tot) return '';
+  const avg = cavg(v);
+  return `<div class="vote-results">
+    <div class="vote-results-lbl">Αποτελέσματα · ${avg.toFixed(1)}/5 · ${tot} ψήφοι</div>
+    ${[5,4,3,2,1].map(s=>{
+      const c=v[s]||0, p=tot?Math.round(c/tot*100):0;
+      return `<div class="vote-bar-row"><span class="vbl">${s}</span><div class="vbt"><div class="vbf" style="width:${p}%"></div></div><span class="vbc">${c}</span></div>`;
+    }).join('')}
+  </div>`;
+}
+function logoSVG(sz) {
+  return `<svg width="${sz}" height="${Math.round(sz*1.4)}" viewBox="0 0 64 90" fill="none" opacity="0.18">
+    <rect x="2" y="2" width="60" height="86" rx="1" stroke="#C8A96E" stroke-width="1.5"/>
+    <rect x="8" y="8" width="48" height="74" rx="0.5" stroke="#C8A96E" stroke-width="0.5"/>
+    <path d="M12 18 Q8 45 12 72" stroke="#F7F3EC" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M52 18 Q56 45 52 72" stroke="#C8A96E" stroke-width="1.2" stroke-linecap="round"/>
+    <circle cx="32" cy="45" r="5" fill="#C8A96E"/>
+  </svg>`;
+}
+
+/* ─── INIT ─── */
+async function initApp() {
+  try {
+    if (!window._db) throw 0;
+    const {collection, getDocs, orderBy, query} = window._firebase;
+    const snap = await getDocs(query(collection(window._db,'events'), orderBy('date','asc')));
+    const ev = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    ALL_EV = ev.length ? ev : DEMO;
+  } catch { ALL_EV = DEMO; }
+  renderAll();
+  loadAbout();
+  loadMembers();
+}
+window.addEventListener('firebase-ready', initApp);
+if (window._db || window._firebase) initApp();
+setTimeout(() => { if (!ALL_EV.length) { ALL_EV = DEMO; renderAll(); } }, 5000);
+
+/* ─── RENDER ─── */
+function renderAll() {
+  const filtered = CAT === 'all' ? ALL_EV : ALL_EV.filter(e => e.category === CAT);
+  const sorted = [...filtered].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  renderHero(sorted);
+  renderGrid(sorted);
+}
+
+function renderHero(ev) {
+  const heroSection = document.getElementById('heroSection');
+  const heroBg = document.getElementById('heroBg');
+  const heroThumbs = document.getElementById('heroThumbs');
+  const herocat = document.getElementById('herocat');
+  const herotitle = document.getElementById('herotitle');
+  const herometa = document.getElementById('herometa');
+  const heroactions = document.getElementById('heroactions');
+  const heroPlaceholder = document.getElementById('heroPlaceholder');
+
+  if (!ev.length) {
+    heroSection.style.display = 'none';
+    return;
+  }
+  heroSection.style.display = '';
+
+  const main = ev[0];
+  const sides = ev.slice(1, 3);
+
+  // BG image
+  if (main.posterUrl) {
+    heroPlaceholder && (heroPlaceholder.style.display = 'none');
+    // Check if img already exists
+    let img = heroBg.querySelector('img');
+    if (!img) { img = document.createElement('img'); heroBg.appendChild(img); }
+    img.src = main.posterUrl;
+    img.alt = main.title;
+  } else {
+    const ph = document.getElementById('heroPlaceholder');
+    if (ph) ph.style.display = '';
+  }
+
+  herocat.textContent = clbl(main.category);
+  herotitle.innerHTML = LANG === 'en' && main.titleEn ? main.titleEn : main.title;
+
+  const meta = [];
+  if (main.date) meta.push(`<span class="hero-meta-item">📅 ${fd(main.date)}${main.time ? ' · ' + main.time : ''}</span>`);
+  if (main.venue) meta.push(`<span class="hero-meta-item">📍 ${main.venue}</span>`);
+  if (main.country) meta.push(`<span class="hero-meta-item">${main.country}</span>`);
+  herometa.innerHTML = meta.join('');
+
+  const acts = [`<button class="hero-cta" onclick="openEv('${main.id}')">Περισσότερα</button>`];
+  if (main.ticketUrl) acts.push(`<a class="hero-cta-sec" href="${main.ticketUrl}" target="_blank">🎟 Εισιτήριο</a>`);
+  heroactions.innerHTML = acts.join('');
+
+  // Side thumbs
+  heroThumbs.innerHTML = sides.map(e => `
+    <div class="hero-thumb" onclick="openEv('${e.id}')">
+      ${e.posterUrl
+        ? `<img src="${e.posterUrl}" alt="${e.title}" loading="lazy">`
+        : `<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;">${logoSVG(28)}</div>`
+      }
+      <div class="hero-thumb-overlay">
+        <div class="hero-thumb-title">${LANG === 'en' && e.titleEn ? e.titleEn : e.title}</div>
+        <div class="hero-thumb-date">${fd(e.date)}</div>
       </div>
-    </div>`;}).join('');
-  requestAnimationFrame(()=>document.querySelectorAll('.ecard.fade-in').forEach((el,i)=>setTimeout(()=>el.classList.add('visible'),i*35)));
+    </div>`).join('');
 }
-async function loadAbout(){try{if(!window._db)return;const{collection,getDocs}=window._firebase;const s=await getDocs(collection(window._db,'about'));s.docs.forEach(d=>{const dd=d.data();if(dd.text)document.getElementById('aboutTextEl').innerHTML=dd.text;if(dd.quote)document.getElementById('aboutQuoteEl').textContent=dd.quote;});}catch{}}
-async function loadMembers(){
-  try{
-    if(!window._db)throw 0;
-    const{collection,getDocs}=window._firebase;
-    const s=await getDocs(collection(window._db,'members'));
-    const mem=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||99)-(b.order||99));
-    if(!mem.length){document.getElementById('membersGrid').innerHTML='<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';return;}
-    document.getElementById('membersGrid').innerHTML=mem.map(m=>`<div class="mcard">${m.photo?`<img class="mphoto" src="${m.photo}" alt="${m.name}">`:`<div class="mphph">◈</div>`}<div class="mname">${m.name||''}</div><div class="mrole">${m.role||''}</div>${m.bio?`<div class="mbio">${m.bio}</div>`:''}</div>`).join('');
-  }catch{document.getElementById('membersGrid').innerHTML='<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';}
-}
-function openPanel(w){closeAllP();const id={about:'panelAbout',members:'panelMembers',contact:'panelContact'}[w];if(!id)return;document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
-function closePanel(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
-function pBgClick(e,id){if(e.target===document.getElementById(id))closePanel(id);}
-function closeAllP(){['panelAbout','panelMembers','panelContact'].forEach(id=>document.getElementById(id).classList.remove('open'));document.body.style.overflow='';}
-function openEv(id){
-  const ev=(window._ev||[]).find(e=>e.id===id);if(!ev)return;
-  const desc=L==='en'&&ev.descriptionEn?ev.descriptionEn:ev.description;
-  document.getElementById('modalContent').innerHTML=`
-    ${ev.posterUrl?`<img class="mposter" src="${ev.posterUrl}" alt="${ev.title}">`:''}
-    <div class="mbody">
-      <div class="mcat">${clbl(ev.category)}</div>
-      <h2 class="mtitle">${L==='en'&&ev.titleEn?ev.titleEn:ev.title}</h2>
-      <div class="minfo">
-        ${ev.date?`<div class="mrow"><span class="mlbl">Ημερομηνία</span><span class="mval">${fd(ev.date)}${ev.time?' · '+ev.time:''}</span></div>`:''}
-        ${ev.venue?`<div class="mrow"><span class="mlbl">Χώρος</span><span class="mval">${ev.venue}</span></div>`:''}
-        ${ev.country?`<div class="mrow"><span class="mlbl">Χώρα/Έτος</span><span class="mval">${ev.country}</span></div>`:''}
+
+function renderGrid(ev) {
+  const gl = document.getElementById('gridLabel');
+  const gc = document.getElementById('gridCount');
+  const gr = document.getElementById('eventsGrid');
+  const names = {all:'Πρόγραμμα Εκδηλώσεων',cinehub:'CineHub — Κινηματογράφος',logohub:'LogoHub — Βιβλίο & Διαλέξεις',musichub:'MusicHub — Μουσική',photohub:'PhotoHub — Φωτογραφία',schoolhub:'SchoolHub — Σχολεία'};
+  gl.textContent = names[CAT] || 'Εκδηλώσεις';
+  gc.textContent = ev.length ? `${ev.length} εκδηλώσεις` : '';
+  if (!ev.length) { gr.innerHTML = '<div class="empty-state">Δεν υπάρχουν εκδηλώσεις σε αυτή την κατηγορία.</div>'; return; }
+  gr.innerHTML = ev.map((e, i) => {
+    const avg = cavg(e.votes);
+    return `<div class="ecard fade-up" style="transition-delay:${i*30}ms" onclick="openEv('${e.id}')">
+      <div class="ecard-poster">
+        ${e.posterUrl
+          ? `<img src="${e.posterUrl}" alt="${e.title}" loading="lazy">`
+          : `<div class="ecard-poster-ph">${logoSVG(36)}</div>`
+        }
+        <div class="ecard-cat-badge">${clbl(e.category)}</div>
       </div>
-      ${desc?`<tn">🎟 Αγορά Εισιτηρίου</a>`:''}
-      ${ev.trailerUrl?`<div class="mtrailer"><iframe src="${ev.trailerUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`:''}
-      <div class="vbox" id="vb-${ev.id}">
-        <div class="vtit">★ Ψήφισέ το</div><div class="vsub">Βαθμολόγησε αυτή την εκδήλωση.</div>
-        <div class="sinput" id="si-${ev.id}">${[1,2,3,4,5].map(i=>`<button class="sbtn" data-val="${i}" onclick="selS('${ev.id}',${i})">★</button>`).join('')}</div>
-        <input type="email" class="vemail" id="ve-${ev.id}" placeholder="Το email σου (1 ψήφος ανά email)">
-        <button class="vsbmt" onclick="subV('${ev.id}')">ΑΠΟΣΤΟΛΗ ΨΗΦΟΥ</button>
-        <div id="vm-${ev.id}"></div>${vresH(ev.votes||{})}
+      <div class="ecard-body">
+        ${e.date ? `<div class="ecard-date">${fd(e.date)}${e.time ? ' · ' + e.time : ''}</div>` : ''}
+        <div class="ecard-title">${LANG === 'en' && e.titleEn ? e.titleEn : e.title}</div>
+        ${e.venue ? `<div class="ecard-venue">📍 ${e.venue}</div>` : ''}
+        <div class="ecard-foot">
+          ${avg ? `<div class="ecard-stars" title="${avg.toFixed(1)}/5">${ss(avg)}</div>` : '<div></div>'}
+          ${e.ticketUrl ? `<a href="${e.ticketUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="ecard-ticket">🎟 Εισιτήρια</a>` : ''}
+        </div>
       </div>
     </div>`;
-  if(localStorage.getItem('voted_'+ev.id)){const ve=document.getElementById('ve-'+ev.id),vs=document.querySelector('#vb-'+ev.id+' .vsbmt');if(ve)ve.disabled=true;if(vs)vs.disabled=true;document.getElementById('vm-'+ev.id).innerHTML='<div class="vmsg">Έχεις ήδη ψηφίσει. Ευχαριστούμε! 🙏</div>';}
-  document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';
+  }).join('');
+  // Intersection observer for fade
+  requestAnimationFrame(() => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+    }, {threshold: 0.05});
+    gr.querySelectorAll('.ecard.fade-up').forEach(el => obs.observe(el));
+  });
 }
-function selS(id,v){SS[id]=v;document.querySelectorAll('#si-'+id+' .sbtn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.val)<=v));}
-async function subV(id){
-  const star=SS[id],email=document.getElementById('ve-'+id).value.trim(),msg=document.getElementById('vm-'+id);
-  if(!star){msg.innerHTML='<div class="vmsg" style="color:#e07;">Επίλεξε αστέρια πρώτα.</div>';return;}
-  if(!email||!email.includes('@')){msg.innerHTML='<div class="vmsg" style="color:#e07;">Βάλε έγκυρο email.</div>';return;}
-  if(localStorage.getItem('voted_'+id)){msg.innerHTML='<div class="vmsg">Έχεις ήδη ψηφίσει!</div>';return;}
-  const btn=document.querySelector('#vb-'+id+' .vsbmt');btn.disabled=true;btn.textContent='Αποθήκευση…';
-  try{
-    if(window._db){const{collection,addDoc,getDocs,query,where}=window._firebase;const ex=await getDocs(query(collection(window._db,'votes'),where('eventId','==',id),where('email','==',email)));if(!ex.empty){localStorage.setItem('voted_'+id,'1');msg.innerHTML='<div class="vmsg">Αυτό το email έχει ήδη ψηφίσει.</div>';btn.disabled=false;btn.textContent='ΑΠΟΣΤΟΛΗ ΨΗΦΟΥ';return;}await addDoc(collection(window._db,'votes'),{eventId:id,email,rating:star,ts:Date.now()});}
-    const ev=(window._ev||[]).find(e=>e.id===id);if(ev){ev.votes=ev.votes||{};ev.votes[star]=(ev.votes[star]||0)+1;}
-    localStorage.setItem('voted_'+id,'1');document.getElementById('ve-'+id).disabled=true;btn.textContent='✓ ΕΥΧΑΡΙΣΤΟΥΜΕ';msg.innerHTML='<div class="vmsg">Η ψήφος σου καταχωρήθηκε! 🙏</div>';
-    const ex2=document.querySelector('#vb-'+id+' .vres');if(ex2)ex2.remove();document.getElementById('vb-'+id).insertAdjacentHTML('beforeend',vresH(ev?ev.votes:{}));
-  }catch{localStorage.setItem('voted_'+id,'1');btn.textContent='✓ ΕΥΧΑΡΙΣΤΟΥΜΕ';msg.innerHTML='<div class="vmsg">Η ψήφος σου καταχωρήθηκε! 🙏</div>';}
-}
-function closeModal(e,f){if(f||(e&&e.target===document.getElementById('modalOverlay'))){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}}
-function clbl(c){return{cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'}[c]||c;}
-function fd(d){if(!d)return '';const dt=new Date(d);return isNaN(dt)?d:dt.toLocaleDateString('el-GR',{day:'numeric',month:'long',year:'numeric'});}
-function cavg(v){const t=Object.values(v).reduce((a,b)=>a+b,0);if(!t)return 0;return Object.entries(v).reduce((a,[k,n])=>a+parseInt(k)*n,0)/t;}
-function ss(a){let s='';for(let i=1;i<=5;i++)s+=a>=i?'★':'☆';return s;}
-function vresH(v){const tot=Object.values(v).reduce((a,b)=>a+b,0);if(!tot)return '';const avg=cavg(v);return `<div class="vres"><div class="vreslbl">Αποτελέσματα · ${avg.toFixed(1)}/5 · ${tot} ψήφοι</div>${[5,4,3,2,1].map(s=>{const c=v[s]||0,p=tot?Math.round(c/tot*100):0;return`<div class="vbw"><span class="vbl">${s}</span><div class="vbt"><div class="vbf" style="width:${p}%"></div></div><span class="vbc">${c}</span></div>`;}).join('')}</div>`;}
-let _lc=0,_lt=null;
-function secretClick(e){_lc++;if(_lt)clearTimeout(_lt);_lt=setTimeout(()=>_lc=0,2000);if(_lc>=5){_lc=0;window.location.href='admin.html';}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal(null,true);closeAllP();}});
-const obs=new IntersectionObserver(en=>en.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08});
-document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
 
-// Expose all functions globally for onclick handlers
-window.setLang=setLang;
-window.filterCat=filterCat;
-window.openPanel=openPanel;
-window.closePanel=closePanel;
-window.pBgClick=pBgClick;
-window.closeAllP=closeAllP;
-window.openEv=openEv;
-window.selS=selS;
-window.subV=subV;
-window.closeModal=closeModal;
-window.secretClick=secretClick;
+/* ─── MODAL ─── */
+function openEv(id) {
+  const ev = ALL_EV.find(e => e.id === id);
+  if (!ev) return;
+  const desc = LANG === 'en' && ev.descriptionEn ? ev.descriptionEn : ev.description;
+  document.getElementById('modalCatLabel').textContent = clbl(ev.category);
+  document.getElementById('modalContent').innerHTML = `
+    ${ev.posterUrl ? `
+      <div class="modal-poster-wrap" id="posterWrap" onclick="togglePosterFS()">
+        <img class="modal-poster" src="${ev.posterUrl}" alt="${ev.title}">
+        <div class="modal-poster-hint">Πατήστε για μεγέθυνση</div>
+      </div>` : ''}
+    <div class="modal-body">
+      <h2 class="modal-title">${LANG === 'en' && ev.titleEn ? ev.titleEn : ev.title}</h2>
+      <div class="modal-infobox">
+        ${ev.date ? `<div class="modal-row"><span class="modal-lbl">Ημερομηνία</span><span class="modal-val">${fd(ev.date)}${ev.time ? ' · ' + ev.time : ''}</span></div>` : ''}
+        ${ev.venue ? `<div class="modal-row"><span class="modal-lbl">Χώρος</span><span class="modal-val">${ev.venue}</span></div>` : ''}
+        ${ev.country ? `<div class="modal-row"><span class="modal-lbl">Χώρα/Έτος</span><span class="modal-val">${ev.country}</span></div>` : ''}
+      </div>
+      ${desc ? `<div class="modal-desc">${desc}</div>` : ''}
+      ${ev.people && ev.people.length ? `<div class="modal-people">${ev.people.map(p=>`<span class="person-tag">${p}</span>`).join('')}</div>` : ''}
+      ${ev.ticketUrl ? `<a class="ticket-btn" href="${ev.ticketUrl}" target="_blank" rel="noopener">🎟 Αγορά Εισιτηρίου</a>` : ''}
+      ${ev.trailerUrl ? `<div class="modal-trailer"><iframe src="${ev.trailerUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>` : ''}
+      <div class="vote-box" id="vb-${ev.id}">
+        <div class="vote-title">★ Ψήφισέ το</div>
+        <div class="vote-sub">Βαθμολόγησε αυτή την εκδήλωση.</div>
+        <div class="stars-row" id="si-${ev.id}">
+          ${[1,2,3,4,5].map(i=>`<button class="star-btn" data-val="${i}" onclick="selS('${ev.id}',${i})">★</button>`).join('')}
+        </div>
+        <input type="email" class="vote-email" id="ve-${ev.id}" placeholder="Το email σου (1 ψήφος ανά email)">
+        <button class="vote-submit" onclick="subV('${ev.id}')">ΑΠΟΣΤΟΛΗ ΨΗΦΟΥ</button>
+        <div id="vm-${ev.id}"></div>
+        ${vresH(ev.votes||{})}
+      </div>
+    </div>`;
+  if (localStorage.getItem('voted_' + ev.id)) {
+    const ve = document.getElementById('ve-' + ev.id);
+    const vs = document.querySelector('#vb-' + ev.id + ' .vote-submit');
+    if (ve) ve.disabled = true;
+    if (vs) vs.disabled = true;
+    document.getElementById('vm-' + ev.id).innerHTML = '<div class="vote-msg">Έχεις ήδη ψηφίσει. Ευχαριστούμε! 🙏</div>';
+  }
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function togglePosterFS() {
+  const pw = document.getElementById('posterWrap');
+  if (pw) pw.classList.toggle('fullscreen');
+}
+function closeModal(e, force) {
+  if (force || (e && e.target === document.getElementById('modalOverlay'))) {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    // reset fullscreen
+    const pw = document.getElementById('posterWrap');
+    if (pw) pw.classList.remove('fullscreen');
+  }
+}
+
+/* ─── VOTING ─── */
+function selS(id, v) {
+  SS[id] = v;
+  document.querySelectorAll('#si-' + id + ' .star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) <= v);
+  });
+}
+async function subV(id) {
+  const star = SS[id];
+  const email = document.getElementById('ve-' + id).value.trim();
+  const msg = document.getElementById('vm-' + id);
+  if (!star) { msg.innerHTML = '<div class="vote-msg" style="color:#e07;">Επίλεξε αστέρια πρώτα.</div>'; return; }
+  if (!email || !email.includes('@')) { msg.innerHTML = '<div class="vote-msg" style="color:#e07;">Βάλε έγκυρο email.</div>'; return; }
+  if (localStorage.getItem('voted_' + id)) { msg.innerHTML = '<div class="vote-msg">Έχεις ήδη ψηφίσει!</div>'; return; }
+  const btn = document.querySelector('#vb-' + id + ' .vote-submit');
+  btn.disabled = true; btn.textContent = 'Αποθήκευση…';
+  try {
+    if (window._db) {
+      const {collection, addDoc, getDocs, query, where} = window._firebase;
+      const ex = await getDocs(query(collection(window._db,'votes'), where('eventId','==',id), where('email','==',email)));
+      if (!ex.empty) { localStorage.setItem('voted_' + id,'1'); msg.innerHTML = '<div class="vote-msg">Αυτό το email έχει ήδη ψηφίσει.</div>'; btn.disabled=false; btn.textContent='ΑΠΟΣΤΟΛΗ ΨΗΦΟΥ'; return; }
+      await addDoc(collection(window._db,'votes'), {eventId:id, email, rating:star, ts:Date.now()});
+    }
+    const ev = ALL_EV.find(e => e.id === id);
+    if (ev) { ev.votes = ev.votes || {}; ev.votes[star] = (ev.votes[star] || 0) + 1; }
+    localStorage.setItem('voted_' + id,'1');
+    document.getElementById('ve-' + id).disabled = true;
+    btn.textContent = '✓ ΕΥΧΑΡΙΣΤΟΥΜΕ';
+    msg.innerHTML = '<div class="vote-msg">Η ψήφος σου καταχωρήθηκε! 🙏</div>';
+    const old = document.querySelector('#vb-' + id + ' .vote-results');
+    if (old) old.remove();
+    document.getElementById('vb-' + id).insertAdjacentHTML('beforeend', vresH(ev ? ev.votes : {}));
+  } catch {
+    localStorage.setItem('voted_' + id,'1');
+    btn.textContent = '✓ ΕΥΧΑΡΙΣΤΟΥΜΕ';
+    msg.innerHTML = '<div class="vote-msg">Η ψήφος σου καταχωρήθηκε! 🙏</div>';
+  }
+}
+
+/* ─── PANELS ─── */
+function openPanel(w) {
+  closeAllPanels();
+  const ids = {about:'panelAbout', members:'panelMembers', contact:'panelContact'};
+  const id = ids[w];
+  if (!id) return;
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePanel(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function pBgClick(e, id) {
+  if (e.target === document.getElementById(id)) closePanel(id);
+}
+function closeAllPanels() {
+  ['panelAbout','panelMembers','panelContact'].forEach(id => document.getElementById(id).classList.remove('open'));
+  document.body.style.overflow = '';
+}
+
+/* ─── FILTER / LANG ─── */
+function setLang(l) {
+  LANG = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === l));
+  renderAll();
+}
+function filterCat(c) {
+  CAT = c;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === c));
+  renderAll();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ─── FIREBASE LOADERS ─── */
+async function loadAbout() {
+  try {
+    if (!window._db) return;
+    const {collection, getDocs} = window._firebase;
+    const s = await getDocs(collection(window._db,'about'));
+    s.docs.forEach(d => {
+      const dd = d.data();
+      if (dd.text) document.getElementById('aboutTextEl').innerHTML = dd.text;
+      if (dd.quote) document.getElementById('aboutQuoteEl').textContent = dd.quote;
+    });
+  } catch {}
+}
+async function loadMembers() {
+  try {
+    if (!window._db) throw 0;
+    const {collection, getDocs} = window._firebase;
+    const s = await getDocs(collection(window._db,'members'));
+    const mem = s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order||99)-(b.order||99));
+    if (!mem.length) { document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>'; return; }
+    document.getElementById('membersGrid').innerHTML = mem.map(m =>
+      `<div class="member-card">
+        ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name}">` : `<div class="member-ph">◈</div>`}
+        <div class="member-name">${m.name||''}</div>
+        <div class="member-role">${m.role||''}</div>
+        ${m.bio ? `<div class="member-bio">${m.bio}</div>` : ''}
+      </div>`).join('');
+  } catch {
+    document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';
+  }
+}
+
+/* ─── SECRET ADMIN ─── */
+let _lc = 0, _lt = null;
+function secretClick(e) {
+  _lc++;
+  if (_lt) clearTimeout(_lt);
+  _lt = setTimeout(() => _lc = 0, 2000);
+  if (_lc >= 5) { _lc = 0; window.location.href = 'admin.html'; }
+}
+
+/* ─── KEYBOARD ─── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(null, true); closeAllPanels(); }
+});
+
+/* ─── EXPOSE GLOBALS ─── */
+window.setLang = setLang;
+window.filterCat = filterCat;
+window.openPanel = openPanel;
+window.closePanel = closePanel;
+window.pBgClick = pBgClick;
+window.closeAllPanels = closeAllPanels;
+window.openEv = openEv;
+window.selS = selS;
+window.subV = subV;
+window.closeModal = closeModal;
+window.secretClick = secretClick;
+window.togglePosterFS = togglePosterFS;
 </script>
 </body>
 </html>
