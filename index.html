@@ -797,9 +797,6 @@ header {
   background: #000;
   transition: max-height .3s ease;
 }
-.modal-poster-wrap.fullscreen .modal-poster {
-  max-height: 100svh;
-}
 .modal-poster-hint {
   position: absolute;
   bottom: 8px;
@@ -813,6 +810,39 @@ header {
   border-radius: 1px;
 }
 @media(min-width: 640px) { .modal-poster-hint { display: none; } }
+
+/* Fullscreen poster overlay */
+#posterFSOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#posterFSOverlay.open { display: block; }
+#posterFSOverlay img {
+  width: 100%;
+  display: block;
+}
+#posterFSClose {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+  width: 36px;
+  height: 36px;
+  background: rgba(8,7,6,0.85);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 2px;
+}
 
 .modal-body { padding: 20px 18px 32px; }
 .modal-title {
@@ -2185,8 +2215,15 @@ function openEv(id) {
   document.body.style.overflow = 'hidden';
 }
 function togglePosterFS() {
-  const pw = document.getElementById('posterWrap');
-  if (pw) pw.classList.toggle('fullscreen');
+  const img = document.querySelector('#posterWrap img.modal-poster');
+  if (!img || !img.src) return;
+  document.getElementById('posterFSImg').src = img.src;
+  document.getElementById('posterFSOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePosterFS() {
+  document.getElementById('posterFSOverlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 function closeModal(e, force) {
   if (force || (e && e.target === document.getElementById('modalOverlay'))) {
@@ -2552,6 +2589,7 @@ window.closeMobileMenu = closeMobileMenu;
 window.openMemberBio = openMemberBio;
 window.closeMemberBio = closeMemberBio;
 window.togglePosterFS = togglePosterFS;
+window.closePosterFS = closePosterFS;
 
 /* Replay calls queued before functions were ready */
 if(window._q){
@@ -2568,5 +2606,11 @@ if(window._q){
   window._q=null;
 }
 </script>
+<!-- Poster fullscreen overlay -->
+<div id="posterFSOverlay">
+  <div id="posterFSClose" onclick="closePosterFS()">✕</div>
+  <img id="posterFSImg" src="" alt="">
+</div>
+
 </body>
 </html>
