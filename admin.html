@@ -472,9 +472,8 @@ window.addEventListener('auth-change', e => {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     document.getElementById('topbarUser').textContent = user.email;
-    loadEvents();
-    loadAbout();
-    loadMembers();
+    // Small delay to ensure Firestore is ready
+    setTimeout(() => { loadEvents(); loadAbout(); loadMembers(); }, 300);
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('appScreen').style.display = 'none';
@@ -708,7 +707,12 @@ async function loadAbout() {
       if (data.el) document.getElementById('aboutEl').value = data.el;
       if (data.en) document.getElementById('aboutEn').value = data.en;
     });
-  } catch(e) {}
+    if (snap.empty) {
+      document.getElementById('aboutMsg').innerHTML = '<span style="color:var(--cdim);">Δεν υπάρχει αποθηκευμένο κείμενο ακόμα.</span>';
+    }
+  } catch(e) {
+    document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--red);">Σφάλμα φόρτωσης: ${e.message}</span>`;
+  }
 }
 
 async function saveAbout() {
