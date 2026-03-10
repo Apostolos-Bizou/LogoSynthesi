@@ -465,18 +465,23 @@ async function doLogin() {
   const btn = document.getElementById('loginBtn');
   const errEl = document.getElementById('loginError');
   btn.disabled=true; btn.textContent='…';
+  errEl.textContent = '';
   try {
     if (window._auth && window._firebaseAuth) {
       await window._firebaseAuth.signInWithEmailAndPassword(window._auth, email, pass);
+      _isDemoMode = false;
     } else {
-      // Demo mode — accept any login
-      _isDemoMode = true;
-      showAdmin(email || 'demo@logosynthesi.gr');
+      errEl.textContent = 'Σφάλμα σύνδεσης με Firebase. Ελέγξτε τη σύνδεσή σας.';
+      btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
+      return;
     }
   } catch(e) {
-    // Firebase auth failed — still allow demo
-    _isDemoMode = true;
-    showAdmin(email || 'demo@logosynthesi.gr');
+    let msg = 'Λάθος email ή κωδικός.';
+    if (e.code === 'auth/network-request-failed') msg = 'Δεν υπάρχει σύνδεση στο διαδίκτυο.';
+    else if (e.code === 'auth/too-many-requests') msg = 'Πολλές αποτυχημένες προσπάθειες. Δοκιμάστε αργότερα.';
+    errEl.textContent = msg;
+    btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
+    return;
   }
   btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
 }
