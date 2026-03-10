@@ -6,6 +6,8 @@
 <title>Λογοσύνθεση · Admin</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='28' height='24' rx='1' fill='none' stroke='%23C8A96E' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23C8A96E'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -238,7 +240,19 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
 .confirm-btns { display:flex; gap:10px; justify-content:center; }
 .confirm-btns .btn { width:auto; min-width:100px; }
 
-/* RESPONSIVE TABLE */
+/* QUILL DARK THEME */
+.ql-toolbar { background:var(--bg3)!important; border-color:var(--gline)!important; }
+.ql-toolbar .ql-stroke { stroke:#C8A96E!important; }
+.ql-toolbar .ql-fill { fill:#C8A96E!important; }
+.ql-toolbar button:hover .ql-stroke, .ql-toolbar button.ql-active .ql-stroke { stroke:#fff!important; }
+.ql-toolbar .ql-picker-label { color:var(--cdim)!important; }
+.ql-toolbar .ql-picker-options { background:var(--bg3)!important; border-color:var(--gline)!important; }
+.ql-container { border-color:var(--gline)!important; font-family:var(--sans)!important; }
+.ql-editor { color:var(--cream)!important; font-size:13px!important; min-height:200px; line-height:1.7; }
+.ql-editor p, .ql-editor h1, .ql-editor h2, .ql-editor h3 { color:var(--cream); }
+.ql-editor h1, .ql-editor h2 { font-family:var(--serif)!important; color:var(--gold)!important; font-weight:600; }
+.ql-editor blockquote { border-left:3px solid var(--gold); padding-left:14px; color:var(--gold); font-style:italic; }
+.ql-snow .ql-tooltip { background:var(--bg3)!important; border-color:var(--gline)!important; color:var(--cream)!important; }
 @media(max-width:700px) {
   .ev-table thead { display:none; }
   .ev-table tr { display:block; border:1px solid var(--gline); margin-bottom:10px; padding:12px; }
@@ -432,15 +446,19 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
 
   <!-- VIEW: ABOUT -->
   <div class="view" id="view-about">
-    <div class="view-title" style="margin-bottom:20px;">Κείμενο «Για εμάς»</div>
-    <div class="field-group" style="margin-bottom:14px;">
-      <label>Κείμενο (Greek)</label>
-      <textarea id="aboutEl" style="min-height:160px;background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:13px;padding:10px;outline:none;resize:vertical;width:100%;"></textarea>
+    <div class="view-title" style="margin-bottom:6px;">Κείμενο «Για εμάς»</div>
+    <div style="font-size:10px;color:var(--cdim);letter-spacing:0.15em;margin-bottom:20px;">Μορφοποιήσιμο κείμενο — bold, italic, headers, χρώματα</div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cdim);margin-bottom:8px;">Κείμενο (Ελληνικά)</div>
+      <div id="quillEl" style="background:#1a1815;color:var(--cream);min-height:220px;border:1px solid var(--gline);font-family:var(--sans);font-size:13px;"></div>
     </div>
-    <div class="field-group" style="margin-bottom:20px;">
-      <label>Text (English)</label>
-      <textarea id="aboutEn" style="min-height:160px;background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:13px;padding:10px;outline:none;resize:vertical;width:100%;"></textarea>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cdim);margin-bottom:8px;">Text (English)</div>
+      <div id="quillEn" style="background:#1a1815;color:var(--cream);min-height:160px;border:1px solid var(--gline);font-family:var(--sans);font-size:13px;"></div>
     </div>
+
     <button class="btn success" style="width:auto;min-width:160px;" onclick="saveAbout()">Αποθήκευση</button>
     <div id="aboutMsg" style="margin-top:12px;font-size:12px;"></div>
   </div>
@@ -475,6 +493,22 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
 let ALL_EVENTS = [];
 let CURRENT_CAT = 'all';
 let EDIT_ID = null;
+let quillEl = null;
+let quillEn = null;
+
+/* Init Quill editors after DOM ready */
+document.addEventListener('DOMContentLoaded', () => {
+  const toolbarOptions = [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline'],
+    [{ 'color': [] }],
+    ['blockquote'],
+    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+    ['clean']
+  ];
+  quillEl = new Quill('#quillEl', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+  quillEn = new Quill('#quillEn', { theme: 'snow', modules: { toolbar: toolbarOptions } });
+});
 
 /* ── HELPERS ── */
 function toast(msg, type='ok') {
@@ -504,8 +538,8 @@ window.addEventListener('auth-change', e => {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
     document.getElementById('topbarUser').textContent = user.email;
-    // Small delay to ensure Firestore is ready
-    setTimeout(() => { loadEvents(); loadAbout(); loadMembers(); }, 300);
+    // Small delay to ensure Firestore and Quill are ready
+    setTimeout(() => { loadEvents(); loadAbout(); loadMembers(); }, 500);
   } else {
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('appScreen').style.display = 'none';
@@ -741,27 +775,36 @@ function switchTabByName(name) {
 /* ── ABOUT ── */
 async function loadAbout() {
   try {
-    const { collection, getDocs, query, orderBy } = window._fs;
+    const { collection, getDocs } = window._fs;
     const snap = await getDocs(collection(window._db,'about'));
     if (snap.empty) {
       document.getElementById('aboutMsg').innerHTML = '<span style="color:var(--cdim);">Δεν υπάρχει αποθηκευμένο κείμενο ακόμα.</span>';
       return;
     }
-    // Find the most recent doc with content
+    // Find most recent doc with content
     let best = null;
     snap.forEach(d => {
       const data = d.data();
-      const hasContent = data.el || data.en || data.text;
-      if (!hasContent) return;
+      if (!(data.el || data.en || data.text)) return;
       if (!best || (data.updatedAt && (!best.updatedAt || data.updatedAt > best.updatedAt))) {
         best = { id: d.id, ...data };
       }
     });
-    if (best) {
-      // Support both old format (text) and new format (el/en)
-      document.getElementById('aboutEl').value = best.el || best.text || '';
-      document.getElementById('aboutEn').value = best.en || '';
-      document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--cdim);font-size:10px;">Φορτώθηκε από ${snap.size} αποθηκευμένες εκδοχές.</span>`;
+    if (best && quillEl) {
+      const elText = best.el || best.text || '';
+      const enText = best.en || '';
+      // If content looks like HTML, use pasteHTML, otherwise set as plain text
+      if (elText.startsWith('<')) {
+        quillEl.root.innerHTML = elText;
+      } else {
+        quillEl.setText(elText);
+      }
+      if (enText.startsWith('<')) {
+        quillEn.root.innerHTML = enText;
+      } else if (enText) {
+        quillEn.setText(enText);
+      }
+      document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--cdim);font-size:10px;">Φορτώθηκε (${snap.size} εκδοχές αποθηκευμένες).</span>`;
     }
   } catch(e) {
     document.getElementById('aboutMsg').innerHTML = `<span style="color:var(--red);">Σφάλμα φόρτωσης: ${e.message}</span>`;
@@ -769,14 +812,13 @@ async function loadAbout() {
 }
 
 async function saveAbout() {
-  const el = document.getElementById('aboutEl').value.trim();
-  const en = document.getElementById('aboutEn').value.trim();
+  const el = quillEl ? quillEl.root.innerHTML : '';
+  const en = quillEn ? quillEn.root.innerHTML : '';
   const msg = document.getElementById('aboutMsg');
   msg.textContent = 'Αποθήκευση…';
   try {
     const { collection, getDocs, addDoc, doc, updateDoc } = window._fs;
     const snap = await getDocs(collection(window._db,'about'));
-    // Find most recent doc to update
     let bestId = null;
     snap.forEach(d => {
       const data = d.data();
