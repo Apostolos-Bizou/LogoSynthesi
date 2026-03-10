@@ -1007,18 +1007,24 @@ header {
   text-align: center;
   border-radius: 3px;
   transition: border-color .3s, transform .25s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
 }
 .member-card:hover { border-color: var(--gold); transform: translateY(-2px); }
 .member-photo {
-  width: 72px; height: 72px;
+  width: 88px; height: 88px;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--gline);
   margin: 0 auto 12px;
   display: block;
+  transition: border-color .3s, transform .4s ease;
 }
+.member-card:hover .member-photo { border-color: var(--gold); transform: scale(1.04); }
 .member-ph {
-  width: 72px; height: 72px;
+  width: 88px; height: 88px;
   border-radius: 50%;
   border: 1px solid var(--gline);
   margin: 0 auto 12px;
@@ -1041,9 +1047,182 @@ header {
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 9px;
+  margin-bottom: 12px;
 }
-.member-bio { font-size: 12px; color: var(--cdim); line-height: 1.6; }
+.member-bio { display: none; }
+.member-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--sans);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cdim2);
+  border: 1px solid rgba(200,169,110,0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  transition: all .2s;
+  pointer-events: none;
+}
+.member-card:hover .member-more-btn {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+/* ─── MEMBER BIO FULLSCREEN OVERLAY ─── */
+.member-bio-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(4,3,2,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+  padding: 0;
+}
+.member-bio-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.member-bio-modal {
+  background: var(--bg2);
+  border: 1px solid var(--gline);
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100svh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.97);
+  transition: transform .35s cubic-bezier(.2,.8,.3,1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gline) transparent;
+}
+.member-bio-overlay.open .member-bio-modal {
+  transform: scale(1);
+}
+@media(min-width: 700px) {
+  .member-bio-overlay { padding: 40px; }
+  .member-bio-modal {
+    height: auto;
+    max-height: 90svh;
+    max-width: 760px;
+    border-radius: 6px;
+  }
+}
+.member-bio-header {
+  position: sticky;
+  top: 0;
+  background: rgba(15,14,11,0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gline);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  flex-shrink: 0;
+}
+.member-bio-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 300;
+}
+.member-bio-close {
+  background: none;
+  border: 1px solid var(--gline);
+  color: var(--cdim);
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  border-radius: 2px;
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.member-bio-close:hover { border-color: var(--gold); color: var(--gold); }
+.member-bio-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 28px 60px;
+  gap: 0;
+}
+@media(min-width: 600px) {
+  .member-bio-content { padding: 50px 52px 70px; }
+}
+.member-bio-photo {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--gold);
+  margin-bottom: 22px;
+  display: block;
+  flex-shrink: 0;
+}
+.member-bio-ph {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--gold);
+  font-size: 38px;
+}
+.member-bio-name {
+  font-family: var(--serif);
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 300;
+  color: var(--cream);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.member-bio-role {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 36px;
+}
+.member-bio-divider {
+  width: 60px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  margin-bottom: 36px;
+}
+.member-bio-text {
+  font-family: var(--serif);
+  font-size: clamp(15px, 2.5vw, 18px);
+  font-weight: 300;
+  line-height: 1.95;
+  color: var(--cdim);
+  text-align: left;
+  width: 100%;
+  max-width: 640px;
+}
+.member-bio-text h1,.member-bio-text h2,.member-bio-text h3 { color: var(--gold); margin: 18px 0 6px; font-weight: 300; }
+.member-bio-text p { margin-bottom: 8px; }
+.member-bio-text em { font-style: italic; color: rgba(200,169,110,0.85); }
+.member-bio-text strong { color: var(--cream); font-weight: 400; }
+.member-bio-text a { color: var(--gold); }
 
 /* Contact */
 .contact-block { margin-bottom: 28px; }
@@ -1410,7 +1589,7 @@ footer {
     <div class="panel-body">
       <div class="contact-block">
         <div class="contact-lbl">Email</div>
-        <div class="contact-val"><a href="mailto:logosynthesi2026@gmail.com">logosynthesi2026@gmail.com</a></div>
+        <div class="contact-val"><a href="/cdn-cgi/l/email-protection#a6cac9c1c9d5dfc8d2cec3d5cf94969490e6c1cbc7cfca88c5c9cb"><span class="__cf_email__" data-cfemail="85e9eae2eaf6fcebf1ede0f6ecb7b5b7b3c5e2e8e4ece9abe6eae8">[email&#160;protected]</span></a></div>
       </div>
       <div class="contact-block">
         <div class="contact-lbl">Τοποθεσία</div>
@@ -1424,7 +1603,18 @@ footer {
   </div>
 </div>
 
-<script>
+<!-- MEMBER BIO FULLSCREEN OVERLAY -->
+<div class="member-bio-overlay" id="memberBioOverlay" onclick="closeMemberBio(event)">
+  <div class="member-bio-modal">
+    <div class="member-bio-header">
+      <span class="member-bio-label">Τα Μέλη μας</span>
+      <button class="member-bio-close" onclick="closeMemberBio(null,true)">✕</button>
+    </div>
+    <div class="member-bio-content" id="memberBioContent"></div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ─── DEMO DATA ─── */
 const DEMO = [
   {id:'d1',category:'cinehub',title:'Blue Sky Jo',date:'2026-03-05',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια συγκινητική ταινία για τη δύναμη της ανθρώπινης σύνδεσης.',country:'Ισπανία 2023 · 98΄',people:['Σκηνοθεσία: María Ripoll'],votes:{1:1,2:3,3:8,4:15,5:22}},
@@ -1701,11 +1891,11 @@ async function loadMembers() {
     const mem = s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order||99)-(b.order||99));
     if (!mem.length) { document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>'; return; }
     document.getElementById('membersGrid').innerHTML = mem.map(m =>
-      `<div class="member-card">
-        ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name}">` : `<div class="member-ph">◈</div>`}
+      `<div class="member-card" onclick="openMemberBio(${JSON.stringify(JSON.stringify(m))})">
+        ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name||''}">` : `<div class="member-ph">◈</div>`}
         <div class="member-name">${m.name||''}</div>
         <div class="member-role">${m.role||''}</div>
-        ${m.bio ? `<div class="member-bio">${m.bio}</div>` : ''}
+        ${m.bio ? `<div class="member-more-btn">Περισσότερα ›</div>` : ''}
       </div>`).join('');
   } catch {
     document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';
@@ -1723,8 +1913,31 @@ function secretClick(e) {
 
 /* ─── KEYBOARD ─── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(null, true); closeAllPanels(); }
+  if (e.key === 'Escape') { closeModal(null, true); closeAllPanels(); closeMemberBio(null,true); }
 });
+
+/* ─── MEMBER BIO OVERLAY ─── */
+function openMemberBio(jsonStr) {
+  const m = JSON.parse(jsonStr);
+  if (!m.bio) return;
+  document.getElementById('memberBioContent').innerHTML = `
+    ${m.photo
+      ? `<img class="member-bio-photo" src="${m.photo}" alt="${m.name||''}">`
+      : `<div class="member-bio-ph">◈</div>`}
+    <div class="member-bio-name">${m.name||''}</div>
+    ${m.role ? `<div class="member-bio-role">${m.role}</div>` : ''}
+    <div class="member-bio-divider"></div>
+    <div class="member-bio-text">${m.bio}</div>
+  `;
+  document.getElementById('memberBioOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMemberBio(e, force) {
+  if (force || (e && e.target === document.getElementById('memberBioOverlay'))) {
+    document.getElementById('memberBioOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+}
 
 /* ─── EXPOSE GLOBALS ─── */
 function selectHub(el, cat) {
@@ -1748,17 +1961,12 @@ window.selS = selS;
 window.subV = subV;
 window.closeModal = closeModal;
 window.secretClick = secretClick;
+window.openMemberBio = openMemberBio;
+window.closeMemberBio = closeMemberBio;
 window.togglePosterFS = togglePosterFS;
 
 /* Replay calls queued before functions were ready */
 if(window._q){
   var _rf={setLang:setLang,filterCat:filterCat,openPanel:openPanel,
            closePanel:closePanel,closeAllPanels:closeAllPanels,openEv:openEv,
-           selS:selS,subV:subV,closeModal:closeModal,secretClick:secretClick,
-           togglePosterFS:togglePosterFS,selectHub:selectHub};
-  window._q.forEach(function(c){if(_rf[c[0]])_rf[c[0]].apply(null,c[1]);});
-  window._q=null;
-}
-</script>
-</body>
-</html>
+     
