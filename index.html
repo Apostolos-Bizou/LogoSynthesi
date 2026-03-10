@@ -241,27 +241,29 @@ header {
   pointer-events: none;
 }
 
-/* Logo row */
+/* Logo area — stacked vertical layout */
 .landing-logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
-  padding: 48px 24px 36px;
+  gap: 0;
+  padding: 52px 24px 32px;
 }
 
-/* The rectangular logo frame — horizontal proportions */
+/* The frame — wide horizontal, no background fill */
 .landing-frame {
   position: relative;
-  width: 160px;
-  height: 100px;
+  width: clamp(220px, 55vw, 480px);
+  height: clamp(80px, 20vw, 180px);
   border: 1.5px solid var(--gold);
   flex-shrink: 0;
+  background: transparent;
 }
 .landing-frame-inner {
   position: absolute;
-  inset: 6px;
-  border: 0.75px solid rgba(200,169,110,0.3);
+  inset: 8px;
+  border: 0.75px solid rgba(200,169,110,0.28);
 }
 .landing-wave {
   position: absolute;
@@ -272,28 +274,31 @@ header {
 }
 .landing-wordmark {
   position: absolute;
-  bottom: 7px;
-  right: 9px;
+  bottom: 8px;
+  right: 12px;
   font-family: var(--serif);
-  font-size: 7px;
+  font-size: 7.5px;
   font-weight: 300;
-  letter-spacing: 0.22em;
-  color: rgba(200,169,110,0.6);
+  letter-spacing: 0.24em;
+  color: rgba(200,169,110,0.55);
   text-transform: lowercase;
 }
 
-/* Title block */
+/* Title block — below frame */
 .landing-title-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
 }
 .landing-title {
   font-family: var(--serif);
-  font-size: clamp(28px, 6vw, 56px);
+  font-size: clamp(32px, 7vw, 72px);
   font-weight: 300;
   line-height: 1;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  text-align: center;
 }
 .lt-white { color: var(--cream); }
 .lt-gold  { color: var(--gold); }
@@ -301,9 +306,22 @@ header {
   font-family: var(--sans);
   font-size: 9px;
   font-weight: 300;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--cdim2);
+  text-align: center;
+}
+.landing-quote {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(14px, 2.2vw, 18px);
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(200,169,110,0.75);
+  text-align: center;
+  max-width: 520px;
+  margin-top: 20px;
+  padding: 0 20px;
 }
 
 /* Divider line */
@@ -381,13 +399,9 @@ header {
 .hub-card:hover .hub-label { color: var(--gold); }
 .hub-card.active-hub .hub-label { color: var(--gold); font-weight: 400; }
 
-/* Mobile: smaller frame */
+/* Mobile */
 @media(max-width: 480px) {
-  .landing-frame { width: 100px; height: 64px; }
-  .landing-frame-inner { inset: 4px; }
-  .landing-wave svg { width: 60px; height: 60px; }
-  .landing-wordmark { font-size: 5.5px; bottom: 5px; right: 6px; }
-  .landing-logo { gap: 16px; padding: 32px 16px 24px; }
+  .landing-logo { padding: 32px 16px 24px; }
   .hub-card { padding: 16px 8px; }
   .hub-icon-wrap { width: 36px; height: 36px; }
   .hub-icon-wrap svg { width: 36px; height: 36px; }
@@ -1207,12 +1221,13 @@ footer {
 <!-- LANDING -->
 <div class="landing" id="landingSection">
 
-  <!-- Logo horizontal -->
+  <!-- Logo stacked -->
   <div class="landing-logo">
+    <!-- Frame — wide, transparent background -->
     <div class="landing-frame">
       <div class="landing-frame-inner"></div>
       <div class="landing-wave">
-        <svg width="80" height="80" viewBox="0 0 64 64" fill="none">
+        <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
           <circle cx="32" cy="32" r="3.5" fill="#C8A96E"/>
           <path d="M22 20 Q17 32 22 44" stroke="#F7F3EC" stroke-width="1.4" fill="none" stroke-linecap="round"/>
           <path d="M42 20 Q47 32 42 44" stroke="#C8A96E" stroke-width="1.4" fill="none" stroke-linecap="round"/>
@@ -1222,9 +1237,11 @@ footer {
       </div>
       <div class="landing-wordmark">λογοσύνθεση</div>
     </div>
+    <!-- Title + subtitle + quote below -->
     <div class="landing-title-block">
       <div class="landing-title"><span class="lt-white">Λογο</span><span class="lt-gold">Σύνθεση</span></div>
       <div class="landing-subtitle">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
+      <div class="landing-quote">«Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη,<br>ο άνθρωπος συναντά τον άλλο άνθρωπο.»</div>
     </div>
   </div>
 
