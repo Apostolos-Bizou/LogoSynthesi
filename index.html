@@ -2120,7 +2120,7 @@ function openEv(id) {
       ${desc ? `<div class="modal-desc">${desc}</div>` : ''}
       ${ev.people && ev.people.length ? `<div class="modal-people">${ev.people.map(p=>`<span class="person-tag">${p}</span>`).join('')}</div>` : ''}
       ${ev.ticketUrl ? `<a class="ticket-btn" href="${ev.ticketUrl}" target="_blank" rel="noopener">🎟 Αγορά Εισιτηρίου</a>` : ''}
-      ${ev.trailerUrl ? `<div class="modal-trailer"><iframe src="${ev.trailerUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>` : ''}
+      ${ev.trailerUrl ? `<div class="modal-trailer"><iframe src="${toYtEmbed(ev.trailerUrl)}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>` : ''}
       <div class="vote-box" id="vb-${ev.id}">
         <div class="vote-title">★ Ψήφισέ το</div>
         <div class="vote-sub">Βαθμολόγησε αυτή την εκδήλωση.</div>
@@ -2338,7 +2338,23 @@ function closeMemberBio(e, force) {
   }
 }
 
-/* ─── MOBILE MENU ─── */
+/* ─── YOUTUBE URL HELPER ─── */
+function toYtEmbed(url) {
+  if (!url) return '';
+  // Already embed format
+  if (url.includes('youtube.com/embed/')) return url;
+  // youtu.be/ID
+  const short = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (short) return `https://www.youtube.com/embed/${short[1]}`;
+  // youtube.com/watch?v=ID
+  const watch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (watch) return `https://www.youtube.com/embed/${watch[1]}`;
+  // youtube.com/shorts/ID
+  const shorts = url.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+  if (shorts) return `https://www.youtube.com/embed/${shorts[1]}`;
+  return url;
+}
+
 function toggleMobileMenu() {
   const menu = document.getElementById('navMobileMenu');
   menu.classList.toggle('open');
