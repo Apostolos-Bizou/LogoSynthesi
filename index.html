@@ -1753,21 +1753,23 @@ footer {
 </div>
 
 <!-- ABOUT PANEL -->
-<div class="panel-overlay" id="panelAbout" onclick="pBgClick(event,'panelAbout')">
-  <div class="panel">
-    <div class="panel-header">
+<div class="member-bio-overlay" id="panelAbout" onclick="if(event.target===this)closePanel('panelAbout')">
+  <div class="member-bio-modal">
+    <div class="member-bio-header">
       <button class="panel-back" onclick="closePanel('panelAbout')">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
       </button>
-      <span class="panel-name">Για εμάς</span>
+      <span class="member-bio-label">Για εμάς</span>
     </div>
-    <div class="panel-body">
-      <div class="about-text" id="aboutTextEl">
-        <p>Η <em>ΛογοΣύνθεση</em> είναι μια πολιτιστική δράση του Συνδέσμου Φιλολόγων Λευκάδος.</p>
+    <div class="member-bio-content" style="align-items:flex-start;">
+      <div style="width:100%;max-width:680px;margin:0 auto;">
+        <div class="about-text" id="aboutTextEl">
+          <p>Η <em>ΛογοΣύνθεση</em> είναι μια πολιτιστική δράση του Συνδέσμου Φιλολόγων Λευκάδος.</p>
+        </div>
+        <blockquote class="about-quote" id="aboutQuoteEl">
+          «Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη, ο άνθρωπος συναντά τον άλλο άνθρωπο.»
+        </blockquote>
       </div>
-      <blockquote class="about-quote" id="aboutQuoteEl">
-        «Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη, ο άνθρωπος συναντά τον άλλο άνθρωπο.»
-      </blockquote>
     </div>
   </div>
 </div>
@@ -1790,26 +1792,28 @@ footer {
 </div>
 
 <!-- CONTACT PANEL -->
-<div class="panel-overlay" id="panelContact" onclick="pBgClick(event,'panelContact')">
-  <div class="panel">
-    <div class="panel-header">
+<div class="member-bio-overlay" id="panelContact" onclick="if(event.target===this)closePanel('panelContact')">
+  <div class="member-bio-modal">
+    <div class="member-bio-header">
       <button class="panel-back" onclick="closePanel('panelContact')">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>Επιστροφή
       </button>
-      <span class="panel-name">Επικοινωνία</span>
+      <span class="member-bio-label">Επικοινωνία</span>
     </div>
-    <div class="panel-body">
-      <div class="contact-block">
-        <div class="contact-lbl">Email</div>
-        <div class="contact-val"><a href="/cdn-cgi/l/email-protection#a6cac9c1c9d5dfc8d2cec3d5cf94969490e6c1cbc7cfca88c5c9cb"><span class="__cf_email__" data-cfemail="85e9eae2eaf6fcebf1ede0f6ecb7b5b7b3c5e2e8e4ece9abe6eae8">[email&#160;protected]</span></a></div>
-      </div>
-      <div class="contact-block">
-        <div class="contact-lbl">Τοποθεσία</div>
-        <div class="contact-val">Λευκάδα, Ελλάδα</div>
-      </div>
-      <div class="contact-block">
-        <div class="contact-lbl">Website</div>
-        <div class="contact-val"><a href="https://logosynthesi.gr">logosynthesi.gr</a></div>
+    <div class="member-bio-content" style="align-items:flex-start;">
+      <div style="width:100%;max-width:480px;margin:0 auto;">
+        <div class="contact-block">
+          <div class="contact-lbl">Email</div>
+          <div class="contact-val"><a href="mailto:logosynthesi2026@gmail.com">logosynthesi2026@gmail.com</a></div>
+        </div>
+        <div class="contact-block">
+          <div class="contact-lbl">Τοποθεσία</div>
+          <div class="contact-val">Λευκάδα, Ελλάδα</div>
+        </div>
+        <div class="contact-block">
+          <div class="contact-lbl">Website</div>
+          <div class="contact-val"><a href="https://logosynthesi.gr">logosynthesi.gr</a></div>
+        </div>
       </div>
     </div>
   </div>
