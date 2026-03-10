@@ -395,7 +395,39 @@ body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:
       <div class="view-title">Μέλη Ομάδας</div>
       <button class="btn" style="width:auto;padding:8px 18px;" onclick="loadMembers()">↻ Ανανέωση</button>
     </div>
-    <div id="membersContainer"><div class="loading-msg">Φόρτωση…</div></div>
+
+    <!-- Add member form -->
+    <div style="border:1px solid var(--gline);padding:20px;background:var(--bg2);margin-bottom:24px;">
+      <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--cdim);margin-bottom:14px;" id="memberFormTitle">+ Νέο Μέλος</div>
+      <input type="hidden" id="mEditId">
+      <div class="form-grid">
+        <div class="field-group">
+          <label>Όνομα *</label>
+          <input type="text" id="mName" placeholder="π.χ. Κοψιδά Βιβή">
+        </div>
+        <div class="field-group">
+          <label>Ρόλος</label>
+          <input type="text" id="mRole" placeholder="π.χ. Σύνδεσμος Φιλολόγων - Πρόεδρος">
+        </div>
+        <div class="field-group form-full">
+          <label>URL Φωτογραφίας (Cloudinary)</label>
+          <input type="url" id="mPhoto" placeholder="https://res.cloudinary.com/…">
+        </div>
+        <div class="field-group form-full">
+          <label>Βιογραφικό (προαιρετικό)</label>
+          <textarea id="mBio" placeholder="Σύντομο βιογραφικό…" style="min-height:70px;"></textarea>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button class="btn success" style="width:auto;min-width:140px;" onclick="saveMember()">Αποθήκευση</button>
+        <button class="btn" style="width:auto;min-width:100px;" onclick="clearMemberForm()">Καθαρισμός</button>
+        <button class="btn danger" id="mBtnDelete" style="width:auto;min-width:100px;display:none;" onclick="deleteMemberEdit()">Διαγραφή</button>
+      </div>
+      <div id="memberMsg" style="margin-top:10px;font-size:12px;min-height:16px;"></div>
+    </div>
+
+    <!-- Members list -->
+    <div id="membersContainer"><div class="loading-msg">Φόρτωση μελών…</div></div>
   </div>
 
   <!-- VIEW: ABOUT -->
@@ -676,14 +708,23 @@ function confirmDelete() {
 }
 async function doDelete() {
   document.getElementById('confirmOverlay').classList.remove('open');
-  if (!EDIT_ID) return;
+  const target = window._deleteTarget || { type:'event', id: EDIT_ID };
+  if (!target.id) return;
   try {
     const { doc, deleteDoc } = window._fs;
-    await deleteDoc(doc(window._db,'events',EDIT_ID));
-    toast('✓ Διαγράφηκε!');
-    clearForm();
-    switchTabByName('events');
-    loadEvents();
+    if (target.type === 'member') {
+      await deleteDoc(doc(window._db,'members',target.id));
+      toast('✓ Το μέλος διαγράφηκε!');
+      clearMemberForm();
+      loadMembers();
+    } else {
+      await deleteDoc(doc(window._db,'events',target.id));
+      toast('✓ Διαγράφηκε!');
+      clearForm();
+      switchTabByName('events');
+      loadEvents();
+    }
+    window._deleteTarget = null;
   } catch(e) {
     toast('Σφάλμα διαγραφής: ' + e.message, 'err');
   }
@@ -742,28 +783,115 @@ async function loadMembers() {
   try {
     const { collection, getDocs } = window._fs;
     const snap = await getDocs(collection(window._db,'members'));
-    if (snap.empty) { c.innerHTML = '<div class="empty-msg">Δεν βρέθηκαν μέλη.</div>'; return; }
+    if (snap.empty) { c.innerHTML = '<div class="empty-msg">Δεν βρέθηκαν μέλη. Πρόσθεσε το πρώτο παραπάνω.</div>'; return; }
     const rows = snap.docs.map(d => {
       const m = d.data();
+      const photo = m.photoUrl
+        ? `<img src="${m.photoUrl}" style="width:52px;height:52px;object-fit:cover;border:1px solid var(--gline);display:block;" onerror="this.outerHTML='<div style=\\'width:52px;height:52px;border:1px solid var(--gline);background:var(--bg3);display:flex;align-items:center;justify-content:center;\\'><span style=\\'font-size:9px;color:var(--cdim);\\'>Χωρίς</span></div>'">`
+        : `<div style="width:52px;height:52px;border:1px solid var(--gline);background:var(--bg3);display:flex;align-items:center;justify-content:center;"><span style="font-size:9px;color:var(--cdim);">—</span></div>`;
       return `<tr>
-        <td>${m.photoUrl ? `<img src="${m.photoUrl}" style="width:50px;height:50px;object-fit:cover;border:1px solid var(--gline);">` : '—'}</td>
+        <td>${photo}</td>
         <td style="font-family:var(--serif);font-size:15px;font-weight:600;">${m.name||'—'}</td>
-        <td style="color:var(--cdim);font-size:11px;">${m.role||'—'}</td>
-        <td><button class="act-btn del" onclick="deleteMember('${d.id}')">🗑</button></td>
+        <td style="color:var(--cdim);font-size:11px;max-width:400px;">${m.role||'—'}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="act-btn" onclick="editMember('${d.id}')">✏️ Επεξεργασία</button>
+            <button class="act-btn del" onclick="confirmDeleteMember('${d.id}','${(m.name||'').replace(/'/g,"\\'")}')">🗑 Διαγραφή</button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
-    c.innerHTML = `<table class="ev-table"><thead><tr><th>Φωτό</th><th>Όνομα</th><th>Ρόλος</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+    c.innerHTML = `<table class="ev-table">
+      <thead><tr><th>Φωτό</th><th>Όνομα</th><th>Ρόλος</th><th>Ενέργειες</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:10px;font-size:10px;color:var(--cdim);letter-spacing:0.15em;">${snap.size} μέλη</div>`;
   } catch(e) {
     c.innerHTML = `<div class="empty-msg" style="color:var(--red);">Σφάλμα: ${e.message}</div>`;
   }
 }
 
+function clearMemberForm() {
+  document.getElementById('mEditId').value = '';
+  document.getElementById('mName').value = '';
+  document.getElementById('mRole').value = '';
+  document.getElementById('mPhoto').value = '';
+  document.getElementById('mBio').value = '';
+  document.getElementById('mBtnDelete').style.display = 'none';
+  document.getElementById('memberFormTitle').textContent = '+ Νέο Μέλος';
+  document.getElementById('memberMsg').textContent = '';
+}
+
+function editMember(id) {
+  // Find member data from DOM — reload from Firestore
+  const { collection, getDocs } = window._fs;
+  getDocs(collection(window._db,'members')).then(snap => {
+    const d = snap.docs.find(x => x.id === id);
+    if (!d) return;
+    const m = d.data();
+    document.getElementById('mEditId').value = id;
+    document.getElementById('mName').value  = m.name || '';
+    document.getElementById('mRole').value  = m.role || '';
+    document.getElementById('mPhoto').value = m.photoUrl || '';
+    document.getElementById('mBio').value   = m.bio || '';
+    document.getElementById('mBtnDelete').style.display = 'block';
+    document.getElementById('memberFormTitle').textContent = '✏️ Επεξεργασία Μέλους';
+    document.getElementById('view-members').scrollIntoView({ behavior:'smooth' });
+  });
+}
+
+async function saveMember() {
+  const name = document.getElementById('mName').value.trim();
+  if (!name) {
+    document.getElementById('memberMsg').innerHTML = '<span style="color:var(--red);">Το όνομα είναι υποχρεωτικό.</span>';
+    return;
+  }
+  const data = {
+    name,
+    role:     document.getElementById('mRole').value.trim(),
+    photoUrl: document.getElementById('mPhoto').value.trim(),
+    bio:      document.getElementById('mBio').value.trim(),
+    updatedAt: Date.now(),
+  };
+  const editId = document.getElementById('mEditId').value;
+  document.getElementById('memberMsg').textContent = 'Αποθήκευση…';
+  try {
+    const { collection, addDoc, doc, updateDoc } = window._fs;
+    if (editId) {
+      await updateDoc(doc(window._db,'members',editId), data);
+      toast('✓ Το μέλος ενημερώθηκε!');
+    } else {
+      data.createdAt = Date.now();
+      await addDoc(collection(window._db,'members'), data);
+      toast('✓ Νέο μέλος αποθηκεύτηκε!');
+    }
+    clearMemberForm();
+    loadMembers();
+  } catch(e) {
+    document.getElementById('memberMsg').innerHTML = `<span style="color:var(--red);">Σφάλμα: ${e.message}</span>`;
+  }
+}
+
+function confirmDeleteMember(id, name) {
+  EDIT_ID = id;
+  document.getElementById('confirmMsg').textContent = `Θέλεις σίγουρα να διαγραφεί το μέλος "${name}";`;
+  document.getElementById('confirmOverlay').classList.add('open');
+  // Override doDelete for member
+  window._deleteTarget = { type:'member', id };
+}
+
+function deleteMemberEdit() {
+  const id = document.getElementById('mEditId').value;
+  const name = document.getElementById('mName').value;
+  confirmDeleteMember(id, name);
+}
+
 async function deleteMember(id) {
-  if (!confirm('Διαγραφή μέλους;')) return;
   try {
     const { doc, deleteDoc } = window._fs;
     await deleteDoc(doc(window._db,'members',id));
     toast('✓ Το μέλος διαγράφηκε!');
+    clearMemberForm();
     loadMembers();
   } catch(e) { toast('Σφάλμα: '+e.message,'err'); }
 }
