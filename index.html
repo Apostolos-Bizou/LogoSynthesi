@@ -2217,6 +2217,13 @@ function openEv(id) {
 function togglePosterFS() {
   const img = document.querySelector('#posterWrap img.modal-poster');
   if (!img || !img.src) return;
+  // On desktop (>= 640px) use native browser fullscreen
+  if (window.innerWidth >= 640) {
+    if (img.requestFullscreen) img.requestFullscreen();
+    else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+    return;
+  }
+  // Mobile: custom fullscreen overlay
   document.getElementById('posterFSImg').src = img.src;
   document.getElementById('posterFSOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
