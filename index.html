@@ -1140,6 +1140,16 @@ footer {
 .fade-up.visible { opacity: 1; transform: translateY(0); }
 </style>
 </head>
+<script>
+/* Stubs in <head>: defined before body parses so onclick attrs never throw */
+(function(){
+  var fns=['setLang','filterCat','openPanel','closePanel','closeAllPanels',
+           'openEv','selS','subV','closeModal','secretClick','togglePosterFS','selectHub'];
+  fns.forEach(function(fn){ window[fn]=function(){
+    (window._q=window._q||[]).push([fn,[].slice.call(arguments)]);
+  };});
+})();
+</script>
 <body>
 
 <!-- HEADER -->
@@ -1394,16 +1404,6 @@ footer {
 </div>
 
 <script>
-/* ─── EARLY GLOBAL EXPOSURE ───
-   Expose stubs immediately so onclick handlers don't throw ReferenceError
-   even before async Firebase init completes. Real functions replace these. */
-(function earlyExpose() {
-  const noop = () => {};
-  ['setLang','filterCat','openPanel','closePanel','closeAllPanels',
-   'openEv','selS','subV','closeModal','secretClick','togglePosterFS',
-   'selectHub'].forEach(fn => { if (!window[fn]) window[fn] = noop; });
-})();
-
 /* ─── DEMO DATA ─── */
 const DEMO = [
   {id:'d1',category:'cinehub',title:'Blue Sky Jo',date:'2026-03-05',time:'20:00',venue:'Φιλαρμονική Εταιρεία Λευκάδας',posterUrl:'',description:'Μια συγκινητική ταινία για τη δύναμη της ανθρώπινης σύνδεσης.',country:'Ισπανία 2023 · 98΄',people:['Σκηνοθεσία: María Ripoll'],votes:{1:1,2:3,3:8,4:15,5:22}},
@@ -1776,4 +1776,23 @@ window.setLang = setLang;
 window.filterCat = filterCat;
 window.openPanel = openPanel;
 window.closePanel = closePanel;
-window.
+window.closeAllPanels = closeAllPanels;
+window.openEv = openEv;
+window.selS = selS;
+window.subV = subV;
+window.closeModal = closeModal;
+window.secretClick = secretClick;
+window.togglePosterFS = togglePosterFS;
+
+/* Replay calls queued before functions were ready */
+if(window._q){
+  var _rf={setLang:setLang,filterCat:filterCat,openPanel:openPanel,
+           closePanel:closePanel,closeAllPanels:closeAllPanels,openEv:openEv,
+           selS:selS,subV:subV,closeModal:closeModal,secretClick:secretClick,
+           togglePosterFS:togglePosterFS,selectHub:selectHub};
+  window._q.forEach(function(c){if(_rf[c[0]])_rf[c[0]].apply(null,c[1]);});
+  window._q=null;
+}
+</script>
+</body>
+</html>
