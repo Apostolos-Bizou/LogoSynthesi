@@ -294,7 +294,7 @@ header {
 }
 .landing-title {
   font-family: var(--serif);
-  font-size: clamp(32px, 7vw, 72px);
+  font-size: clamp(22px, 4.5vw, 48px);
   font-weight: 300;
   line-height: 1;
   letter-spacing: 0.03em;
@@ -401,7 +401,8 @@ header {
 
 /* Mobile */
 @media(max-width: 480px) {
-  .landing-logo { padding: 32px 16px 24px; }
+  .landing-logo { padding: 32px 16px 20px; gap: 14px; }
+  .landing-quote { font-size: 13px; }
   .hub-card { padding: 16px 8px; }
   .hub-icon-wrap { width: 36px; height: 36px; }
   .hub-icon-wrap svg { width: 36px; height: 36px; }
@@ -1221,13 +1222,14 @@ footer {
 <!-- LANDING -->
 <div class="landing" id="landingSection">
 
-  <!-- Logo stacked -->
+  <!-- Logo: frame top, title+quote below, all centered -->
   <div class="landing-logo">
-    <!-- Frame — wide, transparent background -->
+
+    <!-- Frame wide, transparent, no background -->
     <div class="landing-frame">
       <div class="landing-frame-inner"></div>
       <div class="landing-wave">
-        <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
+        <svg width="clamp(80px,14vw,140px)" height="clamp(80px,14vw,140px)" viewBox="0 0 64 64" fill="none" style="width:clamp(80px,12vw,140px);height:clamp(80px,12vw,140px)">
           <circle cx="32" cy="32" r="3.5" fill="#C8A96E"/>
           <path d="M22 20 Q17 32 22 44" stroke="#F7F3EC" stroke-width="1.4" fill="none" stroke-linecap="round"/>
           <path d="M42 20 Q47 32 42 44" stroke="#C8A96E" stroke-width="1.4" fill="none" stroke-linecap="round"/>
@@ -1237,12 +1239,14 @@ footer {
       </div>
       <div class="landing-wordmark">λογοσύνθεση</div>
     </div>
-    <!-- Title + subtitle + quote below -->
+
+    <!-- Title block centered below frame -->
     <div class="landing-title-block">
       <div class="landing-title"><span class="lt-white">Λογο</span><span class="lt-gold">Σύνθεση</span></div>
       <div class="landing-subtitle">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
       <div class="landing-quote">«Ο λόγος συναντά την εικόνα, η μουσική συναντά τη σκέψη,<br>ο άνθρωπος συναντά τον άλλο άνθρωπο.»</div>
     </div>
+
   </div>
 
   <div class="landing-divider"></div>
