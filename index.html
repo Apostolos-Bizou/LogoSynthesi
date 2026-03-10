@@ -1484,62 +1484,7 @@ function renderAll() {
 }
 
 function renderHero(ev) {
-  const heroSection = document.getElementById('heroSection');
-  const heroBg = document.getElementById('heroBg');
-  const heroThumbs = document.getElementById('heroThumbs');
-  const herocat = document.getElementById('herocat');
-  const herotitle = document.getElementById('herotitle');
-  const herometa = document.getElementById('herometa');
-  const heroactions = document.getElementById('heroactions');
-  const heroPlaceholder = document.getElementById('heroPlaceholder');
-
-  if (!ev.length) {
-    heroSection.style.display = 'none';
-    return;
-  }
-  heroSection.style.display = '';
-
-  const main = ev[0];
-  const sides = ev.slice(1, 3);
-
-  // BG image
-  if (main.posterUrl) {
-    heroPlaceholder && (heroPlaceholder.style.display = 'none');
-    // Check if img already exists
-    let img = heroBg.querySelector('img');
-    if (!img) { img = document.createElement('img'); heroBg.appendChild(img); }
-    img.src = main.posterUrl;
-    img.alt = main.title;
-  } else {
-    const ph = document.getElementById('heroPlaceholder');
-    if (ph) ph.style.display = '';
-  }
-
-  herocat.textContent = clbl(main.category);
-  herotitle.innerHTML = LANG === 'en' && main.titleEn ? main.titleEn : main.title;
-
-  const meta = [];
-  if (main.date) meta.push(`<span class="hero-meta-item">📅 ${fd(main.date)}${main.time ? ' · ' + main.time : ''}</span>`);
-  if (main.venue) meta.push(`<span class="hero-meta-item">📍 ${main.venue}</span>`);
-  if (main.country) meta.push(`<span class="hero-meta-item">${main.country}</span>`);
-  herometa.innerHTML = meta.join('');
-
-  const acts = [`<button class="hero-cta" onclick="openEv('${main.id}')">Περισσότερα</button>`];
-  if (main.ticketUrl) acts.push(`<a class="hero-cta-sec" href="${main.ticketUrl}" target="_blank">🎟 Εισιτήριο</a>`);
-  heroactions.innerHTML = acts.join('');
-
-  // Side thumbs
-  heroThumbs.innerHTML = sides.map(e => `
-    <div class="hero-thumb" onclick="openEv('${e.id}')">
-      ${e.posterUrl
-        ? `<img src="${e.posterUrl}" alt="${e.title}" loading="lazy">`
-        : `<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;">${logoSVG(28)}</div>`
-      }
-      <div class="hero-thumb-overlay">
-        <div class="hero-thumb-title">${LANG === 'en' && e.titleEn ? e.titleEn : e.title}</div>
-        <div class="hero-thumb-date">${fd(e.date)}</div>
-      </div>
-    </div>`).join('');
+  // Landing section is static — no dynamic hero needed
 }
 
 function renderGrid(ev) {
