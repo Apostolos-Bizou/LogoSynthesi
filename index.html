@@ -1997,4 +1997,11 @@ window.togglePosterFS = togglePosterFS;
 if(window._q){
   var _rf={setLang:setLang,filterCat:filterCat,openPanel:openPanel,
            closePanel:closePanel,closeAllPanels:closeAllPanels,openEv:openEv,
-     
+           selS:selS,subV:subV,closeModal:closeModal,secretClick:secretClick,
+           togglePosterFS:togglePosterFS,selectHub:selectHub,
+           openMemberBio:openMemberBio,closeMemberBio:closeMemberBio};
+  window._q.forEach(function(c){if(_rf[c[0]])_rf[c[0]].apply(null,c[1]);});
+}
+</script>
+</body>
+</html>
