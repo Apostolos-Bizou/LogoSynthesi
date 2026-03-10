@@ -340,8 +340,8 @@ header {
 /* The frame — wide horizontal, no background fill */
 .landing-frame {
   position: relative;
-  width: clamp(140px, 32vw, 280px);
-  height: clamp(70px, 16vw, 140px);
+  width: clamp(120px, 28vw, 240px);
+  height: clamp(60px, 13vw, 120px);
   border: 1.5px solid var(--gold);
   flex-shrink: 0;
   background: transparent;
@@ -494,7 +494,7 @@ header {
   .hub-icon-wrap { width: 32px; height: 32px; }
   .hub-icon-wrap svg { width: 32px; height: 32px; }
   .hub-label { font-size: 8.5px; letter-spacing: 0.10em; font-weight: 500; }
-  .landing-frame { width: clamp(140px, 55vw, 240px); }
+  .landing-frame { width: clamp(120px, 48vw, 220px); }
   .landing-title { font-size: clamp(20px, 7vw, 32px); }
 }
 
@@ -1687,7 +1687,7 @@ footer {
           <circle cx="12" cy="17" r="2.2" fill="#C8A96E" opacity="0.9"/>
         </svg>
       </div>
-      <span class="logo-text">Λογο<em>Σύνθεση</em></span>
+      <span class="logo-text" style="display:none;">Λογο<em>Σύνθεση</em></span>
     </a>
 
     <!-- Cat-bar inline -->
@@ -1854,8 +1854,7 @@ footer {
 
 <footer>
   <div style="display:flex;align-items:center;gap:10px;">
-    <div class="footer-logo">Λογο<span style="color:var(--gold);">Σύνθεση</span></div>
-    <div class="footer-sub">· Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
+    <div class="footer-sub">Σύνδεσμος Φιλολόγων Λευκάδος · 2026</div>
   </div>
   <div class="footer-links">
     <a href="#" onclick="filterCat('all');return false;">Εκδηλώσεις</a>
