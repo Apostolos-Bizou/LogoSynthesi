@@ -1671,20 +1671,29 @@ function logoSVG(sz) {
 
 /* ─── INIT ─── */
 async function initApp() {
+  // Always render immediately with DEMO so page is never blank
+  if (!ALL_EV.length) { ALL_EV = DEMO; renderAll(); }
+  loadMembers();
+  loadAbout();
+  // Then try to load real events from Firebase in background
   try {
-    if (!window._db) throw 0;
+    if (!window._db || !window._firebase) return;
     const {collection, getDocs, orderBy, query} = window._firebase;
     const snap = await getDocs(query(collection(window._db,'events'), orderBy('date','asc')));
     const ev = snap.docs.map(d => ({id:d.id, ...d.data()}));
-    ALL_EV = ev.length ? ev : DEMO;
-  } catch { ALL_EV = DEMO; }
-  renderAll();
-  loadAbout();
-  loadMembers();
+    if (ev.length) { ALL_EV = ev; renderAll(); }
+  } catch {}
 }
-window.addEventListener('firebase-ready', initApp);
-if (window._db || window._firebase) initApp();
-setTimeout(() => { if (!ALL_EV.length) { ALL_EV = DEMO; renderAll(); } }, 5000);
+
+// Start immediately — don't wait for firebase-ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Give Firebase 1.5s to init, then start regardless
+  setTimeout(initApp, 100);
+});
+window.addEventListener('firebase-ready', () => {
+  // If firebase loaded, re-run to get real data
+  initApp();
+});
 
 /* ─── RENDER ─── */
 function renderAll() {
@@ -1872,8 +1881,12 @@ function filterCat(c) {
 
 /* ─── FIREBASE LOADERS ─── */
 async function loadAbout() {
+  for (let i = 0; i < 12; i++) {
+    if (window._db && window._firebase) break;
+    await new Promise(r => setTimeout(r, 500));
+  }
   try {
-    if (!window._db) return;
+    if (!window._db || !window._firebase) return;
     const {collection, getDocs} = window._firebase;
     const s = await getDocs(collection(window._db,'about'));
     s.docs.forEach(d => {
@@ -1883,22 +1896,37 @@ async function loadAbout() {
     });
   } catch {}
 }
+function renderMembers(mem) {
+  if (!mem.length) {
+    document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';
+    return;
+  }
+  document.getElementById('membersGrid').innerHTML = mem.map(m =>
+    `<div class="member-card" onclick="openMemberBio(${JSON.stringify(JSON.stringify(m))})">
+      ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name||''}">` : `<div class="member-ph">◈</div>`}
+      <div class="member-name">${m.name||''}</div>
+      <div class="member-role">${m.role||''}</div>
+      ${m.bio ? `<div class="member-more-btn">Περισσότερα ›</div>` : ''}
+    </div>`).join('');
+}
 async function loadMembers() {
+  const grid = document.getElementById('membersGrid');
+  if (!grid) return;
+  // Show loading dots while waiting
+  grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  // Wait up to 6s for Firebase
+  for (let i = 0; i < 12; i++) {
+    if (window._db && window._firebase) break;
+    await new Promise(r => setTimeout(r, 500));
+  }
   try {
-    if (!window._db) throw 0;
+    if (!window._db || !window._firebase) throw 0;
     const {collection, getDocs} = window._firebase;
     const s = await getDocs(collection(window._db,'members'));
     const mem = s.docs.map(d => ({id:d.id,...d.data()})).sort((a,b) => (a.order||99)-(b.order||99));
-    if (!mem.length) { document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>'; return; }
-    document.getElementById('membersGrid').innerHTML = mem.map(m =>
-      `<div class="member-card" onclick="openMemberBio(${JSON.stringify(JSON.stringify(m))})">
-        ${m.photo ? `<img class="member-photo" src="${m.photo}" alt="${m.name||''}">` : `<div class="member-ph">◈</div>`}
-        <div class="member-name">${m.name||''}</div>
-        <div class="member-role">${m.role||''}</div>
-        ${m.bio ? `<div class="member-more-btn">Περισσότερα ›</div>` : ''}
-      </div>`).join('');
+    renderMembers(mem);
   } catch {
-    document.getElementById('membersGrid').innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν υπάρχουν μέλη ακόμη.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;font-family:var(--serif);font-style:italic;color:var(--cdim2);padding:20px 0;">Δεν ήταν δυνατή η σύνδεση. Δοκιμάστε να ανανεώσετε τη σελίδα.</div>';
   }
 }
 
