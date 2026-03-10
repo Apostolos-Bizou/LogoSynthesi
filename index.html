@@ -1330,7 +1330,196 @@ footer {
 }
 .footer-links a:hover { color: var(--gold); }
 
-/* ─── ANIMATIONS ─── */
+/* ─── CALENDAR OVERLAY ─── */
+.cal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(4,3,2,0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+  padding: 20px;
+}
+.cal-overlay.open { opacity: 1; pointer-events: all; }
+.cal-modal {
+  background: var(--bg2);
+  border: 1px solid var(--gline);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90svh;
+  overflow-y: auto;
+  border-radius: 6px;
+  transform: scale(0.97);
+  transition: transform .35s cubic-bezier(.2,.8,.3,1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--gline) transparent;
+}
+.cal-overlay.open .cal-modal { transform: scale(1); }
+.cal-header {
+  position: sticky;
+  top: 0;
+  background: rgba(15,14,11,0.97);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--gline);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cal-nav-btn {
+  background: none;
+  border: 1px solid var(--gline);
+  color: var(--cdim);
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+  transition: all .2s;
+}
+.cal-nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+.cal-month-label {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--cream);
+  min-width: 200px;
+  text-align: center;
+}
+.cal-close {
+  background: none;
+  border: 1px solid var(--gline);
+  color: var(--cdim);
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; border-radius: 2px;
+  transition: all .2s;
+}
+.cal-close:hover { border-color: var(--gold); color: var(--gold); }
+.cal-body { padding: 20px; }
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.cal-wday {
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--cdim2);
+  text-align: center;
+  padding: 4px 0;
+}
+.cal-wday:first-child { color: var(--gold); opacity: 0.6; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  position: relative;
+  cursor: default;
+  transition: background .2s;
+  min-height: 48px;
+}
+.cal-day-num {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--cdim2);
+  line-height: 1;
+}
+.cal-day.empty { opacity: 0; pointer-events: none; }
+.cal-day.today .cal-day-num {
+  color: var(--gold);
+  font-weight: 500;
+}
+.cal-day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 5px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.5;
+}
+.cal-day.has-event {
+  cursor: pointer;
+  background: rgba(200,169,110,0.05);
+  border: 1px solid rgba(200,169,110,0.2);
+}
+.cal-day.has-event:hover { background: rgba(200,169,110,0.12); border-color: var(--gold); }
+.cal-day.has-event .cal-day-num { color: var(--cream); }
+.cal-event-dot {
+  width: 18px; height: 18px;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.cal-event-list {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(200,169,110,0.12);
+}
+.cal-event-list-title {
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+.cal-ev-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(200,169,110,0.1);
+  border-radius: 3px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.cal-ev-item:hover { border-color: rgba(200,169,110,0.4); background: rgba(200,169,110,0.04); }
+.cal-ev-date {
+  font-family: var(--sans);
+  font-size: 9px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+.cal-ev-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--cream);
+}
+.cal-ev-venue {
+  font-family: var(--sans);
+  font-size: 8px;
+  color: var(--cdim2);
+  margin-top: 2px;
+}
 .fade-up {
   opacity: 0;
   transform: translateY(16px);
@@ -1369,6 +1558,9 @@ footer {
       <span class="logo-text">Λογο<em>Σύνθεση</em></span>
     </a>
     <div class="nav-right">
+      <button class="nav-btn" onclick="openCalendar()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="display:inline-block;vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Ημερολόγιο
+      </button>
       <button class="nav-btn" onclick="openPanel('about')">Για εμάς</button>
       <button class="nav-btn" onclick="openPanel('members')">Μέλη</button>
       <button class="nav-btn" onclick="openPanel('contact')">Επικοινωνία</button>
@@ -1520,6 +1712,33 @@ footer {
     </a>
   </div>
 </footer>
+
+<!-- CALENDAR OVERLAY -->
+<div class="cal-overlay" id="calOverlay" onclick="if(event.target===this)closeCalendar()">
+  <div class="cal-modal">
+    <div class="cal-header">
+      <div class="cal-nav">
+        <button class="cal-nav-btn" onclick="calMove(-1)">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button class="cal-nav-btn" onclick="calMove(1)">›</button>
+      </div>
+      <button class="cal-close" onclick="closeCalendar()">✕</button>
+    </div>
+    <div class="cal-body">
+      <div class="cal-weekdays">
+        <div class="cal-wday">Κυρ</div>
+        <div class="cal-wday">Δευ</div>
+        <div class="cal-wday">Τρι</div>
+        <div class="cal-wday">Τετ</div>
+        <div class="cal-wday">Πεμ</div>
+        <div class="cal-wday">Παρ</div>
+        <div class="cal-wday">Σαβ</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-event-list" id="calEventList"></div>
+    </div>
+  </div>
+</div>
 
 <!-- EVENT MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -1951,7 +2170,7 @@ function secretClick(e) {
 
 /* ─── KEYBOARD ─── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(null, true); closeAllPanels(); closeMemberBio(null,true); }
+  if (e.key === 'Escape') { closeModal(null, true); closeAllPanels(); closeMemberBio(null,true); closeCalendar(); }
 });
 
 /* ─── MEMBER BIO OVERLAY ─── */
@@ -1978,7 +2197,122 @@ function closeMemberBio(e, force) {
   }
 }
 
-/* ─── EXPOSE GLOBALS ─── */
+/* ─── CALENDAR ─── */
+let CAL_YEAR = new Date().getFullYear();
+let CAL_MONTH = new Date().getMonth(); // 0-based
+
+const GR_MONTHS = ['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+
+// Mini logo SVG για events στο ημερολόγιο
+function calLogoSVG() {
+  return `<svg class="cal-event-dot" viewBox="0 0 64 64" fill="none">
+    <rect x="4" y="4" width="56" height="56" rx="1" stroke="#C8A96E" stroke-width="3"/>
+    <rect x="10" y="10" width="44" height="44" rx="0.5" stroke="#C8A96E" stroke-width="0.8" opacity="0.4"/>
+    <path d="M18 14 Q12 32 18 50" stroke="#F7F3EC" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <path d="M46 14 Q52 32 46 50" stroke="#C8A96E" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="32" cy="32" r="5" fill="#C8A96E"/>
+  </svg>`;
+}
+
+function renderCalendar() {
+  const label = document.getElementById('calMonthLabel');
+  const grid = document.getElementById('calGrid');
+  const evList = document.getElementById('calEventList');
+  if (!label || !grid) return;
+
+  label.textContent = GR_MONTHS[CAL_MONTH] + ' ' + CAL_YEAR;
+
+  // Build set of event dates for this month
+  const eventsThisMonth = ALL_EV.filter(e => {
+    if (!e.date) return false;
+    const d = new Date(e.date);
+    return d.getFullYear() === CAL_YEAR && d.getMonth() === CAL_MONTH;
+  });
+  const eventDays = {};
+  eventsThisMonth.forEach(e => {
+    const day = new Date(e.date).getDate();
+    if (!eventDays[day]) eventDays[day] = [];
+    eventDays[day].push(e);
+  });
+
+  const today = new Date();
+  const firstDay = new Date(CAL_YEAR, CAL_MONTH, 1).getDay(); // 0=Sun
+  const daysInMonth = new Date(CAL_YEAR, CAL_MONTH + 1, 0).getDate();
+
+  let html = '';
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="cal-day empty"></div>`;
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = today.getDate() === d && today.getMonth() === CAL_MONTH && today.getFullYear() === CAL_YEAR;
+    const hasEv = !!eventDays[d];
+    html += `<div class="cal-day${isToday ? ' today' : ''}${hasEv ? ' has-event' : ''}" ${hasEv ? `onclick="calDayClick(${d})"` : ''}>
+      <span class="cal-day-num">${d}</span>
+      ${hasEv ? calLogoSVG() : ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+
+  // Event list for the month
+  if (eventsThisMonth.length) {
+    evList.innerHTML = `<div class="cal-event-list-title">Εκδηλώσεις μήνα</div>` +
+      eventsThisMonth.sort((a,b) => a.date.localeCompare(b.date)).map(e =>
+        `<div class="cal-ev-item" onclick="closeCalendar();openEv('${e.id}')">
+          <div>
+            <div class="cal-ev-date">${fd(e.date)}${e.time ? ' · ' + e.time : ''}</div>
+          </div>
+          <div>
+            <div class="cal-ev-title">${LANG==='en'&&e.titleEn?e.titleEn:e.title}</div>
+            ${e.venue ? `<div class="cal-ev-venue">${e.venue}</div>` : ''}
+          </div>
+        </div>`
+      ).join('');
+    evList.style.display = 'block';
+  } else {
+    evList.innerHTML = `<div class="cal-event-list-title" style="color:var(--cdim2)">Δεν υπάρχουν εκδηλώσεις αυτόν τον μήνα</div>`;
+    evList.style.display = 'block';
+  }
+}
+
+function calDayClick(day) {
+  const evs = ALL_EV.filter(e => {
+    if (!e.date) return false;
+    const d = new Date(e.date);
+    return d.getFullYear() === CAL_YEAR && d.getMonth() === CAL_MONTH && d.getDate() === day;
+  });
+  if (evs.length === 1) { closeCalendar(); openEv(evs[0].id); }
+}
+
+function calMove(dir) {
+  CAL_MONTH += dir;
+  if (CAL_MONTH > 11) { CAL_MONTH = 0; CAL_YEAR++; }
+  if (CAL_MONTH < 0)  { CAL_MONTH = 11; CAL_YEAR--; }
+  renderCalendar();
+}
+
+function openCalendar() {
+  // Start at the month of the next upcoming event
+  const upcoming = ALL_EV.filter(e => e.date).sort((a,b) => a.date.localeCompare(b.date))
+    .find(e => new Date(e.date) >= new Date());
+  if (upcoming) {
+    const d = new Date(upcoming.date);
+    CAL_YEAR = d.getFullYear();
+    CAL_MONTH = d.getMonth();
+  } else {
+    CAL_YEAR = new Date().getFullYear();
+    CAL_MONTH = new Date().getMonth();
+  }
+  renderCalendar();
+  document.getElementById('calOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeCalendar() {
+  document.getElementById('calOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+
 function selectHub(el, cat) {
   document.querySelectorAll('.hub-card').forEach(b => b.classList.remove('active-hub'));
   el.classList.add('active-hub');
@@ -2000,6 +2334,10 @@ window.selS = selS;
 window.subV = subV;
 window.closeModal = closeModal;
 window.secretClick = secretClick;
+window.openCalendar = openCalendar;
+window.closeCalendar = closeCalendar;
+window.calMove = calMove;
+window.calDayClick = calDayClick;
 window.openMemberBio = openMemberBio;
 window.closeMemberBio = closeMemberBio;
 window.togglePosterFS = togglePosterFS;
