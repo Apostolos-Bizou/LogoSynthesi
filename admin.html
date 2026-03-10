@@ -4,1029 +4,772 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Λογοσύνθεση · Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Raleway:wght@200;300;400;500&display=swap" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='4' width='28' height='24' rx='1' fill='none' stroke='%23C8A96E' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%23C8A96E'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  const firebaseConfig = {
-    apiKey: "AIzaSyCXehfkR1nut6T6_HDdrkcl_6KLsi02iLk",
-    authDomain: "logosynthesi-dc74f.firebaseapp.com",
-    projectId: "logosynthesi-dc74f",
-    storageBucket: "logosynthesi-dc74f.firebasestorage.app",
-    messagingSenderId: "677321076301",
-    appId: "1:677321076301:web:54240f2ff470e148483604"
+  const cfg = {
+    apiKey:"AIzaSyCXehfkR1nut6T6_HDdrkcl_6KLsi02iLk",
+    authDomain:"logosynthesi-dc74f.firebaseapp.com",
+    projectId:"logosynthesi-dc74f",
+    storageBucket:"logosynthesi-dc74f.firebasestorage.app",
+    messagingSenderId:"677321076301",
+    appId:"1:677321076301:web:54240f2ff470e148483604"
   };
-  try {
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    window._db = db;
-    window._auth = auth;
-    window._firebase = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, where, getCountFromServer };
-    window._firebaseAuth = { signInWithEmailAndPassword, signOut, onAuthStateChanged };
-    onAuthStateChanged(auth, user => {
-      window._user = user;
-      window.dispatchEvent(new CustomEvent('auth-change', { detail: user }));
-    });
-  } catch(e) { window.dispatchEvent(new Event('firebase-ready')); }
-  window.dispatchEvent(new Event('firebase-ready'));
+  const app = initializeApp(cfg);
+  const db  = getFirestore(app);
+  const auth = getAuth(app);
+  window._db = db;
+  window._auth = auth;
+  window._fs = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy };
+  window._fa = { signInWithEmailAndPassword, signOut, onAuthStateChanged };
+  onAuthStateChanged(auth, user => {
+    window._user = user;
+    window.dispatchEvent(new CustomEvent('auth-change', { detail: user }));
+  });
 </script>
 <style>
 :root {
-  --black:#0e0d0b;--black2:#161410;--black3:#1e1b16;
-  --gold:#C8A96E;--gold-dim:rgba(200,169,110,0.14);--gold-line:rgba(200,169,110,0.3);
-  --cream:#F7F3EC;--cream-dim:rgba(247,243,236,0.6);
-  --red:rgba(220,60,60,0.8);--green:rgba(60,180,100,0.8);
-  --font-serif:'Cormorant Garamond',Georgia,serif;
-  --font-sans:'Raleway',sans-serif;
+  --bg:#0e0d0b; --bg2:#161410; --bg3:#1e1b16;
+  --gold:#C8A96E; --gdim:rgba(200,169,110,0.12); --gline:rgba(200,169,110,0.25);
+  --cream:#F7F3EC; --cdim:rgba(247,243,236,0.55);
+  --red:#e05555; --green:#4caf7d;
+  --serif:'Cormorant Garamond',serif; --sans:'Raleway',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min-height:100vh;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--gold-line);}
+body{background:var(--bg);color:var(--cream);font-family:var(--sans);min-height:100vh;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--gline);}
 
-/* LOGIN */
-.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
-.login-box{width:100%;max-width:360px;border:1px solid var(--gold-line);padding:40px 32px;background:var(--black2);}
-.login-logo{text-align:center;margin-bottom:28px;}
-.login-logo-mark{display:inline-flex;position:relative;width:50px;height:70px;border:1.5px solid var(--gold);margin-bottom:12px;}
-.login-logo-mark::after{content:'';position:absolute;inset:4px;border:0.5px solid var(--gold-line);}
-.login-title{font-family:var(--font-serif);font-size:22px;font-weight:300;letter-spacing:0.1em;text-align:center;margin-bottom:4px;}
-.login-sub{font-family:var(--font-sans);font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);text-align:center;margin-bottom:28px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
-.field input{width:100%;background:var(--black);border:1px solid var(--gold-line);color:var(--cream);padding:10px 12px;font-family:var(--font-sans);font-size:13px;outline:none;transition:border-color .2s;border-radius:2px;}
-.field input:focus{border-color:var(--gold);}
-.btn-gold{width:100%;background:none;border:1px solid var(--gold);color:var(--gold);padding:11px;font-family:var(--font-sans);font-size:10px;font-weight:400;letter-spacing:0.28em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .25s;margin-top:4px;}
-.btn-gold:hover{background:var(--gold);color:var(--black);}
-.btn-gold:disabled{opacity:.4;cursor:not-allowed;}
-.error-msg{font-size:11px;color:var(--red);margin-top:10px;text-align:center;}
-.demo-note{font-size:10px;color:var(--cream-dim);margin-top:16px;text-align:center;line-height:1.6;padding:10px;border:1px solid rgba(200,169,110,0.1);}
+/* ── LOGIN ── */
+#loginScreen {
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:20px;
+}
+.login-box {
+  width:100%; max-width:360px;
+  border:1px solid var(--gline); padding:40px 32px; background:var(--bg2);
+}
+.login-title {
+  font-family:var(--serif); font-size:22px; font-weight:600;
+  color:var(--gold); text-align:center; margin-bottom:6px; letter-spacing:0.06em;
+}
+.login-sub {
+  font-size:9px; letter-spacing:0.25em; text-transform:uppercase;
+  color:var(--cdim); text-align:center; margin-bottom:28px;
+}
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--cdim); margin-bottom:6px; }
+.field input {
+  width:100%; background:var(--bg3); border:1px solid var(--gline);
+  color:var(--cream); font-family:var(--sans); font-size:13px;
+  padding:10px 12px; outline:none; transition:border .2s;
+}
+.field input:focus { border-color:var(--gold); }
+.btn {
+  width:100%; padding:11px; background:var(--gdim); border:1px solid var(--gold);
+  color:var(--gold); font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; transition:all .2s;
+}
+.btn:hover { background:rgba(200,169,110,0.22); }
+.btn.danger { border-color:var(--red); color:var(--red); background:rgba(220,85,85,0.08); }
+.btn.danger:hover { background:rgba(220,85,85,0.18); }
+.btn.success { border-color:var(--green); color:var(--green); background:rgba(76,175,125,0.08); }
+#loginErr { color:var(--red); font-size:11px; text-align:center; margin-top:12px; min-height:16px; }
 
-/* ADMIN LAYOUT */
-.admin-wrap{display:none;}
-.admin-wrap.visible{display:flex;flex-direction:column;min-height:100vh;}
+/* ── APP ── */
+#appScreen { display:none; }
 
 /* TOP BAR */
-.topbar{background:var(--black2);border-bottom:1px solid var(--gold-line);padding:0 16px;height:46px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
-.topbar-title{font-family:var(--font-serif);font-size:15px;font-weight:300;letter-spacing:0.08em;}
-.topbar-title span{color:var(--gold);}
-.topbar-right{display:flex;align-items:center;gap:8px;}
-.user-email{font-size:10px;color:var(--cream-dim);letter-spacing:0.05em;}
-.btn-sm{background:none;border:1px solid var(--gold-line);color:var(--cream-dim);padding:5px 12px;font-family:var(--font-sans);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;}
-.btn-sm:hover{border-color:var(--gold);color:var(--gold);}
+.topbar {
+  position:sticky; top:0; z-index:100;
+  background:rgba(14,13,11,0.96); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--gline);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px; height:52px;
+}
+.topbar-logo { font-family:var(--serif); font-size:18px; font-weight:600; color:#fff; letter-spacing:0.05em; }
+.topbar-logo span { color:var(--gold); }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.topbar-user { font-size:10px; letter-spacing:0.15em; color:var(--cdim); }
+.topbar-btn {
+  background:none; border:1px solid var(--gline); color:var(--cdim);
+  font-family:var(--sans); font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+  padding:5px 10px; cursor:pointer; transition:all .2s;
+}
+.topbar-btn:hover { border-color:var(--gold); color:var(--gold); }
 
-/* SIDEBAR + MAIN */
-.admin-body{display:flex;flex:1;}
-.sidebar{width:200px;background:var(--black2);border-right:1px solid var(--gold-line);padding:20px 0;flex-shrink:0;display:none;}
-@media(min-width:700px){.sidebar{display:block;}}
-.sidebar-link{display:block;padding:10px 20px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--cream-dim);text-decoration:none;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .2s;border-left:2px solid transparent;}
-.sidebar-link:hover{color:var(--gold);background:var(--gold-dim);}
-.sidebar-link.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-dim);}
-.sidebar-section{font-size:8px;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold-line);padding:16px 20px 6px;}
-
-.main{flex:1;padding:24px 20px;overflow-x:hidden;display:flex;flex-direction:column;}
-
-/* MOBILE TABS */
-.mobile-tabs{display:flex;overflow-x:auto;gap:4px;padding:8px 12px;background:var(--black2);border-bottom:1px solid var(--gold-line);scrollbar-width:none;}
-.mobile-tabs::-webkit-scrollbar{display:none;}
-.mobile-tab{flex-shrink:0;background:none;border:1px solid var(--gold-line);color:var(--cream-dim);padding:5px 10px;font-family:var(--font-sans);font-size:8.5px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;white-space:nowrap;}
-.mobile-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
-.sidebar{display:none!important;}
+/* TABS */
+.tabs {
+  display:flex; gap:0; border-bottom:1px solid var(--gline);
+  background:var(--bg2); padding:0 20px; overflow-x:auto; scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar { display:none; }
+.tab {
+  background:none; border:none; border-bottom:2px solid transparent;
+  color:var(--cdim); font-family:var(--sans); font-size:10px; font-weight:500;
+  letter-spacing:0.18em; text-transform:uppercase; padding:14px 16px;
+  cursor:pointer; white-space:nowrap; transition:all .2s; flex-shrink:0;
+}
+.tab:hover { color:var(--cream); }
+.tab.active { color:var(--gold); border-bottom-color:var(--gold); }
 
 /* VIEWS */
-.view{display:none;}
-.view.active{display:block;}
+.view { display:none; padding:24px 20px; max-width:1100px; margin:0 auto; }
+.view.active { display:block; }
 
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;}
-@media(min-width:500px){.stats-grid{grid-template-columns:repeat(4,1fr);}}
-.stat-card{background:var(--black2);border:1px solid var(--gold-line);padding:16px;text-align:center;}
-.stat-num{font-family:var(--font-serif);font-size:28px;font-weight:300;color:var(--gold);line-height:1;}
-.stat-label{font-size:8px;letter-spacing:0.25em;text-transform:uppercase;color:var(--cream-dim);margin-top:4px;}
+/* ── EVENTS VIEW ── */
+.view-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:20px; flex-wrap:wrap; gap:12px;
+}
+.view-title { font-family:var(--serif); font-size:22px; font-weight:600; color:var(--gold); }
 
-/* PAGE TITLE */
-.page-title{font-family:var(--font-serif);font-size:clamp(18px,4vw,26px);font-weight:300;letter-spacing:0.06em;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--gold-line);}
-.page-title span{color:var(--gold);}
+/* Category filter */
+.cat-tabs {
+  display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px;
+}
+.cat-tab {
+  background:none; border:1px solid var(--gline); color:var(--cdim);
+  font-family:var(--sans); font-size:9px; letter-spacing:0.15em; text-transform:uppercase;
+  padding:5px 12px; cursor:pointer; border-radius:2px; transition:all .2s; white-space:nowrap;
+}
+.cat-tab:hover { border-color:var(--gold); color:var(--gold); }
+.cat-tab.active { background:var(--gdim); border-color:var(--gold); color:var(--gold); }
 
-/* FORM */
-.form-grid{display:grid;gap:14px;}
-@media(min-width:600px){.form-grid.two-col{grid-template-columns:1fr 1fr;}}
-.form-field label{display:block;font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
-.form-field input,.form-field select,.form-field textarea{width:100%;background:var(--black);border:1px solid var(--gold-line);color:var(--cream);padding:9px 12px;font-family:var(--font-sans);font-size:12px;outline:none;transition:border-color .2s;border-radius:2px;}
-.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--gold);}
-.form-field textarea{resize:vertical;min-height:90px;line-height:1.5;}
-.form-field select option{background:var(--black2);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.btn-primary{background:none;border:1px solid var(--gold);color:var(--gold);padding:10px 20px;font-family:var(--font-sans);font-size:10px;font-weight:400;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .25s;}
-.btn-primary:hover{background:var(--gold);color:var(--black);}
-.btn-danger{background:none;border:1px solid rgba(220,60,60,0.5);color:rgba(220,100,100,0.8);padding:6px 12px;font-family:var(--font-sans);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;}
-.btn-danger:hover{background:rgba(220,60,60,0.15);border-color:var(--red);}
-.btn-edit{background:none;border:1px solid var(--gold-line);color:var(--cream-dim);padding:6px 12px;font-family:var(--font-sans);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;}
-.btn-edit:hover{border-color:var(--gold);color:var(--gold);}
-.form-hint{font-size:10px;color:var(--cream-dim);margin-top:4px;line-height:1.4;}
-.success-msg{font-size:12px;color:var(--green);margin-top:10px;padding:8px 12px;border:1px solid rgba(60,180,100,0.3);background:rgba(60,180,100,0.05);}
-.error-msg2{font-size:12px;color:var(--red);margin-top:10px;padding:8px 12px;border:1px solid rgba(220,60,60,0.3);}
+/* Events table */
+.ev-table { width:100%; border-collapse:collapse; }
+.ev-table th {
+  text-align:left; font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--cdim); border-bottom:1px solid var(--gline); padding:8px 10px;
+  font-weight:500; white-space:nowrap;
+}
+.ev-table td {
+  padding:12px 10px; border-bottom:1px solid rgba(200,169,110,0.08);
+  font-size:12px; vertical-align:middle;
+}
+.ev-table tr:hover td { background:var(--gdim); }
+.ev-date { color:var(--gold); font-size:11px; white-space:nowrap; }
+.ev-title { font-family:var(--serif); font-size:15px; font-weight:600; }
+.ev-cat {
+  font-size:8px; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--cdim); border:1px solid var(--gline); padding:2px 7px; border-radius:2px; white-space:nowrap;
+}
+.ev-venue { color:var(--cdim); font-size:11px; }
+.ev-actions { display:flex; gap:6px; white-space:nowrap; }
+.act-btn {
+  background:none; border:1px solid var(--gline); color:var(--cdim);
+  font-size:9px; letter-spacing:0.12em; text-transform:uppercase;
+  padding:4px 9px; cursor:pointer; font-family:var(--sans); transition:all .2s;
+}
+.act-btn:hover { border-color:var(--gold); color:var(--gold); }
+.act-btn.del:hover { border-color:var(--red); color:var(--red); }
 
-/* EVENT TABLE */
-.event-list{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
-.event-row{background:var(--black2);border:1px solid var(--gold-line);padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;transition:border-color .2s;}
-.event-row:hover{border-color:var(--gold);}
-.event-row-info{flex:1;min-width:0;}
-.event-row-title{font-family:var(--font-serif);font-size:16px;font-weight:400;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.event-row-meta{font-size:10px;color:var(--cream-dim);display:flex;gap:12px;flex-wrap:wrap;}
-.event-row-cat{display:inline-block;font-size:8px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);padding:2px 7px;border:1px solid var(--gold-line);margin-bottom:5px;}
-.event-row-actions{display:flex;gap:6px;flex-shrink:0;}
+.empty-msg { text-align:center; color:var(--cdim); padding:40px; font-size:13px; }
+.loading-msg { text-align:center; color:var(--cdim); padding:40px; font-size:12px; letter-spacing:0.2em; }
 
-/* VOTE TABLE */
-.vote-summary{background:var(--black2);border:1px solid var(--gold-line);padding:16px;margin-bottom:10px;}
-.vote-sum-title{font-family:var(--font-serif);font-size:16px;font-weight:400;margin-bottom:6px;}
-.vote-bar-wrap{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
-.vote-bar-label{font-size:11px;color:var(--gold);width:14px;text-align:right;flex-shrink:0;}
-.vote-bar-track{flex:1;height:3px;background:rgba(200,169,110,0.1);border-radius:2px;overflow:hidden;}
-.vote-bar-fill{height:100%;background:var(--gold);border-radius:2px;}
-.vote-bar-count{font-size:9px;color:var(--cream-dim);width:22px;flex-shrink:0;}
-.vote-avg{font-family:var(--font-serif);font-size:20px;color:var(--gold);margin-bottom:8px;}
+/* ── FORM ── */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media(max-width:600px){ .form-grid { grid-template-columns:1fr; } }
+.form-full { grid-column:1/-1; }
+.field-group { display:flex; flex-direction:column; gap:5px; }
+.field-group label { font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--cdim); }
+.field-group input, .field-group select, .field-group textarea {
+  background:var(--bg3); border:1px solid var(--gline); color:var(--cream);
+  font-family:var(--sans); font-size:13px; padding:9px 11px; outline:none; transition:border .2s;
+}
+.field-group input:focus, .field-group select:focus, .field-group textarea:focus { border-color:var(--gold); }
+.field-group textarea { resize:vertical; min-height:90px; }
+.field-group select option { background:var(--bg3); }
+.form-actions { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+.form-actions .btn { width:auto; flex:1; min-width:120px; }
+.form-title { font-family:var(--serif); font-size:20px; font-weight:600; color:var(--gold); margin-bottom:20px; }
+.form-section { font-size:8.5px; letter-spacing:0.25em; text-transform:uppercase; color:var(--cdim); margin:20px 0 12px; padding-bottom:6px; border-bottom:1px solid var(--gline); grid-column:1/-1; }
 
-/* SECTION DIVIDER */
-.section-div{height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0;}
+/* POSTER PREVIEW */
+.poster-preview { width:80px; height:110px; border:1px solid var(--gline); object-fit:cover; display:block; }
+.poster-placeholder { width:80px; height:110px; border:1px solid var(--gline); background:var(--bg3); display:flex; align-items:center; justify-content:center; }
+.poster-placeholder span { font-size:8px; color:var(--cdim); text-align:center; padding:4px; letter-spacing:0.1em; text-transform:uppercase; }
 
-/* QUILL EDITOR DARK THEME */
-.quill-wrap{margin-top:4px;}
-.quill-wrap .ql-toolbar{background:#1e1b16;border:1px solid var(--gold-line)!important;border-bottom:none!important;border-radius:2px 2px 0 0;flex-wrap:wrap;}
-.quill-wrap .ql-container{background:#161410;border:1px solid var(--gold-line)!important;border-radius:0 0 2px 2px;font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--cream);min-height:140px;}
-.quill-wrap .ql-editor{min-height:130px;color:var(--cream);}
-.quill-wrap .ql-editor.ql-blank::before{color:var(--cream-dim);font-style:italic;}
-.quill-wrap .ql-toolbar .ql-stroke{stroke:#C8A96E;}
-.quill-wrap .ql-toolbar .ql-fill{fill:#C8A96E;}
-.quill-wrap .ql-toolbar .ql-picker{color:#C8A96E;}
-.quill-wrap .ql-toolbar .ql-picker-label{color:#C8A96E;}
-.quill-wrap .ql-toolbar button:hover .ql-stroke,.quill-wrap .ql-toolbar button.ql-active .ql-stroke{stroke:#F7F3EC;}
-.quill-wrap .ql-toolbar button:hover .ql-fill,.quill-wrap .ql-toolbar button.ql-active .ql-fill{fill:#F7F3EC;}
-.quill-wrap .ql-editor h1,.quill-wrap .ql-editor h2,.quill-wrap .ql-editor h3{color:var(--gold);font-family:'Cormorant Garamond',serif;margin:12px 0 6px;}
-.quill-wrap .ql-editor a{color:var(--gold);}
-.quill-wrap .ql-editor ul,.quill-wrap .ql-editor ol{padding-left:1.5em;}
-.quill-wrap .ql-editor blockquote{border-left:3px solid var(--gold);padding-left:12px;color:var(--cream-dim);font-style:italic;margin:10px 0;}
-.quill-wrap .ql-picker-options{background:#1e1b16!important;border:1px solid var(--gold-line)!important;border-radius:2px;}
-.quill-wrap .ql-picker-item{color:var(--cream)!important;}
-.quill-wrap .ql-picker-item:hover{color:var(--gold)!important;}
-.quill-wrap .ql-color-picker .ql-picker-options{padding:6px;width:152px!important;}
-.quill-wrap .ql-color-picker .ql-picker-item{width:20px;height:20px;border-radius:2px;border:1px solid rgba(255,255,255,0.15);}
-.quill-wrap .ql-size-small{font-size:0.85em;}
-.quill-wrap .ql-size-large{font-size:1.25em;}
-.quill-wrap .ql-size-huge{font-size:1.6em;}
+/* TOAST */
+#toast {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  background:var(--bg3); border:1px solid var(--gline);
+  padding:12px 20px; font-size:12px; letter-spacing:0.1em;
+  opacity:0; transform:translateY(10px); transition:all .3s;
+  pointer-events:none; max-width:300px;
+}
+#toast.show { opacity:1; transform:translateY(0); }
+#toast.ok { border-color:var(--green); color:var(--green); }
+#toast.err { border-color:var(--red); color:var(--red); }
+
+/* MODAL EDIT */
+.modal-overlay {
+  position:fixed; inset:0; z-index:500;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center; padding:20px;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background:var(--bg2); border:1px solid var(--gline);
+  width:100%; max-width:680px; max-height:90vh; overflow-y:auto;
+  padding:28px; position:relative;
+}
+.modal-close {
+  position:absolute; top:14px; right:14px;
+  background:none; border:none; color:var(--cdim); font-size:18px; cursor:pointer;
+}
+.modal-close:hover { color:var(--gold); }
+
+/* CONFIRM */
+.confirm-overlay {
+  position:fixed; inset:0; z-index:600;
+  background:rgba(0,0,0,0.8); display:none;
+  align-items:center; justify-content:center; padding:20px;
+}
+.confirm-overlay.open { display:flex; }
+.confirm-box {
+  background:var(--bg2); border:1px solid var(--red);
+  padding:28px; max-width:360px; width:100%; text-align:center;
+}
+.confirm-title { font-family:var(--serif); font-size:18px; color:var(--red); margin-bottom:10px; }
+.confirm-msg { font-size:12px; color:var(--cdim); margin-bottom:20px; line-height:1.6; }
+.confirm-btns { display:flex; gap:10px; justify-content:center; }
+.confirm-btns .btn { width:auto; min-width:100px; }
+
+/* RESPONSIVE TABLE */
+@media(max-width:700px) {
+  .ev-table thead { display:none; }
+  .ev-table tr { display:block; border:1px solid var(--gline); margin-bottom:10px; padding:12px; }
+  .ev-table td { display:block; padding:4px 0; border:none; }
+}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
-<div class="login-wrap" id="loginWrap">
+<div id="loginScreen">
   <div class="login-box">
-    <div class="login-logo">
-      <div class="login-logo-mark">
-        <svg width="50" height="70" viewBox="0 0 50 70" style="position:absolute;inset:0;" fill="none">
-          <path d="M3 6 Q-2 35 3 64" stroke="#F7F3EC" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.25"/>
-          <path d="M47 6 Q52 35 47 64" stroke="#C8A96E" stroke-width="0.7" fill="none" stroke-linecap="round" opacity="0.3"/>
-          <path d="M9 12 Q3 35 9 58" stroke="#F7F3EC" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.5"/>
-          <path d="M41 12 Q47 35 41 58" stroke="#C8A96E" stroke-width="0.9" fill="none" stroke-linecap="round" opacity="0.5"/>
-          <path d="M18 18 Q13 35 18 52" stroke="#F7F3EC" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-          <path d="M32 18 Q37 35 32 52" stroke="#C8A96E" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-          <circle cx="25" cy="35" r="4" fill="#C8A96E" opacity="0.9"/>
-        </svg>
-      </div>
-    </div>
-    <div class="login-title">Λογο<span style="color:var(--gold);">Σύνθεση</span></div>
+    <div class="login-title">Λογο<span>Σύνθεση</span></div>
     <div class="login-sub">Διαχείριση · Admin</div>
     <div class="field">
       <label>Email</label>
-      <input type="email" id="loginEmail" placeholder="admin@logosynthesi.gr">
+      <input type="email" id="loginEmail" placeholder="logosynthesi2026@gmail.com" autocomplete="email">
     </div>
     <div class="field">
       <label>Κωδικός</label>
-      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="btn-gold" onclick="doLogin()" id="loginBtn">ΕΙΣΟΔΟΣ</button>
-    <div id="loginError"></div>
-    <div class="demo-note">
-      <strong style="color:var(--gold);">Demo mode:</strong><br>
-      Χωρίς Firebase config, η διεπαφή λειτουργεί με demo δεδομένα.<br>
-      Βάλε οποιοδήποτε email/κωδικό για demo πρόσβαση.
-    </div>
+    <button class="btn" onclick="doLogin()">Είσοδος</button>
+    <div id="loginErr"></div>
   </div>
 </div>
 
-<!-- ADMIN PANEL -->
-<div class="admin-wrap" id="adminWrap">
+<!-- APP -->
+<div id="appScreen">
+
+  <!-- TOP BAR -->
   <div class="topbar">
-    <div class="topbar-title">Λογο<span>Σύνθεση</span> <span style="color:rgba(247,243,236,0.3);font-size:12px;letter-spacing:0.05em;">· Admin</span></div>
+    <div class="topbar-logo">Λογο<span>Σύνθεση</span> <span style="font-size:11px;font-family:var(--sans);font-weight:300;color:var(--cdim);letter-spacing:0.15em;">ADMIN</span></div>
     <div class="topbar-right">
-      <span class="user-email" id="userEmail"></span>
-      <button class="btn-sm" onclick="doLogout()">Έξοδος</button>
-      <a href="index.html" target="_blank" class="btn-sm" style="text-decoration:none;">Website ↗</a>
+      <span class="topbar-user" id="topbarUser"></span>
+      <button class="topbar-btn" onclick="doLogout()">Έξοδος</button>
+      <a href="index.html" class="topbar-btn" style="text-decoration:none;">← Website</a>
     </div>
   </div>
 
-  <div class="mobile-tabs">
-    <button class="mobile-tab active" onclick="switchView('dashboard')">Dashboard</button>
-    <button class="mobile-tab" onclick="switchView('add-event')">+ Εκδήλωση</button>
-    <button class="mobile-tab" onclick="switchView('manage-events')">Εκδηλώσεις</button>
-    <button class="mobile-tab" onclick="switchView('votes')">Ψηφοφορίες</button>
-    <button class="mobile-tab" onclick="switchView('about')">Για εμάς</button>
-    <button class="mobile-tab" onclick="switchView('members')">+ Μέλος</button>
-    <button class="mobile-tab" onclick="switchView('manage-members')">Μέλη</button>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('events')">Εκδηλώσεις</button>
+    <button class="tab" onclick="switchTab('add')">+ Νέα Εκδήλωση</button>
+    <button class="tab" onclick="switchTab('members')">Μέλη</button>
+    <button class="tab" onclick="switchTab('about')">Για εμάς</button>
   </div>
 
-  <div class="admin-body">
-    <div class="sidebar">
-      <div class="sidebar-section">Γενικά</div>
-      <button class="sidebar-link active" onclick="switchView('dashboard')">Dashboard</button>
-      <div class="sidebar-section">Εκδηλώσεις</div>
-      <button class="sidebar-link" onclick="switchView('add-event')">+ Νέα Εκδήλωση</button>
-      <button class="sidebar-link" onclick="switchView('manage-events')">Διαχείριση</button>
-      <div class="sidebar-section">Αλληλεπίδραση</div>
-      <button class="sidebar-link" onclick="switchView('votes')">Ψηφοφορίες</button>
-      <div class="sidebar-section">Περιεχόμενο</div>
-      <button class="sidebar-link" onclick="switchView('about')">Για εμάς</button>
-      <button class="sidebar-link" onclick="switchView('members')">+ Μέλος</button>
-      <button class="sidebar-link" onclick="switchView('manage-members')">Μέλη</button>
+  <!-- VIEW: EVENTS -->
+  <div class="view active" id="view-events">
+    <div class="view-header">
+      <div class="view-title">Εκδηλώσεις</div>
+      <button class="btn" style="width:auto;padding:8px 18px;" onclick="loadEvents()">↻ Ανανέωση</button>
     </div>
 
-    <div class="main">
+    <!-- Category filter -->
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="filterCat('all',this)">Όλες</button>
+      <button class="cat-tab" onclick="filterCat('cinehub',this)">🎬 CineHub</button>
+      <button class="cat-tab" onclick="filterCat('musichub',this)">🎵 MusicHub</button>
+      <button class="cat-tab" onclick="filterCat('logohub',this)">📚 LogoHub</button>
+      <button class="cat-tab" onclick="filterCat('arthub',this)">🎨 ArtHub</button>
+      <button class="cat-tab" onclick="filterCat('stagehub',this)">🎭 StageHub</button>
+    </div>
 
-      <!-- DASHBOARD -->
-      <div class="view active" id="view-dashboard">
-        <div class="page-title">Dashboard</div>
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-card"><div class="stat-num" id="statEvents">—</div><div class="stat-label">Εκδηλώσεις</div></div>
-          <div class="stat-card"><div class="stat-num" id="statVotes">—</div><div class="stat-label">Ψήφοι</div></div>
-          <div class="stat-card"><div class="stat-num" id="statCinehub">—</div><div class="stat-label">CineHub</div></div>
-          <div class="stat-card"><div class="stat-num" id="statOther">—</div><div class="stat-label">Άλλες κατηγορίες</div></div>
-        </div>
-        <div class="section-div"></div>
-        <div style="font-family:var(--font-serif);font-size:15px;font-weight:300;color:var(--cream-dim);line-height:1.7;">
-          <p>Καλώς ήρθες στο διαχειριστικό της <span style="color:var(--gold);font-style:italic;">Λογοσύνθεσης</span>.</p>
-          <p style="margin-top:8px;">Από εδώ μπορείς να προσθέτεις εκδηλώσεις, να βλέπεις τις ψηφοφορίες του κοινού και να διαχειρίζεσαι το πρόγραμμα.</p>
-        </div>
+    <div id="eventsContainer">
+      <div class="loading-msg">Φόρτωση εκδηλώσεων…</div>
+    </div>
+  </div>
+
+  <!-- VIEW: ADD -->
+  <div class="view" id="view-add">
+    <div class="form-title" id="formTitle">+ Νέα Εκδήλωση</div>
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-section">Βασικά στοιχεία</div>
+
+      <div class="field-group form-full">
+        <label>Τίτλος *</label>
+        <input type="text" id="fTitle" placeholder="π.χ. Blue Sky Jo">
       </div>
 
-      <!-- ADD EVENT -->
-      <div class="view" id="view-add-event">
-        <div class="page-title"><span>+</span> Νέα Εκδήλωση</div>
-        <div class="form-grid">
-          <div class="form-field">
-            <label>Κατηγορία *</label>
-            <select id="evCategory">
-              <option value="">— Επίλεξε κατηγορία —</option>
-              <option value="cinehub">CineHub — Κινηματογράφος</option>
-              <option value="logohub">LogoHub — Βιβλίο &amp; Διαλέξεις</option>
-              <option value="musichub">MusicHub — Μουσική</option>
-              <option value="photohub">PhotoHub — Φωτογραφία</option>
-              <option value="schoolhub">SchoolHub — Σχολεία</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label>Τίτλος (Ελληνικά) *</label>
-            <input type="text" id="evTitle" placeholder="π.χ. Ο Ψύλλος">
-          </div>
-          <div class="form-field">
-            <label>Τίτλος (English)</label>
-            <input type="text" id="evTitleEn" placeholder="e.g. The Flea">
-          </div>
-          <div class="form-row">
-            <div class="form-field">
-              <label>Ημερομηνία *</label>
-              <input type="date" id="evDate">
-            </div>
-            <div class="form-field">
-              <label>Ώρα</label>
-              <input type="time" id="evTime">
-            </div>
-          </div>
-          <div class="form-field">
-            <label>Χώρος</label>
-            <input type="text" id="evVenue" placeholder="π.χ. Πνευματικό Κέντρο Λευκάδας">
-          </div>
-          <div class="form-field">
-            <label>Χώρα / Έτος (για ταινίες)</label>
-            <input type="text" id="evCountry" placeholder="π.χ. Ελλάδα, 1990, 90΄">
-          </div>
-          <div class="form-field">
-            <label>Περιγραφή (Ελληνικά)</label>
-            <div class="quill-wrap"><div id="evDescEditor"></div></div>
-            <textarea id="evDesc" style="display:none;"></textarea>
-          </div>
-          <div class="form-field">
-            <label>Description (English)</label>
-            <div class="quill-wrap"><div id="evDescEnEditor"></div></div>
-            <textarea id="evDescEn" style="display:none;"></textarea>
-          </div>
-          <div class="form-field">
-            <label>Σχετικά πρόσωπα (ένα ανά γραμμή)</label>
-            <textarea id="evPeople" placeholder="Σκηνοθεσία: Δημήτρης Σπύρου&#10;Σενάριο: ...&#10;Ερμηνεία: ..."></textarea>
-            <div class="form-hint">Γράψε ένα πρόσωπο / ρόλο ανά γραμμή.</div>
-          </div>
-          <div class="form-field">
-            <label>Trailer URL (YouTube embed)</label>
-            <input type="url" id="evTrailer" placeholder="https://www.youtube.com/embed/XXXX">
-            <div class="form-hint">Χρησιμοποίησε το embed URL: youtube.com/embed/VIDEO_ID</div>
-          </div>
-          <div class="form-field">
-            <label>Αφίσα εκδήλωσης</label>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <button type="button" onclick="uploadToCloudinary('evPoster','evPosterPreview')" style="background:var(--gold);color:#111;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:0.05em;">📁 Ανέβασμα εικόνας</button>
-              <span id="evPosterStatus" style="font-size:12px;color:var(--gold);opacity:0.7;"></span>
-            </div>
-            <input type="hidden" id="evPoster">
-            <div id="evPosterPreview" style="margin-top:10px;"></div>
-          </div>
-          <div class="form-field" style="border:1px solid rgba(200,169,110,0.25);padding:14px;border-radius:2px;">
-            <label style="color:var(--gold);">🎟 Εισιτήρια (Eventbrite / Viva / άλλο)</label>
-            <input type="url" id="evTicket" placeholder="https://www.eventbrite.com/e/…">
-            <div class="form-hint">Βάλε τον σύνδεσμο αγοράς εισιτηρίων. Εμφανίζεται ως κουμπί στο website. Αφήσε κενό αν η είσοδος είναι ελεύθερη.</div>
-          </div>
-        </div>
-        <div style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="btn-primary" onclick="saveEvent()">ΑΠΟΘΗΚΕΥΣΗ ΕΚΔΗΛΩΣΗΣ</button>
-          <div id="saveMsg"></div>
-        </div>
+      <div class="field-group">
+        <label>Κατηγορία *</label>
+        <select id="fCat">
+          <option value="">— Επιλογή —</option>
+          <option value="cinehub">🎬 CineHub (Κινηματογράφος)</option>
+          <option value="musichub">🎵 MusicHub (Μουσική)</option>
+          <option value="logohub">📚 LogoHub (Βιβλίο & Διαλέξεις)</option>
+          <option value="arthub">🎨 ArtHub (Εικαστικά)</option>
+          <option value="stagehub">🎭 StageHub (Παραστατικές Τέχνες)</option>
+        </select>
       </div>
 
-      <!-- MANAGE EVENTS -->
-      <div class="view" id="view-manage-events">
-        <div class="page-title">Διαχείριση <span>Εκδηλώσεων</span></div>
-        <div id="eventList">
-          <div style="color:var(--cream-dim);font-size:13px;font-style:italic;">Φόρτωση…</div>
-        </div>
+      <div class="field-group">
+        <label>Χώρος</label>
+        <input type="text" id="fVenue" placeholder="π.χ. Φιλαρμονική Εταιρεία Λευκάδας">
       </div>
 
-      <!-- VOTES -->
-      <div class="view" id="view-votes">
-        <div class="page-title">Ψηφοφορίες &amp; <span>Αποτελέσματα</span></div>
-        <div id="votesList">
-          <div style="color:var(--cream-dim);font-size:13px;font-style:italic;">Φόρτωση…</div>
-        </div>
+      <div class="field-group">
+        <label>Ημερομηνία *</label>
+        <input type="date" id="fDate">
       </div>
 
-      <!-- ABOUT -->
-      <div class="view" id="view-about">
-        <div class="page-title">Για <span>εμάς</span></div>
-        <div class="form-grid">
-          <div class="form-field">
-            <label>Κείμενο περιγραφής δράσης</label>
-            <div class="quill-wrap"><div id="aboutTextEditor"></div></div>
-            <textarea id="aboutText" style="display:none;"></textarea>
-            <div class="form-hint">Αυτό το κείμενο εμφανίζεται στην ενότητα «Για εμάς» του website.</div>
-          </div>
-          <div class="form-field">
-            <label>Απόφθεγμα / Quote</label>
-            <input type="text" id="aboutQuote" placeholder="«Ο λόγος συναντά την εικόνα…»">
-            <div class="form-hint">Προαιρετικό. Εμφανίζεται ως blockquote.</div>
-          </div>
-        </div>
-        <div style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="btn-primary" onclick="saveAbout()">ΑΠΟΘΗΚΕΥΣΗ</button>
-          <div id="aboutMsg"></div>
-        </div>
+      <div class="field-group">
+        <label>Ώρα</label>
+        <input type="time" id="fTime" placeholder="π.χ. 20:00">
       </div>
 
-      <!-- ADD MEMBER -->
-      <div class="view" id="view-members">
-        <div class="page-title"><span>+</span> Νέο Μέλος</div>
-        <div class="form-grid">
-          <div class="form-field">
-            <label>Όνομα *</label>
-            <input type="text" id="memName" placeholder="π.χ. Μαρία Παπαδοπούλου">
-          </div>
-          <div class="form-field">
-            <label>Ρόλος / Τίτλος *</label>
-            <input type="text" id="memRole" placeholder="π.χ. Πρόεδρος, Μέλος Δ.Σ., Φιλόλογος">
-          </div>
-          <div class="form-field">
-            <label>Σύντομο CV</label>
-            <div class="quill-wrap"><div id="memBioEditor"></div></div>
-            <textarea id="memBio" style="display:none;"></textarea>
-          </div>
-          <div class="form-field">
-            <label>Φωτογραφία μέλους</label>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <button type="button" onclick="uploadToCloudinary('memPhoto','memPhotoPreview')" style="background:var(--gold);color:#111;border:none;padding:8px 16px;border-radius:2px;cursor:pointer;font-size:13px;letter-spacing:0.05em;">📁 Ανέβασμα φωτογραφίας</button>
-              <span id="memPhotoStatus" style="font-size:12px;color:var(--gold);opacity:0.7;"></span>
-            </div>
-            <input type="hidden" id="memPhoto">
-            <div id="memPhotoPreview" style="margin-top:10px;"></div>
-          </div>
-          <div class="form-field">
-            <label>Σειρά εμφάνισης</label>
-            <input type="number" id="memOrder" placeholder="1" min="1" value="99">
-            <div class="form-hint">1 = πρώτο. Ο Πρόεδρος συνήθως παίρνει 1.</div>
-          </div>
-        </div>
-        <input type="hidden" id="memEditId">
-        <div style="margin-top:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="btn-primary" onclick="saveMember()">ΑΠΟΘΗΚΕΥΣΗ ΜΕΛΟΥΣ</button>
-          <button class="btn-sm" id="memCancelEdit" style="display:none;" onclick="cancelMemberEdit()">Ακύρωση επεξεργασίας</button>
-          <div id="memMsg"></div>
-        </div>
+      <div class="field-group form-full">
+        <label>Περιγραφή</label>
+        <textarea id="fDesc" placeholder="Σύντομη περιγραφή εκδήλωσης…"></textarea>
       </div>
 
-      <!-- MANAGE MEMBERS -->
-      <div class="view" id="view-manage-members">
-        <div class="page-title">Διαχείριση <span>Μελών</span></div>
-        <div id="memberList" style="display:flex;flex-direction:column;gap:8px;">
-          <div style="color:var(--cream-dim);font-size:13px;font-style:italic;">Φόρτωση…</div>
-        </div>
+      <div class="form-section">Επιπλέον πληροφορίες</div>
+
+      <div class="field-group form-full">
+        <label>Χώρα / Διάρκεια / Έτος</label>
+        <input type="text" id="fCountry" placeholder="π.χ. Ισπανία 2023 · 98΄">
       </div>
 
+      <div class="field-group form-full">
+        <label>Συντελεστές (ένας ανά γραμμή)</label>
+        <textarea id="fPeople" placeholder="Σκηνοθεσία: María Ripoll&#10;Ηθοποιοί: …"></textarea>
+      </div>
+
+      <div class="field-group form-full">
+        <label>URL Αφίσας (Cloudinary)</label>
+        <input type="url" id="fPoster" placeholder="https://res.cloudinary.com/…">
+      </div>
+
+      <div class="field-group form-full">
+        <label>URL Trailer (YouTube embed)</label>
+        <input type="url" id="fTrailer" placeholder="https://www.youtube.com/embed/…">
+      </div>
+
+      <div class="field-group form-full">
+        <label>URL Εισιτήρια (Eventbrite)</label>
+        <input type="url" id="fTickets" placeholder="https://eventbrite.com/…">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn success" onclick="saveEvent()">Αποθήκευση</button>
+      <button class="btn" onclick="clearForm()">Καθαρισμός</button>
+      <button class="btn danger" id="btnDelete" style="display:none;" onclick="confirmDelete()">Διαγραφή</button>
+    </div>
+    <div id="formMsg" style="margin-top:12px;font-size:12px;min-height:18px;"></div>
+  </div>
+
+  <!-- VIEW: MEMBERS -->
+  <div class="view" id="view-members">
+    <div class="view-header">
+      <div class="view-title">Μέλη Ομάδας</div>
+      <button class="btn" style="width:auto;padding:8px 18px;" onclick="loadMembers()">↻ Ανανέωση</button>
+    </div>
+    <div id="membersContainer"><div class="loading-msg">Φόρτωση…</div></div>
+  </div>
+
+  <!-- VIEW: ABOUT -->
+  <div class="view" id="view-about">
+    <div class="view-title" style="margin-bottom:20px;">Κείμενο «Για εμάς»</div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <label>Κείμενο (Greek)</label>
+      <textarea id="aboutEl" style="min-height:160px;background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:13px;padding:10px;outline:none;resize:vertical;width:100%;"></textarea>
+    </div>
+    <div class="field-group" style="margin-bottom:20px;">
+      <label>Text (English)</label>
+      <textarea id="aboutEn" style="min-height:160px;background:var(--bg3);border:1px solid var(--gline);color:var(--cream);font-family:var(--sans);font-size:13px;padding:10px;outline:none;resize:vertical;width:100%;"></textarea>
+    </div>
+    <button class="btn success" style="width:auto;min-width:160px;" onclick="saveAbout()">Αποθήκευση</button>
+    <div id="aboutMsg" style="margin-top:12px;font-size:12px;"></div>
+  </div>
+
+</div><!-- /appScreen -->
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Διαγραφή Εκδήλωσης</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn danger" onclick="doDelete()">Διαγραφή</button>
+      <button class="btn" onclick="document.getElementById('confirmOverlay').classList.remove('open')">Ακύρωση</button>
     </div>
   </div>
 </div>
+
+<!-- TOAST -->
+<div id="toast"></div>
 
 <script>
-let _events = [];
-let _editingId = null;
-let _isDemoMode = false;
+/* ── STATE ── */
+let ALL_EVENTS = [];
+let CURRENT_CAT = 'all';
+let EDIT_ID = null;
 
-// ── AUTH ──
+/* ── HELPERS ── */
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = '', 3000);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,day] = d.split('-');
+  const months = ['','Ιαν','Φεβ','Μαρ','Απρ','Μαϊ','Ιουν','Ιουλ','Αυγ','Σεπ','Οκτ','Νοε','Δεκ'];
+  return `${parseInt(day)} ${months[parseInt(m)]} ${y}`;
+}
+
+const CAT_LABELS = {
+  cinehub:'CineHub', musichub:'MusicHub', logohub:'LogoHub',
+  arthub:'ArtHub', stagehub:'StageHub'
+};
+
+/* ── AUTH ── */
 window.addEventListener('auth-change', e => {
   const user = e.detail;
   if (user) {
-    showAdmin(user.email);
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+    document.getElementById('topbarUser').textContent = user.email;
+    loadEvents();
+    loadAbout();
+    loadMembers();
   } else {
-    document.getElementById('loginWrap').style.display='flex';
-    document.getElementById('adminWrap').classList.remove('visible');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appScreen').style.display = 'none';
   }
 });
 
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
-  const pass = document.getElementById('loginPass').value;
-  const btn = document.getElementById('loginBtn');
-  const errEl = document.getElementById('loginError');
-  btn.disabled=true; btn.textContent='…';
-  errEl.textContent = '';
+  const pass  = document.getElementById('loginPass').value;
+  const err   = document.getElementById('loginErr');
+  err.textContent = '';
   try {
-    if (window._auth && window._firebaseAuth) {
-      await window._firebaseAuth.signInWithEmailAndPassword(window._auth, email, pass);
-      _isDemoMode = false;
-    } else {
-      errEl.textContent = 'Σφάλμα σύνδεσης με Firebase. Ελέγξτε τη σύνδεσή σας.';
-      btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
-      return;
-    }
+    await window._fa.signInWithEmailAndPassword(window._auth, email, pass);
   } catch(e) {
-    let msg = 'Λάθος email ή κωδικός.';
-    if (e.code === 'auth/network-request-failed') msg = 'Δεν υπάρχει σύνδεση στο διαδίκτυο.';
-    else if (e.code === 'auth/too-many-requests') msg = 'Πολλές αποτυχημένες προσπάθειες. Δοκιμάστε αργότερα.';
-    errEl.textContent = msg;
-    btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
-    return;
+    err.textContent = 'Λάθος email ή κωδικός.';
   }
-  btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ';
 }
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
 async function doLogout() {
-  try { if (window._auth) await window._firebaseAuth.signOut(window._auth); } catch(e){}
-  document.getElementById('loginWrap').style.display='flex';
-  document.getElementById('adminWrap').classList.remove('visible');
-  _isDemoMode = false;
+  await window._fa.signOut(window._auth);
 }
 
-function showAdmin(email) {
-  document.getElementById('loginWrap').style.display='none';
-  document.getElementById('adminWrap').classList.add('visible');
-  document.getElementById('userEmail').textContent = email;
-  loadStats();
-  loadEvents();
+/* ── TABS ── */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('view-' + name).classList.add('active');
+  if (name === 'events') loadEvents();
+  if (name === 'members') loadMembers();
 }
 
-// ── NAVIGATION ──
-function switchView(v) {
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.sidebar-link,.mobile-tab').forEach(el=>el.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('[onclick*="switchView(\''+v+'\')"]').forEach(el=>el.classList.add('active'));
-  if (v==='manage-events') renderEventList();
-  if (v==='votes') renderVotes();
-  if (v==='about') loadAbout();
-  if (v==='manage-members') loadMembers();
-}
-
-// ── DEMO DATA ──
-const DEMO = [
-  {id:'d1',category:'cinehub',title:'Ο Ψύλλος',date:'2026-03-15',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',description:'Μια συγκλονιστική ταινία του Δημήτρη Σπύρου.',country:'Ελλάδα, 1990, 90΄',people:['Σκηνοθεσία: Δημήτρης Σπύρος'],votes:{1:2,2:5,3:8,4:15,5:22}},
-  {id:'d2',category:'cinehub',title:'Αντιγόνη',date:'2026-04-10',time:'20:00',venue:'Πνευματικό Κέντρο Λευκάδας',description:'Μεταφορά Σοφοκλή στη σύγχρονη εποχή.',country:'Καναδάς, 2019',people:['Σκηνοθεσία: Sophie Deraspe'],votes:{1:1,2:3,3:6,4:18,5:30}},
-  {id:'d3',category:'logohub',title:'Παρουσίαση Βιβλίου',date:'2026-05-08',time:'19:30',venue:'Βιβλιοθήκη Λευκάδας',description:'Παρουσίαση νέου λογοτεχνικού έργου.',people:['Συγγραφέας: προς ανακοίνωση'],votes:{1:0,2:2,3:4,4:10,5:14}}
-];
-
-// ── LOAD ──
+/* ── LOAD EVENTS ── */
 async function loadEvents() {
+  const container = document.getElementById('eventsContainer');
+  container.innerHTML = '<div class="loading-msg">Φόρτωση εκδηλώσεων…</div>';
   try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, getDocs, orderBy, query } = window._firebase;
-    const q = query(collection(window._db,'events'),orderBy('date','asc'));
-    const snap = await getDocs(q);
-    _events = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const { collection, getDocs, query, orderBy } = window._fs;
+    const snap = await getDocs(query(collection(window._db,'events'), orderBy('date','asc')));
+    ALL_EVENTS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderEvents();
   } catch(e) {
-    _events = JSON.parse(JSON.stringify(DEMO));
+    container.innerHTML = `<div class="empty-msg" style="color:var(--red);">Σφάλμα φόρτωσης: ${e.message}</div>`;
   }
 }
 
-async function loadStats() {
-  try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, getDocs, query, orderBy } = window._firebase;
-    const evSnap = await getDocs(collection(window._db,'events'));
-    const vSnap = await getDocs(collection(window._db,'votes'));
-    const evs = evSnap.docs.map(d=>d.data());
-    document.getElementById('statEvents').textContent = evs.length;
-    document.getElementById('statVotes').textContent = vSnap.size;
-    document.getElementById('statCinehub').textContent = evs.filter(e=>e.category==='cinehub').length;
-    document.getElementById('statOther').textContent = evs.filter(e=>e.category!=='cinehub').length;
-  } catch(e) {
-    document.getElementById('statEvents').textContent = DEMO.length;
-    document.getElementById('statVotes').textContent = Object.values(DEMO.reduce((a,e)=>({...a,...e.votes}),{})).reduce((a,b)=>a+b,0);
-    document.getElementById('statCinehub').textContent = DEMO.filter(e=>e.category==='cinehub').length;
-    document.getElementById('statOther').textContent = DEMO.filter(e=>e.category!=='cinehub').length;
-  }
+function filterCat(cat, el) {
+  CURRENT_CAT = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderEvents();
 }
 
-// ── SAVE EVENT ──
-async function saveEvent() {
-  const cat = document.getElementById('evCategory').value;
-  const title = document.getElementById('evTitle').value.trim();
-  const date = document.getElementById('evDate').value;
-  if (!cat||!title||!date) {
-    document.getElementById('saveMsg').innerHTML='<span style="color:var(--red);font-size:11px;">Συμπλήρωσε τα υποχρεωτικά πεδία (*).</span>'; return;
+function renderEvents() {
+  const container = document.getElementById('eventsContainer');
+  const list = CURRENT_CAT === 'all' ? ALL_EVENTS : ALL_EVENTS.filter(e => e.category === CURRENT_CAT);
+
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-msg">Δεν βρέθηκαν εκδηλώσεις.</div>';
+    return;
   }
-  const data = {
-    category:cat, title,
-    titleEn:document.getElementById('evTitleEn').value.trim()||'',
-    date, time:document.getElementById('evTime').value,
-    venue:document.getElementById('evVenue').value.trim(),
-    country:document.getElementById('evCountry').value.trim(),
-    description:document.getElementById('evDesc').value.trim(),
-    descriptionEn:document.getElementById('evDescEn').value.trim(),
-    people:document.getElementById('evPeople').value.split('\n').map(s=>s.trim()).filter(Boolean),
-    trailerUrl:document.getElementById('evTrailer').value.trim(),
-    posterUrl:document.getElementById('evPoster').value.trim(),
-    ticketUrl:document.getElementById('evTicket').value.trim(),
-    votes:{},
-    createdAt:Date.now()
-  };
-  document.getElementById('saveMsg').innerHTML='<span style="color:var(--gold);font-size:11px;">Αποθήκευση…</span>';
-  try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, addDoc, doc, updateDoc } = window._firebase;
-    if (_editingId) {
-      await updateDoc(doc(window._db,'events',_editingId), data);
-    } else {
-      await addDoc(collection(window._db,'events'), data);
-    }
-  } catch(e) {
-    // Demo mode
-    if (_editingId) {
-      const idx = _events.findIndex(e=>e.id===_editingId);
-      if(idx>-1) _events[idx] = {..._events[idx],...data};
-    } else {
-      _events.push({...data, id:'local_'+Date.now()});
-    }
-  }
-  document.getElementById('saveMsg').innerHTML='<span style="color:var(--green);font-size:11px;">✓ Αποθηκεύτηκε επιτυχώς!</span>';
-  clearForm();
-  await loadStats();
-  setTimeout(()=>document.getElementById('saveMsg').innerHTML='', 3000);
+
+  const rows = list.map(ev => `
+    <tr>
+      <td>
+        ${ev.posterUrl
+          ? `<img src="${ev.posterUrl}" class="poster-preview" onerror="this.style.display='none'">`
+          : `<div class="poster-placeholder"><span>Χωρίς αφίσα</span></div>`}
+      </td>
+      <td>
+        <div class="ev-date">${fmtDate(ev.date)}${ev.time ? ' · ' + ev.time : ''}</div>
+      </td>
+      <td>
+        <div class="ev-title">${ev.title || '—'}</div>
+        ${ev.description ? `<div style="color:var(--cdim);font-size:11px;margin-top:3px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${ev.description}</div>` : ''}
+      </td>
+      <td><span class="ev-cat">${CAT_LABELS[ev.category] || ev.category || '—'}</span></td>
+      <td class="ev-venue">${ev.venue || '—'}</td>
+      <td>
+        <div class="ev-actions">
+          <button class="act-btn" onclick="editEvent('${ev.id}')">✏️ Επεξεργασία</button>
+          <button class="act-btn del" onclick="confirmDeleteId('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')">🗑 Διαγραφή</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  container.innerHTML = `
+    <table class="ev-table">
+      <thead>
+        <tr>
+          <th>Αφίσα</th>
+          <th>Ημερομηνία</th>
+          <th>Τίτλος</th>
+          <th>Κατηγορία</th>
+          <th>Χώρος</th>
+          <th>Ενέργειες</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="margin-top:12px;font-size:10px;color:var(--cdim);letter-spacing:0.15em;">${list.length} εκδηλώσεις</div>
+  `;
+}
+
+/* ── EDIT EVENT ── */
+function editEvent(id) {
+  const ev = ALL_EVENTS.find(e => e.id === id);
+  if (!ev) return;
+  EDIT_ID = id;
+  // Switch to form tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  document.getElementById('view-add').classList.add('active');
+  // Fill form
+  document.getElementById('formTitle').textContent = '✏️ Επεξεργασία Εκδήλωσης';
+  document.getElementById('editId').value = id;
+  document.getElementById('fTitle').value   = ev.title || '';
+  document.getElementById('fCat').value     = ev.category || '';
+  document.getElementById('fVenue').value   = ev.venue || '';
+  document.getElementById('fDate').value    = ev.date || '';
+  document.getElementById('fTime').value    = ev.time || '';
+  document.getElementById('fDesc').value    = ev.description || '';
+  document.getElementById('fCountry').value = ev.country || '';
+  document.getElementById('fPeople').value  = (ev.people || []).join('\n');
+  document.getElementById('fPoster').value  = ev.posterUrl || '';
+  document.getElementById('fTrailer').value = ev.trailerUrl || '';
+  document.getElementById('fTickets').value = ev.ticketsUrl || '';
+  document.getElementById('btnDelete').style.display = 'block';
+  window.scrollTo(0,0);
 }
 
 function clearForm() {
-  ['evCategory','evTitle','evTitleEn','evDate','evTime','evVenue','evCountry','evDesc','evDescEn','evPeople','evTrailer','evPoster','evTicket'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.value='';
+  EDIT_ID = null;
+  document.getElementById('formTitle').textContent = '+ Νέα Εκδήλωση';
+  document.getElementById('editId').value = '';
+  ['fTitle','fCat','fVenue','fDate','fTime','fDesc','fCountry','fPeople','fPoster','fTrailer','fTickets'].forEach(id => {
+    document.getElementById(id).value = '';
   });
-  _editingId = null;
-  document.querySelector('#view-add-event .page-title').innerHTML = '<span>+</span> Νέα Εκδήλωση';
+  document.getElementById('btnDelete').style.display = 'none';
+  document.getElementById('formMsg').textContent = '';
 }
 
-// ── RENDER EVENT LIST ──
-function renderEventList() {
-  const el = document.getElementById('eventList');
-  if (!_events.length) { el.innerHTML='<div style="color:var(--cream-dim);font-style:italic;font-size:13px;">Δεν υπάρχουν εκδηλώσεις ακόμα.</div>'; return; }
-  const catLabels = {cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
-  el.innerHTML = '<div class="event-list">' + _events.map(ev=>`
-    <div class="event-row">
-      <div class="event-row-info">
-        <div class="event-row-cat">${catLabels[ev.category]||ev.category}</div>
-        <div class="event-row-title">${ev.title}</div>
-        <div class="event-row-meta">
-          <span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>
-          ${ev.venue?`<span>📍 ${ev.venue}</span>`:''}
-          <span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span>
-        </div>
-      </div>
-      <div class="event-row-actions">
-        <button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button>
-        <button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button>
-      </div>
-    </div>`).join('') + '</div>';
-}
-
-function editEvent(id) {
-  const ev = _events.find(e=>e.id===id);
-  if (!ev) return;
-  _editingId = id;
-  document.getElementById('evCategory').value = ev.category||'';
-  document.getElementById('evTitle').value = ev.title||'';
-  document.getElementById('evTitleEn').value = ev.titleEn||'';
-  document.getElementById('evDate').value = ev.date||'';
-  document.getElementById('evTime').value = ev.time||'';
-  document.getElementById('evVenue').value = ev.venue||'';
-  document.getElementById('evCountry').value = ev.country||'';
-  document.getElementById('evDesc').value = ev.description||'';
-  document.getElementById('evDescEn').value = ev.descriptionEn||'';
-  document.getElementById('evPeople').value = (ev.people||[]).join('\n');
-  document.getElementById('evTrailer').value = ev.trailerUrl||'';
-  document.getElementById('evPoster').value = ev.posterUrl||'';
-  showImagePreview('evPosterPreview', ev.posterUrl||'', true);
-  document.getElementById('evTicket').value = ev.ticketUrl||'';
-  document.querySelector('#view-add-event .page-title').innerHTML = '✎ Επεξεργασία <span>Εκδήλωσης</span>';
-  switchView('add-event');
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-async function deleteEvent(id) {
-  if (!confirm('Διαγραφή αυτής της εκδήλωσης;')) return;
-  try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { doc, deleteDoc } = window._firebase;
-    await deleteDoc(doc(window._db,'events',id));
-  } catch(e) {}
-  _events = _events.filter(e=>e.id!==id);
-  renderEventList();
-  loadStats();
-}
-
-// ── VOTES VIEW ──
-async function renderVotes() {
-  const el = document.getElementById('votesList');
-  let votesData = {};
-  try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, getDocs } = window._firebase;
-    const snap = await getDocs(collection(window._db,'votes'));
-    snap.docs.forEach(d=>{
-      const v=d.data();
-      if(!votesData[v.eventId]) votesData[v.eventId]={};
-      votesData[v.eventId][v.rating]=(votesData[v.eventId][v.rating]||0)+1;
-    });
-  } catch(e) {
-    _events.forEach(ev=>{ if(ev.votes) votesData[ev.id]=ev.votes; });
-  }
-
-  if (!Object.keys(votesData).length) {
-    el.innerHTML='<div style="color:var(--cream-dim);font-style:italic;font-size:13px;">Δεν υπάρχουν ψήφοι ακόμα.</div>';
+/* ── SAVE EVENT ── */
+async function saveEvent() {
+  const title = document.getElementById('fTitle').value.trim();
+  const cat   = document.getElementById('fCat').value;
+  const date  = document.getElementById('fDate').value;
+  if (!title || !cat || !date) {
+    document.getElementById('formMsg').innerHTML = '<span style="color:var(--red);">Συμπλήρωσε Τίτλο, Κατηγορία και Ημερομηνία.</span>';
     return;
   }
-
-  el.innerHTML = Object.entries(votesData).map(([evId, votes])=>{
-    const ev = _events.find(e=>e.id===evId);
-    const title = ev ? ev.title : evId;
-    const total = Object.values(votes).reduce((a,b)=>a+b,0);
-    const avg = total ? Object.entries(votes).reduce((a,[k,n])=>a+parseInt(k)*n,0)/total : 0;
-    return `<div class="vote-summary">
-      <div class="vote-sum-title">${title}</div>
-      <div class="vote-avg">★ ${avg.toFixed(2)} / 5 <span style="font-size:12px;color:var(--cream-dim);font-family:var(--font-sans);">(${total} ψήφοι)</span></div>
-      ${[5,4,3,2,1].map(s=>{const c=votes[s]||0;const p=total?Math.round(c/total*100):0;
-      return `<div class="vote-bar-wrap"><span class="vote-bar-label">${s}</span><div class="vote-bar-track"><div class="vote-bar-fill" style="width:${p}%"></div></div><span class="vote-bar-count">${c}</span></div>`;
-      }).join('')}
-    </div>`;
-  }).join('');
+  const data = {
+    title, category: cat,
+    venue:     document.getElementById('fVenue').value.trim(),
+    date,
+    time:      document.getElementById('fTime').value,
+    description: document.getElementById('fDesc').value.trim(),
+    country:   document.getElementById('fCountry').value.trim(),
+    people:    document.getElementById('fPeople').value.split('\n').map(s=>s.trim()).filter(Boolean),
+    posterUrl: document.getElementById('fPoster').value.trim(),
+    trailerUrl:document.getElementById('fTrailer').value.trim(),
+    ticketsUrl:document.getElementById('fTickets').value.trim(),
+    updatedAt: Date.now(),
+  };
+  const msg = document.getElementById('formMsg');
+  msg.textContent = 'Αποθήκευση…';
+  try {
+    const { collection, addDoc, doc, updateDoc } = window._fs;
+    const editId = document.getElementById('editId').value;
+    if (editId) {
+      await updateDoc(doc(window._db,'events',editId), data);
+      toast('✓ Η εκδήλωση ενημερώθηκε!');
+    } else {
+      data.createdAt = Date.now();
+      data.votes = {};
+      await addDoc(collection(window._db,'events'), data);
+      toast('✓ Η εκδήλωση αποθηκεύτηκε!');
+    }
+    msg.innerHTML = '';
+    clearForm();
+    loadEvents();
+  } catch(e) {
+    msg.innerHTML = `<span style="color:var(--red);">Σφάλμα: ${e.message}</span>`;
+  }
 }
 
-function calcAvg(v) {
-  const t=Object.values(v).reduce((a,b)=>a+b,0);
-  if(!t)return 0;
-  return Object.entries(v).reduce((a,[k,n])=>a+parseInt(k)*n,0)/t;
+/* ── DELETE ── */
+function confirmDeleteId(id, title) {
+  EDIT_ID = id;
+  document.getElementById('confirmMsg').textContent = `Θέλεις σίγουρα να διαγραφεί η εκδήλωση "${title}";`;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function confirmDelete() {
+  const id = document.getElementById('editId').value;
+  const title = document.getElementById('fTitle').value;
+  confirmDeleteId(id, title);
+}
+async function doDelete() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  if (!EDIT_ID) return;
+  try {
+    const { doc, deleteDoc } = window._fs;
+    await deleteDoc(doc(window._db,'events',EDIT_ID));
+    toast('✓ Διαγράφηκε!');
+    clearForm();
+    switchTabByName('events');
+    loadEvents();
+  } catch(e) {
+    toast('Σφάλμα διαγραφής: ' + e.message, 'err');
+  }
 }
 
-// ── ABOUT ──
+function switchTabByName(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const idx = {events:0,add:1,members:2,about:3}[name] || 0;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  document.getElementById('view-'+name).classList.add('active');
+}
+
+/* ── ABOUT ── */
 async function loadAbout() {
   try {
-    if (!window._db || _isDemoMode) return;
-    const { doc, getDoc } = window._firebase;
-    // need getDoc — import it
-    const ref = window._firebase.doc(window._db, 'about', 'main');
-    const snap = await window._firebase.getDocs ? null : null;
-    // use collection approach
-    const { collection, getDocs } = window._firebase;
-    const s = await getDocs(collection(window._db,'about'));
-    s.docs.forEach(d=>{
-      if(d.id==='main'){
-        const data=d.data();
-        document.getElementById('aboutText').value = data.text||'';
-        document.getElementById('aboutQuote').value = data.quote||'';
-      }
+    const { collection, getDocs } = window._fs;
+    const snap = await getDocs(collection(window._db,'about'));
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.el) document.getElementById('aboutEl').value = data.el;
+      if (data.en) document.getElementById('aboutEn').value = data.en;
     });
-  } catch(e){}
+  } catch(e) {}
 }
 
 async function saveAbout() {
-  const text = document.getElementById('aboutText').value.trim();
-  const quote = document.getElementById('aboutQuote').value.trim();
+  const el = document.getElementById('aboutEl').value.trim();
+  const en = document.getElementById('aboutEn').value.trim();
   const msg = document.getElementById('aboutMsg');
-  if (!text) { msg.innerHTML='<span style="color:var(--red)">Βάλε κείμενο περιγραφής.</span>'; return; }
+  msg.textContent = 'Αποθήκευση…';
   try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } = window._firebase;
-    // check if doc exists
-    const s = await getDocs(collection(window._db,'about'));
-    let exists = false;
-    s.docs.forEach(d=>{ if(d.id==='main') exists=true; });
-    if (exists) {
-      await updateDoc(doc(window._db,'about','main'), {text, quote, updatedAt: new Date().toISOString()});
+    const { collection, getDocs, addDoc, doc, updateDoc } = window._fs;
+    const snap = await getDocs(collection(window._db,'about'));
+    if (snap.empty) {
+      await addDoc(collection(window._db,'about'), {el, en, updatedAt: Date.now()});
     } else {
-      // use setDoc-like via direct path — fallback to addDoc with id hint
-      await addDoc(collection(window._db,'about'), {text, quote, updatedAt: new Date().toISOString()});
+      await updateDoc(doc(window._db,'about',snap.docs[0].id), {el, en, updatedAt: Date.now()});
     }
-    msg.innerHTML='<span style="color:var(--green)">✓ Αποθηκεύτηκε!</span>';
-    setTimeout(()=>msg.innerHTML='',3000);
+    msg.innerHTML = '<span style="color:var(--green);">✓ Αποθηκεύτηκε!</span>';
+    toast('✓ Κείμενο αποθηκεύτηκε!');
   } catch(e) {
-    msg.innerHTML='<span style="color:var(--green)">✓ Αποθηκεύτηκε (demo)!</span>';
-    setTimeout(()=>msg.innerHTML='',3000);
+    msg.innerHTML = `<span style="color:var(--red);">Σφάλμα: ${e.message}</span>`;
   }
 }
 
-// ── MEMBERS ──
-let _members = [];
-
+/* ── MEMBERS ── */
 async function loadMembers() {
+  const c = document.getElementById('membersContainer');
+  c.innerHTML = '<div class="loading-msg">Φόρτωση μελών…</div>';
   try {
-    if (!window._db || _isDemoMode) { _members=[]; renderMemberList(); return; }
-    const { collection, getDocs, orderBy, query } = window._firebase;
-    const q = query(collection(window._db,'members'), orderBy('order','asc'));
-    const s = await getDocs(q);
-    _members = s.docs.map(d=>({id:d.id,...d.data()}));
-  } catch(e){ _members=[]; }
-  renderMemberList();
-}
-
-async function saveMember() {
-  const name = document.getElementById('memName').value.trim();
-  const role = document.getElementById('memRole').value.trim();
-  const bio = document.getElementById('memBio').value.trim();
-  const photo = document.getElementById('memPhoto').value.trim();
-  const order = parseInt(document.getElementById('memOrder').value)||99;
-  const editId = document.getElementById('memEditId').value;
-  const msg = document.getElementById('memMsg');
-  if (!name||!role) { msg.innerHTML='<span style="color:var(--red)">Όνομα και ρόλος είναι υποχρεωτικά.</span>'; return; }
-  const data = {name, role, bio, photo, order, updatedAt: new Date().toISOString()};
-  try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { collection, addDoc, doc, updateDoc } = window._firebase;
-    if (editId) {
-      await updateDoc(doc(window._db,'members',editId), data);
-      const idx = _members.findIndex(m=>m.id===editId);
-      if(idx>-1) _members[idx]={id:editId,...data};
-    } else {
-      const ref = await addDoc(collection(window._db,'members'), data);
-      _members.push({id:ref.id,...data});
-    }
+    const { collection, getDocs } = window._fs;
+    const snap = await getDocs(collection(window._db,'members'));
+    if (snap.empty) { c.innerHTML = '<div class="empty-msg">Δεν βρέθηκαν μέλη.</div>'; return; }
+    const rows = snap.docs.map(d => {
+      const m = d.data();
+      return `<tr>
+        <td>${m.photoUrl ? `<img src="${m.photoUrl}" style="width:50px;height:50px;object-fit:cover;border:1px solid var(--gline);">` : '—'}</td>
+        <td style="font-family:var(--serif);font-size:15px;font-weight:600;">${m.name||'—'}</td>
+        <td style="color:var(--cdim);font-size:11px;">${m.role||'—'}</td>
+        <td><button class="act-btn del" onclick="deleteMember('${d.id}')">🗑</button></td>
+      </tr>`;
+    }).join('');
+    c.innerHTML = `<table class="ev-table"><thead><tr><th>Φωτό</th><th>Όνομα</th><th>Ρόλος</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
   } catch(e) {
-    const fakeId = editId||'demo_'+Date.now();
-    if(editId){const idx=_members.findIndex(m=>m.id===editId);if(idx>-1)_members[idx]={id:editId,...data};}
-    else _members.push({id:fakeId,...data});
+    c.innerHTML = `<div class="empty-msg" style="color:var(--red);">Σφάλμα: ${e.message}</div>`;
   }
-  msg.innerHTML='<span style="color:var(--green)">✓ Αποθηκεύτηκε!</span>';
-  setTimeout(()=>msg.innerHTML='',3000);
-  cancelMemberEdit();
-  _members.sort((a,b)=>(a.order||99)-(b.order||99));
-}
-
-function cancelMemberEdit() {
-  ['memName','memRole','memBio','memPhoto'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('memOrder').value='99';
-  document.getElementById('memEditId').value='';
-  document.getElementById('memCancelEdit').style.display='none';
-  document.querySelector('#view-members .page-title').innerHTML='<span>+</span> Νέο Μέλος';
-}
-
-function editMember(id) {
-  const m = _members.find(m=>m.id===id);
-  if(!m) return;
-  document.getElementById('memName').value=m.name||'';
-  document.getElementById('memRole').value=m.role||'';
-  document.getElementById('memBio').value=m.bio||'';
-  document.getElementById('memPhoto').value=m.photo||'';
-  showImagePreview('memPhotoPreview', m.photo||'', false);
-  document.getElementById('memOrder').value=m.order||99;
-  document.getElementById('memEditId').value=id;
-  document.getElementById('memCancelEdit').style.display='inline-block';
-  document.querySelector('#view-members .page-title').innerHTML='✎ Επεξεργασία <span>Μέλους</span>';
-  switchView('members');
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 async function deleteMember(id) {
-  if (!confirm('Διαγραφή αυτού του μέλους;')) return;
+  if (!confirm('Διαγραφή μέλους;')) return;
   try {
-    if (!window._db || _isDemoMode) throw new Error('demo');
-    const { doc, deleteDoc } = window._firebase;
+    const { doc, deleteDoc } = window._fs;
     await deleteDoc(doc(window._db,'members',id));
-  } catch(e){}
-  _members = _members.filter(m=>m.id!==id);
-  renderMemberList();
+    toast('✓ Το μέλος διαγράφηκε!');
+    loadMembers();
+  } catch(e) { toast('Σφάλμα: '+e.message,'err'); }
 }
 
-function renderMemberList() {
-  const el = document.getElementById('memberList');
-  if (!_members.length) { el.innerHTML='<div style="color:var(--cream-dim);font-style:italic;font-size:13px;">Δεν υπάρχουν μέλη ακόμα.</div>'; return; }
-  let html = '';
-  _members.forEach(m => {
-    const photo = m.photo
-      ? `<img src="${m.photo}" style="width:44px;height:44px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);vertical-align:middle;" onerror="this.style.display='none'">`
-      : `<div style="width:44px;height:44px;border-radius:50%;border:1px solid var(--gold-line);background:var(--black3);display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:16px;vertical-align:middle;">👤</div>`;
-    const bio = m.bio ? m.bio.replace(/<[^>]*>/g,'').substring(0,60) + (m.bio.length>60?'…':'') : '';
-    html += `<div style="width:100%;box-sizing:border-box;background:var(--black2);border:1px solid var(--gold-line);padding:14px 16px;margin-bottom:8px;">
-      <table style="width:100%;border-collapse:collapse;">
-        <tr>
-          <td style="width:54px;vertical-align:middle;">${photo}</td>
-          <td style="vertical-align:middle;padding-left:12px;">
-            <div style="font-family:var(--font-serif);font-size:16px;">${m.name}</div>
-            <div style="font-size:10px;color:var(--cream-dim);margin-top:3px;"><span style="color:var(--gold)">${m.role}</span>${bio?` &nbsp;${bio}`:''}</div>
-          </td>
-          <td style="width:120px;vertical-align:middle;text-align:right;white-space:nowrap;">
-            <button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button>
-            <button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button>
-          </td>
-        </tr>
-      </table>
-    </div>`;
-  });
-  el.innerHTML = html;
+function closeModal() {
+  document.getElementById('editModal').classList.remove('open');
 }
 
-// ── QUILL EDITORS ──
-const GOLD = '#C8A96E';
-const CREAM = '#F7F3EC';
-const QUILL_TOOLBAR = [
-  [{ header: [1, 2, 3, false] }],
-  [{ size: ['small', false, 'large', 'huge'] }],
-  ['bold', 'italic', 'underline', 'strike'],
-  [{ color: [GOLD, CREAM, '#ffffff', '#C8A96E', '#a08040', '#e8d9b0', '#888888', '#333333', '#000000', false] }],
-  [{ background: ['transparent', '#0e0d0b', '#1e1b16', GOLD, '#2a2010', false] }],
-  [{ align: [] }],
-  [{ list: 'ordered' }, { list: 'bullet' }],
-  ['link', 'blockquote'],
-  ['clean']
-];
-
-let qEvDesc, qEvDescEn, qAboutText, qMemBio;
-
-function initQuillEditors() {
-  qEvDesc    = new Quill('#evDescEditor',    { theme:'snow', placeholder:'Σύντομη περιγραφή…', modules:{ toolbar: QUILL_TOOLBAR } });
-  qEvDescEn  = new Quill('#evDescEnEditor',  { theme:'snow', placeholder:'Short description in English…', modules:{ toolbar: QUILL_TOOLBAR } });
-  qAboutText = new Quill('#aboutTextEditor', { theme:'snow', placeholder:'Περιγράψτε τη δράση του συλλόγου…', modules:{ toolbar: QUILL_TOOLBAR } });
-  qMemBio    = new Quill('#memBioEditor',    { theme:'snow', placeholder:'Σύντομη βιογραφία, σπουδές, δράση…', modules:{ toolbar: QUILL_TOOLBAR } });
-}
-
-function getQ(q, hiddenId) {
-  const html = q.root.innerHTML;
-  document.getElementById(hiddenId).value = html === '<p><br></p>' ? '' : html;
-  return document.getElementById(hiddenId).value;
-}
-
-function setQ(q, hiddenId, html) {
-  q.root.innerHTML = html || '';
-  document.getElementById(hiddenId).value = html || '';
-}
-
-// Init after DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initQuillEditors);
-} else {
-  initQuillEditors();
-}
-
-// Patch saveEvent to use Quill values
-const _origSaveEvent = saveEvent;
-window.saveEvent = async function() {
-  getQ(qEvDesc, 'evDesc');
-  getQ(qEvDescEn, 'evDescEn');
-  await _origSaveEvent();
-};
-
-// Patch clearForm to clear Quill editors
-const _origClearForm = clearForm;
-window.clearForm = function() {
-  _origClearForm();
-  if(qEvDesc) qEvDesc.root.innerHTML = '';
-  if(qEvDescEn) qEvDescEn.root.innerHTML = '';
-};
-
-// Patch editEvent to populate Quill
-const _origEditEvent = editEvent;
-window.editEvent = function(id) {
-  _origEditEvent(id);
-  const ev = _events.find(e=>e.id===id);
-  if (ev) {
-    setTimeout(()=>{
-      if(qEvDesc) setQ(qEvDesc, 'evDesc', ev.description||'');
-      if(qEvDescEn) setQ(qEvDescEn, 'evDescEn', ev.descriptionEn||'');
-    }, 50);
-  }
-};
-
-// Patch saveAbout
-const _origSaveAbout = saveAbout;
-window.saveAbout = async function() {
-  getQ(qAboutText, 'aboutText');
-  await _origSaveAbout();
-};
-
-// Patch saveMember
-const _origSaveMember = saveMember;
-window.saveMember = async function() {
-  getQ(qMemBio, 'memBio');
-  await _origSaveMember();
-};
-
-// Patch editMember to populate Quill
-const _origEditMember = editMember;
-window.editMember = function(id) {
-  _origEditMember(id);
-  const m = _members.find(x=>x.id===id);
-  if (m) {
-    setTimeout(()=>{ if(qMemBio) setQ(qMemBio, 'memBio', m.bio||''); }, 50);
-  }
-};
-
-// Load about text into Quill when switching to about view
-const _origSwitchView = switchView;
-window.switchView = function(v) {
-  _origSwitchView(v);
-  if (v === 'about') {
-    setTimeout(async ()=>{
-      if (!qAboutText || !window._db) return;
-      try {
-        const { collection, getDocs } = window._firebase;
-        const s = await getDocs(collection(window._db,'about'));
-        s.docs.forEach(d=>{
-          const data = d.data();
-          if (data.text) setQ(qAboutText, 'aboutText', data.text);
-          if (data.quote) document.getElementById('aboutQuote').value = data.quote;
-        });
-      } catch(e){}
-    }, 100);
-  }
-};
-
-// Cloudinary upload
-const CLOUDINARY_CLOUD = 'dxodgbx3o';
-const CLOUDINARY_PRESET = 'logosynthesi';
-
-function uploadToCloudinary(fieldId, previewId) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/jpeg,image/png,image/webp';
-  input.onchange = async () => {
-    const file = input.files[0];
-    if (!file) return;
-    const statusId = fieldId === 'evPoster' ? 'evPosterStatus' : 'memPhotoStatus';
-    const statusEl = document.getElementById(statusId);
-    statusEl.textContent = 'Ανέβασμα...';
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLOUDINARY_PRESET);
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {method:'POST', body:fd});
-      const data = await res.json();
-      if (data.secure_url) {
-        document.getElementById(fieldId).value = data.secure_url;
-        statusEl.textContent = '✓ Ανέβηκε';
-        showImagePreview(previewId, data.secure_url, fieldId === 'evPoster');
-      } else { statusEl.textContent = '✗ Σφάλμα'; }
-    } catch(e) { statusEl.textContent = '✗ Σφάλμα σύνδεσης'; }
-  };
-  input.click();
-}
-
-function showImagePreview(previewId, url, isPoster) {
-  const el = document.getElementById(previewId);
-  if (!el || !url) return;
-  const maxH = isPoster ? '200px' : '80px';
-  const radius = isPoster ? '2px' : '50%';
-  const statusId = isPoster ? 'evPosterStatus' : 'memPhotoStatus';
-  el.innerHTML = `<div style="position:relative;display:inline-block;">
-    <img src="${url}" style="max-height:${maxH};border-radius:${radius};border:1px solid var(--gold-line);display:block;">
-    <button type="button" onclick="clearImage('${previewId}','${isPoster?'evPoster':'memPhoto'}','${statusId}')" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;line-height:20px;text-align:center;">x</button>
-  </div>`;
-}
-
-function clearImage(previewId, fieldId, statusId) {
-  document.getElementById(fieldId).value = '';
-  document.getElementById(previewId).innerHTML = '';
-  document.getElementById(statusId).textContent = '';
-}
+/* Enter to login */
+document.getElementById('loginEmail').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loginPass').focus(); });
 </script>
 </body>
 </html>
