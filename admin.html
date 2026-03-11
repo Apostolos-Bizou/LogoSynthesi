@@ -721,33 +721,33 @@ let _tasks = [];
 let _finance = [];
 let _erpUsers = [];
 
-function _fb() { return window._firebase; }
-function _db() { return window._db; }
+function getFb() { return window._firebase; }
+function getDb() { return window._db; }
 
 async function erpLoad(colName) {
-  if (!_db()) return [];
-  const { collection, getDocs, query, orderBy } = _fb();
+  if (!getDb()) return [];
+  const { collection, getDocs, query, orderBy } = getFb();
   try {
-    const q = query(collection(_db(), colName), orderBy('createdAt', 'desc'));
+    const q = query(collection(getDb(), colName), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) { return []; }
 }
 
 async function erpAdd(colName, data) {
-  const { collection, addDoc } = _fb();
-  const ref = await addDoc(collection(_db(), colName), { ...data, createdAt: Date.now() });
+  const { collection, addDoc } = getFb();
+  const ref = await addDoc(collection(getDb(), colName), { ...data, createdAt: Date.now() });
   return ref.id;
 }
 
 async function erpUpdate(colName, id, data) {
-  const { doc, updateDoc } = _fb();
-  await updateDoc(doc(_db(), colName, id), { ...data, updatedAt: Date.now() });
+  const { doc, updateDoc } = getFb();
+  await updateDoc(doc(getDb(), colName, id), { ...data, updatedAt: Date.now() });
 }
 
 async function erpDelete(colName, id) {
-  const { doc, deleteDoc } = _fb();
-  await deleteDoc(doc(_db(), colName, id));
+  const { doc, deleteDoc } = getFb();
+  await deleteDoc(doc(getDb(), colName, id));
 }
 
 async function loadErpData() {
