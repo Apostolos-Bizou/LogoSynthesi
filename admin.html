@@ -241,7 +241,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .cal-day.today{border-color:var(--gold);}
 .cal-day .day-num{font-size:14px;font-weight:600;color:#ffffff;display:block;margin-bottom:4px;}
 .cal-day.today .day-num{color:var(--gold);font-weight:700;}
-.cal-ev-dot{font-size:9px;font-weight:600;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cal-ev-dot{font-size:9px;font-weight:600;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:opacity .15s;}
+.cal-ev-dot:hover{opacity:0.7;}
 .cal-ev-dot.cine{background:rgba(106,143,175,0.2);color:var(--blue);}
 .cal-ev-dot.music{background:rgba(200,149,110,0.2);color:var(--orange);}
 .cal-ev-dot.stage{background:rgba(106,175,126,0.2);color:rgba(106,175,126,0.9);}
@@ -319,7 +320,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .task-cal-day.today{border-color:var(--gold);}
 .task-cal-day .day-num{font-size:13px;font-weight:600;color:#ffffff;display:block;margin-bottom:4px;}
 .task-cal-day.today .day-num{color:var(--gold);font-weight:700;}
-.task-cal-item{font-size:9px;font-weight:600;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid;cursor:default;}
+.task-cal-item{font-size:9px;font-weight:600;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid;cursor:pointer;transition:opacity .15s;}
+.task-cal-item:hover{opacity:0.7;}
 .task-cal-item.high{border-color:var(--red);color:rgba(220,100,100,0.9);background:rgba(220,60,60,0.08);}
 .task-cal-item.med{border-color:var(--orange);color:var(--orange);background:rgba(200,149,110,0.08);}
 .task-cal-item.low{border-color:var(--green);color:var(--green);background:rgba(60,180,100,0.08);}
@@ -1251,7 +1253,7 @@ function renderTaskCalendar(){
     cells+=`<div class="task-cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayTasks.map(t=>{
       const done=t.status==='Ολοκληρώθηκε';
       const pClass=priorityClass(t.priority);
-      return`<div class="task-cal-item ${pClass}${done?' done':''}" title="${t.title}${t.assignee?' — @'+t.assignee:''}">${t.assignee?'@'+t.assignee.split(' ')[0]+': ':''}${t.title}</div>`;
+      return`<div class="task-cal-item ${pClass}${done?' done':''}" title="${t.title}${t.assignee?' — @'+t.assignee:''}" onclick="editTaskModal('${t.id}')">${t.assignee?'@'+t.assignee.split(' ')[0]+': ':''}${t.title}</div>`;
     }).join('')}</div>`;
   }
   document.getElementById('task-cal-grid').innerHTML=cells;
@@ -1344,7 +1346,7 @@ function renderCalendar(){
     const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
     const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dayEvs=_events.filter(e=>e.date===dateStr);
-    cells+=`<div class="cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayEvs.map(e=>`<div class="cal-ev-dot ${hubClass(e.category||'')}">${e.title}</div>`).join('')}</div>`;
+    cells+=`<div class="cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayEvs.map(e=>`<div class="cal-ev-dot ${hubClass(e.category||'')}" onclick="editEvent('${e.id}')">${e.title}</div>`).join('')}</div>`;
   }
   document.getElementById('cal-grid').innerHTML=cells;
 }
