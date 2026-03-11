@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, where, getCountFromServer } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc, query, orderBy, where, getCountFromServer, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   const firebaseConfig = {
     apiKey: "AIzaSyCXehfkR1nut6T6_HDdrkcl_6KLsi02iLk",
@@ -25,7 +25,7 @@
     const auth = getAuth(app);
     window._db = db;
     window._auth = auth;
-    window._firebase = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy, where, getCountFromServer };
+    window._firebase = { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, setDoc, query, orderBy, where, getCountFromServer, onSnapshot };
     window._firebaseAuth = { signInWithEmailAndPassword, signOut, onAuthStateChanged };
     onAuthStateChanged(auth, user => {
       window._user = user;
@@ -715,19 +715,48 @@ let _events = [];
 let _editingId = null;
 let _members = [];
 
-// ===== ERP LOCAL STORAGE =====
-const DB = {
-  get: (k, def=[]) => { try { return JSON.parse(localStorage.getItem('logo_'+k)) ?? def; } catch { return def; } },
-  set: (k, v) => localStorage.setItem('logo_'+k, JSON.stringify(v)),
-};
-function initErpUsers() {
-  if (!localStorage.getItem('logo_users')) {
-    DB.set('users', [
-      { id: 1, name: 'Απόστολος', username: 'apostolos', password: 'logo2026', role: 'Admin', email: 'admin@logosynthesi.gr' },
-    ]);
-  }
+// ===== ERP FIREBASE DATA LAYER =====
+// Όλα τα ERP δεδομένα αποθηκεύονται στο Firestore — global, real-time
+let _tasks = [];
+let _finance = [];
+let _erpUsers = [];
+
+function _fb() { return window._firebase; }
+function _db() { return window._db; }
+
+async function erpLoad(colName) {
+  if (!_db()) return [];
+  const { collection, getDocs, query, orderBy } = _fb();
+  try {
+    const q = query(collection(_db(), colName), orderBy('createdAt', 'desc'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { return []; }
 }
-initErpUsers();
+
+async function erpAdd(colName, data) {
+  const { collection, addDoc } = _fb();
+  const ref = await addDoc(collection(_db(), colName), { ...data, createdAt: Date.now() });
+  return ref.id;
+}
+
+async function erpUpdate(colName, id, data) {
+  const { doc, updateDoc } = _fb();
+  await updateDoc(doc(_db(), colName, id), { ...data, updatedAt: Date.now() });
+}
+
+async function erpDelete(colName, id) {
+  const { doc, deleteDoc } = _fb();
+  await deleteDoc(doc(_db(), colName, id));
+}
+
+async function loadErpData() {
+  [_tasks, _finance, _erpUsers] = await Promise.all([
+    erpLoad('tasks'),
+    erpLoad('finance'),
+    erpLoad('erp_users'),
+  ]);
+}
 
 // ===== AUTH (Firebase) =====
 window.addEventListener('auth-change', e => {
@@ -771,7 +800,8 @@ function showAdmin(email) {
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('adminWrap').classList.add('visible');
   document.getElementById('userEmail').textContent=email;
-  loadStats(); loadEvents(); renderDashboard();
+  loadStats(); loadEvents();
+  loadErpData().then(() => { renderDashboard(); updateBadges(); });
 }
 
 // ===== NAVIGATION =====
@@ -836,10 +866,9 @@ async function loadStats() {
     document.getElementById('statEvents').textContent=DEMO.length;
     document.getElementById('statVotes').textContent=52;
   }
-  // ERP stats
-  const fin=DB.get('finance');
-  const inc=fin.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const exp=fin.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  // ERP stats from in-memory Firebase data
+  const inc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  const exp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   document.getElementById('statIncome').textContent=fmtMoney(inc);
   const net=inc-exp;
   document.getElementById('statBalance').textContent=fmtMoney(net);
@@ -936,16 +965,13 @@ function editMember(id){const m=_members.find(m=>m.id===id);if(!m)return;documen
 async function deleteMember(id){if(!confirm('Διαγραφή μέλους;'))return;try{if(!window._db)throw new Error('demo');const{doc,deleteDoc}=window._firebase;await deleteDoc(doc(window._db,'members',id));}catch(e){}_members=_members.filter(m=>m.id!==id);renderMemberList();toast('Μέλος διαγράφηκε','error');}
 function renderMemberList(){const el=document.getElementById('memberList');if(!_members.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν μέλη ακόμα.</div>';return;}let html='';_members.forEach(m=>{const photo=m.photo?`<img src="${m.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);vertical-align:middle;" onerror="this.style.display='none'">`:`<div style="width:40px;height:40px;border-radius:50%;border:1px solid var(--gold-line);background:var(--black3);display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;vertical-align:middle;">👤</div>`;html+=`<div style="background:var(--black2);border:1px solid var(--gold-line);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;"><div>${photo}</div><div style="flex:1;"><div style="font-family:var(--font-serif);font-size:16px;">${m.name}</div><div style="font-size:9px;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-top:2px;">${m.role}</div></div><div style="display:flex;gap:6px;"><button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button></div></div>`;});el.innerHTML=html;}
 
-// ===== ERP: TASKS =====
+// ===== ERP: MODALS =====
 function openModal(id){
   if(id==='modal-task'||id==='modal-finance'){
-    const events=DB.get('events');
     const selId=id==='modal-task'?'task-event':'fin-event';
     const sel=document.getElementById(selId);
     sel.innerHTML='<option value="">— Γενική —</option>';
-    // Merge firebase events with ERP events
-    const allEvents=[..._events,...events.filter(e=>!_events.find(fe=>fe.title===e.title))];
-    allEvents.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
+    _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
   }
   if(id==='modal-task'){document.getElementById('task-id').value='';document.getElementById('task-title').value='';document.getElementById('task-assignee').value='';document.getElementById('task-deadline').value='';document.getElementById('task-notes').value='';document.getElementById('task-priority').value='Μεσαία';document.getElementById('task-status').value='Ανοικτή';document.getElementById('modal-task-title').textContent='Νέα Εργασία';}
   if(id==='modal-finance'){document.getElementById('fin-id').value='';document.getElementById('fin-amount').value='';document.getElementById('fin-desc').value='';document.getElementById('fin-date').value=new Date().toISOString().split('T')[0];document.getElementById('fin-type').value='income';document.getElementById('modal-finance-title').textContent='Νέα Οικονομική Εγγραφή';}
@@ -955,83 +981,141 @@ function openModal(id){
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
-function saveTask(){
+// ===== ERP: TASKS (Firebase) =====
+async function saveTask(){
   const id=document.getElementById('task-id').value;
   const title=document.getElementById('task-title').value.trim();
   if(!title){toast('Συμπλήρωσε τον τίτλο','error');return;}
-  const tasks=DB.get('tasks');
-  const rec={id:id||uid(),title,eventId:document.getElementById('task-event').value,assignee:document.getElementById('task-assignee').value,deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
-  if(id){const idx=tasks.findIndex(t=>t.id==id);if(idx!==-1)tasks[idx]=rec;}else tasks.push(rec);
-  DB.set('tasks',tasks);closeModal('modal-task');renderTasks();updateBadges();toast('Εργασία αποθηκεύτηκε');
+  const rec={title,eventId:document.getElementById('task-event').value,assignee:document.getElementById('task-assignee').value,deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
+  try {
+    if(id){ await erpUpdate('tasks',id,rec); const idx=_tasks.findIndex(t=>t.id===id); if(idx!==-1)_tasks[idx]={id,...rec}; }
+    else { const newId=await erpAdd('tasks',rec); _tasks.unshift({id:newId,...rec,createdAt:Date.now()}); }
+    closeModal('modal-task');renderTasks();updateBadges();toast('Εργασία αποθηκεύτηκε');
+  } catch(e){toast('Σφάλμα αποθήκευσης','error');}
 }
-function toggleTask(id){const tasks=DB.get('tasks');const t=tasks.find(x=>x.id==id);if(t){t.status=t.status==='Ολοκληρώθηκε'?'Ανοικτή':'Ολοκληρώθηκε';DB.set('tasks',tasks);renderTasks();updateBadges();}}
-function deleteTask(id){if(!confirm('Διαγραφή εργασίας;'))return;DB.set('tasks',DB.get('tasks').filter(t=>t.id!=id));renderTasks();updateBadges();toast('Εργασία διαγράφηκε','error');}
+async function toggleTask(id){
+  const t=_tasks.find(x=>x.id===id);if(!t)return;
+  const ns=t.status==='Ολοκληρώθηκε'?'Ανοικτή':'Ολοκληρώθηκε';
+  try{ await erpUpdate('tasks',id,{status:ns}); t.status=ns; renderTasks();updateBadges(); }catch(e){}
+}
+async function deleteTask(id){
+  if(!confirm('Διαγραφή εργασίας;'))return;
+  try{ await erpDelete('tasks',id); _tasks=_tasks.filter(t=>t.id!==id); renderTasks();updateBadges();toast('Εργασία διαγράφηκε','error'); }catch(e){toast('Σφάλμα','error');}
+}
+function editTaskModal(id){
+  const t=_tasks.find(x=>x.id===id);if(!t)return;
+  document.getElementById('task-id').value=t.id;
+  document.getElementById('task-title').value=t.title||'';
+  document.getElementById('task-assignee').value=t.assignee||'';
+  document.getElementById('task-deadline').value=t.deadline||'';
+  document.getElementById('task-priority').value=t.priority||'Μεσαία';
+  document.getElementById('task-status').value=t.status||'Ανοικτή';
+  document.getElementById('task-notes').value=t.notes||'';
+  document.getElementById('modal-task-title').textContent='Επεξεργασία Εργασίας';
+  // populate event select
+  const sel=document.getElementById('task-event');
+  sel.innerHTML='<option value="">— Γενική —</option>';
+  _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
+  sel.value=t.eventId||'';
+  document.getElementById('modal-task').classList.add('open');
+}
 function renderTasks(){
   const pf=document.getElementById('task-filter-priority')?.value||'';
   const sf=document.getElementById('task-filter-status')?.value||'';
-  let tasks=DB.get('tasks');
+  let tasks=[..._tasks];
   if(pf)tasks=tasks.filter(t=>t.priority===pf);
   if(sf)tasks=tasks.filter(t=>t.status===sf);
   tasks.sort((a,b)=>(a.deadline||'9').localeCompare(b.deadline||'9'));
-  const allEvents=[..._events,...DB.get('events')];
   const tbody=document.getElementById('tasks-tbody');
-  if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--cream-dim);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
+  if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
   tbody.innerHTML=tasks.map(t=>{
-    const ev=allEvents.find(e=>e.id==t.eventId);
+    const ev=_events.find(e=>e.id===t.eventId);
     const done=t.status==='Ολοκληρώθηκε';
     return`<tr style="${done?'opacity:0.5':''}">
       <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
       <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
-      <td>${ev?`<span class="hub-badge ${hubClass(ev.category||ev.hub||'')}">${ev.title.slice(0,18)}</span>`:'—'}</td>
+      <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
       <td>${t.assignee||'—'}</td>
       <td>${fmtDate(t.deadline)}</td>
-      <td><span style="display:inline-flex;align-items:center;gap:5px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
+      <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
       <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
-      <td><button class="btn-danger" onclick="deleteTask('${t.id}')" style="padding:4px 8px;">✕</button></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn-edit" onclick="editTaskModal('${t.id}')" style="padding:4px 8px;">✎</button>
+        <button class="btn-danger" onclick="deleteTask('${t.id}')" style="padding:4px 8px;">✕</button>
+      </td>
     </tr>`;
   }).join('');
 }
 
-// ===== ERP: FINANCE =====
-function saveFinance(){
+// ===== ERP: FINANCE (Firebase) =====
+async function saveFinance(){
   const id=document.getElementById('fin-id').value;
   const amount=document.getElementById('fin-amount').value;
   const desc=document.getElementById('fin-desc').value.trim();
   if(!desc||!amount){toast('Συμπλήρωσε περιγραφή και ποσό','error');return;}
-  const recs=DB.get('finance');
-  const rec={id:id||uid(),type:document.getElementById('fin-type').value,amount:parseFloat(amount),description:desc,category:document.getElementById('fin-category').value,eventId:document.getElementById('fin-event').value,date:document.getElementById('fin-date').value};
-  if(id){const idx=recs.findIndex(r=>r.id==id);if(idx!==-1)recs[idx]=rec;}else recs.push(rec);
-  DB.set('finance',recs);closeModal('modal-finance');renderFinance();loadStats();toast('Εγγραφή αποθηκεύτηκε');
+  const rec={type:document.getElementById('fin-type').value,amount:parseFloat(amount),description:desc,category:document.getElementById('fin-category').value,eventId:document.getElementById('fin-event').value,date:document.getElementById('fin-date').value};
+  try{
+    if(id){ await erpUpdate('finance',id,rec); const idx=_finance.findIndex(r=>r.id===id); if(idx!==-1)_finance[idx]={id,...rec}; }
+    else { const newId=await erpAdd('finance',rec); _finance.unshift({id:newId,...rec,createdAt:Date.now()}); }
+    closeModal('modal-finance');renderFinance();loadStats();toast('Εγγραφή αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα αποθήκευσης','error');}
 }
-function deleteFinance(id){if(!confirm('Διαγραφή εγγραφής;'))return;DB.set('finance',DB.get('finance').filter(r=>r.id!=id));renderFinance();loadStats();toast('Διαγράφηκε','error');}
+function editFinanceModal(id){
+  const r=_finance.find(x=>x.id===id);if(!r)return;
+  document.getElementById('fin-id').value=r.id;
+  document.getElementById('fin-type').value=r.type||'income';
+  document.getElementById('fin-amount').value=r.amount||'';
+  document.getElementById('fin-desc').value=r.description||'';
+  document.getElementById('fin-category').value=r.category||'Λοιπά Έξοδα';
+  document.getElementById('fin-date').value=r.date||'';
+  document.getElementById('modal-finance-title').textContent='Επεξεργασία Εγγραφής';
+  const sel=document.getElementById('fin-event');
+  sel.innerHTML='<option value="">— Γενικό —</option>';
+  _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
+  sel.value=r.eventId||'';
+  document.getElementById('modal-finance').classList.add('open');
+}
+async function deleteFinance(id){
+  if(!confirm('Διαγραφή εγγραφής;'))return;
+  try{ await erpDelete('finance',id); _finance=_finance.filter(r=>r.id!==id); renderFinance();loadStats();toast('Διαγράφηκε','error'); }catch(e){toast('Σφάλμα','error');}
+}
 function renderFinance(){
-  const allEvents=[..._events,...DB.get('events')];
-  const sel=document.getElementById('fin-filter-event');
-  const curVal=sel?.value||'';
-  if(sel){sel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';allEvents.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));sel.value=curVal;}
   const evFilter=document.getElementById('fin-filter-event')?.value||'';
   const typeFilter=document.getElementById('fin-filter-type')?.value||'';
-  let recs=DB.get('finance');
+  // Populate event filter
+  const sel=document.getElementById('fin-filter-event');
+  if(sel){const cv=sel.value;sel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';_events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));sel.value=cv;}
+  let recs=[..._finance];
   if(evFilter)recs=recs.filter(r=>r.eventId===evFilter);
   if(typeFilter)recs=recs.filter(r=>r.type===typeFilter);
   recs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const allRecs=DB.get('finance');
-  const totalInc=allRecs.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const totalExp=allRecs.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   const net=totalInc-totalExp;
   const maxVal=Math.max(totalInc,totalExp)||1;
   document.getElementById('fin-total-inc').textContent=fmtMoney(totalInc);
   document.getElementById('fin-total-exp').textContent=fmtMoney(totalExp);
   document.getElementById('fin-net').textContent=fmtMoney(net);
-  document.getElementById('fin-inc-count').textContent=allRecs.filter(r=>r.type==='income').length+' εγγραφές εσόδων';
-  document.getElementById('fin-exp-count').textContent=allRecs.filter(r=>r.type==='expense').length+' εγγραφές εξόδων';
+  document.getElementById('fin-inc-count').textContent=_finance.filter(r=>r.type==='income').length+' εγγραφές εσόδων';
+  document.getElementById('fin-exp-count').textContent=_finance.filter(r=>r.type==='expense').length+' εγγραφές εξόδων';
   document.getElementById('fin-net-sub').textContent=net>=0?'Θετικό ισοζύγιο ✓':'Αρνητικό ισοζύγιο ✗';
   document.getElementById('fin-net').style.color=net>=0?'var(--green)':'var(--red)';
   document.getElementById('fin-inc-bar').style.width=(totalInc/maxVal*100)+'%';
   document.getElementById('fin-exp-bar').style.width=(totalExp/maxVal*100)+'%';
   const tbody=document.getElementById('finance-tbody');
-  if(!recs.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--cream-dim);font-style:italic;">Δεν υπάρχουν εγγραφές</td></tr>`;return;}
-  tbody.innerHTML=recs.map(r=>{const ev=allEvents.find(e=>e.id==r.eventId);return`<tr><td>${fmtDate(r.date)}</td><td>${r.description}</td><td style="font-size:11px;color:var(--cream-dim)">${r.category||'—'}</td><td>${ev?`<span class="hub-badge ${hubClass(ev.category||ev.hub||'')}">${ev.title.slice(0,18)}</span>`:'—'}</td><td><span class="status ${r.type==='income'?'done':'cancelled'}">${r.type==='income'?'Έσοδο':'Έξοδο'}</span></td><td style="font-family:var(--font-serif);font-size:18px;color:${r.type==='income'?'var(--green)':'var(--red)'}">${r.type==='income'?'+':'−'}${fmtMoney(r.amount)}</td><td><button class="btn-danger" onclick="deleteFinance('${r.id}')" style="padding:4px 8px;">✕</button></td></tr>`;}).join('');
+  if(!recs.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εγγραφές</td></tr>`;return;}
+  tbody.innerHTML=recs.map(r=>{const ev=_events.find(e=>e.id===r.eventId);return`<tr>
+    <td>${fmtDate(r.date)}</td>
+    <td>${r.description}</td>
+    <td style="font-size:11px;color:rgba(255,255,255,0.6)">${r.category||'—'}</td>
+    <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,18)}</span>`:'—'}</td>
+    <td><span class="status ${r.type==='income'?'done':'cancelled'}">${r.type==='income'?'Έσοδο':'Έξοδο'}</span></td>
+    <td style="font-family:var(--font-serif);font-size:18px;color:${r.type==='income'?'var(--green)':'var(--red)'}">${r.type==='income'?'+':'−'}${fmtMoney(r.amount)}</td>
+    <td style="display:flex;gap:5px">
+      <button class="btn-edit" onclick="editFinanceModal('${r.id}')" style="padding:4px 8px;">✎</button>
+      <button class="btn-danger" onclick="deleteFinance('${r.id}')" style="padding:4px 8px;">✕</button>
+    </td>
+  </tr>`;}).join('');
 }
 
 // ===== ERP: CALENDAR =====
@@ -1041,7 +1125,6 @@ function renderCalendar(){
   const months=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
   document.getElementById('cal-month-title').textContent=months[calMonth]+' '+calYear;
   document.getElementById('cal-headers').innerHTML=['ΔΕΥ','ΤΡΙ','ΤΕΤ','ΠΕΜ','ΠΑΡ','ΣΑΒ','ΚΥΡ'].map(d=>`<div class="cal-day-header">${d}</div>`).join('');
-  const allEvents=[..._events,...DB.get('events')];
   const first=new Date(calYear,calMonth,1),last=new Date(calYear,calMonth+1,0);
   let startDow=first.getDay();if(startDow===0)startDow=7;
   const today=new Date();
@@ -1050,58 +1133,67 @@ function renderCalendar(){
   for(let d=1;d<=last.getDate();d++){
     const isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
     const dateStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayEvs=allEvents.filter(e=>e.date===dateStr);
-    cells+=`<div class="cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayEvs.map(e=>`<div class="cal-ev-dot ${hubClass(e.category||e.hub||'')}">${e.title}</div>`).join('')}</div>`;
+    const dayEvs=_events.filter(e=>e.date===dateStr);
+    cells+=`<div class="cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayEvs.map(e=>`<div class="cal-ev-dot ${hubClass(e.category||'')}">${e.title}</div>`).join('')}</div>`;
   }
   document.getElementById('cal-grid').innerHTML=cells;
 }
 
-// ===== ERP: USERS =====
-function saveUser(){
+// ===== ERP: USERS (Firebase) =====
+async function saveUser(){
   const id=document.getElementById('usr-id').value;
   const name=document.getElementById('usr-name').value.trim();
   const username=document.getElementById('usr-username').value.trim();
   const pass=document.getElementById('usr-pass').value;
   if(!name||!username){toast('Συμπλήρωσε όνομα και username','error');return;}
-  const users=DB.get('users',[]);
-  const existing=users.find(u=>u.username===username&&u.id!=id);
+  const existing=_erpUsers.find(u=>u.username===username&&u.id!==id);
   if(existing){toast('Το username υπάρχει ήδη','error');return;}
-  const rec={id:id||uid(),name,username,password:pass||(id?users.find(u=>u.id==id)?.password:''),role:document.getElementById('usr-role').value,email:document.getElementById('usr-email').value};
-  if(id){const idx=users.findIndex(u=>u.id==id);if(idx!==-1)users[idx]=rec;}else users.push(rec);
-  DB.set('users',users);closeModal('modal-user');renderUsers();toast(id?'Χρήστης ενημερώθηκε':'Νέος χρήστης δημιουργήθηκε');
+  const rec={name,username,role:document.getElementById('usr-role').value,email:document.getElementById('usr-email').value};
+  if(pass)rec.password=pass;
+  try{
+    if(id){ await erpUpdate('erp_users',id,rec); const idx=_erpUsers.findIndex(u=>u.id===id); if(idx!==-1)_erpUsers[idx]={id,...rec}; }
+    else { const newId=await erpAdd('erp_users',rec); _erpUsers.unshift({id:newId,...rec,createdAt:Date.now()}); }
+    closeModal('modal-user');renderUsers();toast(id?'Χρήστης ενημερώθηκε':'Νέος χρήστης δημιουργήθηκε');
+  }catch(e){toast('Σφάλμα αποθήκευσης','error');}
 }
-function deleteUser(id){if(!confirm('Διαγραφή χρήστη;'))return;DB.set('users',DB.get('users',[]).filter(u=>u.id!=id));renderUsers();toast('Χρήστης διαγράφηκε','error');}
+async function deleteUser(id){
+  if(!confirm('Διαγραφή χρήστη;'))return;
+  try{ await erpDelete('erp_users',id); _erpUsers=_erpUsers.filter(u=>u.id!==id); renderUsers();toast('Χρήστης διαγράφηκε','error'); }catch(e){}
+}
 function renderUsers(){
-  const users=DB.get('users',[]);
-  document.getElementById('users-list').innerHTML=users.map(u=>`<div class="user-card"><div class="user-avatar">${u.name.charAt(0).toUpperCase()}</div><div class="user-card-info"><div class="uname">${u.name}</div><div class="urole">@${u.username}${u.email?' · '+u.email:''}</div></div><span class="role-badge ${u.role==='Admin'?'admin':u.role==='Μέλος'?'member':'viewer'}">${u.role}</span><div style="display:flex;gap:6px;margin-left:12px"><button class="btn-edit" onclick="editUser('${u.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteUser('${u.id}')">Διαγρ.</button></div></div>`).join('');
+  document.getElementById('users-list').innerHTML=_erpUsers.length
+    ? _erpUsers.map(u=>`<div class="user-card"><div class="user-avatar">${u.name.charAt(0).toUpperCase()}</div><div class="user-card-info"><div class="uname">${u.name}</div><div class="urole">@${u.username}${u.email?' · '+u.email:''}</div></div><span class="role-badge ${u.role==='Admin'?'admin':u.role==='Μέλος'?'member':'viewer'}">${u.role}</span><div style="display:flex;gap:6px;margin-left:12px"><button class="btn-edit" onclick="editUser('${u.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteUser('${u.id}')">Διαγρ.</button></div></div>`).join('')
+    : '<div class="empty-msg">Δεν υπάρχουν χρήστες ERP ακόμα.</div>';
 }
 function editUser(id){
-  const u=DB.get('users',[]).find(x=>x.id==id);if(!u)return;
+  const u=_erpUsers.find(x=>x.id===id);if(!u)return;
   document.getElementById('usr-id').value=u.id;document.getElementById('usr-name').value=u.name;document.getElementById('usr-username').value=u.username;document.getElementById('usr-pass').value='';document.getElementById('usr-role').value=u.role;document.getElementById('usr-email').value=u.email||'';document.getElementById('modal-user-title').textContent='Επεξεργασία Χρήστη';document.getElementById('modal-user').classList.add('open');
 }
 
 // ===== ERP: REPORTS =====
 function renderReports(){
-  const allEvents=[..._events,...DB.get('events')];
-  const finance=DB.get('finance');
-  const tasks=DB.get('tasks');
-  const totalInc=finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const totalExp=finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   const hubs=['cinehub','logohub','musichub','photohub','schoolhub'];
   const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
+  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   let hubHTML=hubs.map(h=>{
-    const hevs=allEvents.filter(e=>(e.category||e.hub||'').toLowerCase()===h);
-    const hinc=finance.filter(f=>{const ev=allEvents.find(e=>e.id==f.eventId);return ev&&(ev.category||ev.hub||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
-    const hexp=finance.filter(f=>{const ev=allEvents.find(e=>e.id==f.eventId);return ev&&(ev.category||ev.hub||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
-    return`<div class="stat-card" style="text-align:left;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="hub-badge ${hubClass(h)}">${hubLabels[h]}</span><span style="font-family:var(--font-serif);font-size:24px;color:var(--gold)">${hevs.length}</span></div><div style="font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:var(--cream-dim);margin-bottom:6px">εκδηλώσεις</div><div style="display:flex;justify-content:space-between;font-size:11px"><span style="color:var(--green)">+${fmtMoney(hinc)}</span><span style="color:var(--red)">−${fmtMoney(hexp)}</span></div></div>`;
+    const hevs=_events.filter(e=>(e.category||'').toLowerCase()===h);
+    const hinc=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
+    const hexp=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
+    return`<div class="stat-card" style="text-align:left;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="hub-badge ${hubClass(h)}">${hubLabels[h]}</span><span style="font-family:var(--font-serif);font-size:28px;color:var(--gold)">${hevs.length}</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:#fff;margin-bottom:8px">εκδηλώσεις</div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600"><span style="color:var(--green)">+${fmtMoney(hinc)}</span><span style="color:var(--red)">−${fmtMoney(hexp)}</span></div></div>`;
   }).join('');
   document.getElementById('reports-body').innerHTML=`
     <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">${hubHTML}</div>
     <div class="table-wrapper" style="margin-top:24px">
       <table class="data-table">
-        <thead><tr><th>Εκδήλωση</th><th>Κατηγορία</th><th>Ημερομηνία</th><th>Κατάσταση</th><th>Έσοδα</th><th>Έξοδα</th><th>Ισοζύγιο</th></tr></thead>
-        <tbody>${allEvents.length?allEvents.map(e=>{const inc=finance.filter(f=>f.eventId==e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);const exp=finance.filter(f=>f.eventId==e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);const net=inc-exp;return`<tr><td>${e.title}</td><td><span class="hub-badge ${hubClass(e.category||e.hub||'')}">${hubLabels[(e.category||e.hub||'').toLowerCase()]||e.category||e.hub}</span></td><td>${fmtDate(e.date)}</td><td><span class="hub-badge ${hubClass(e.category||'')}">${e.status||'—'}</span></td><td style="color:var(--green)">${fmtMoney(inc)}</td><td style="color:var(--red)">${fmtMoney(exp)}</td><td style="font-family:var(--font-serif);font-size:16px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</td></tr>`;}).join(''):`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--cream-dim);font-style:italic">Δεν υπάρχουν εκδηλώσεις ακόμα</td></tr>`}
-        <tr style="background:var(--black3);"><td colspan="4"><strong style="letter-spacing:.1em">ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:600">${fmtMoney(totalInc)}</td><td style="color:var(--red);font-weight:600">${fmtMoney(totalExp)}</td><td style="font-family:var(--font-serif);font-size:18px;color:${totalInc-totalExp>=0?'var(--green)':'var(--red)'}">${fmtMoney(totalInc-totalExp)}</td></tr>
+        <thead><tr><th>Εκδήλωση</th><th>Κατηγορία</th><th>Ημερομηνία</th><th>Έσοδα</th><th>Έξοδα</th><th>Ισοζύγιο</th></tr></thead>
+        <tbody>${_events.length?_events.map(e=>{
+          const inc=_finance.filter(f=>f.eventId===e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+          const exp=_finance.filter(f=>f.eventId===e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+          const net=inc-exp;
+          return`<tr><td>${e.title}</td><td><span class="hub-badge ${hubClass(e.category||'')}">${hubLabels[(e.category||'').toLowerCase()]||e.category}</span></td><td>${fmtDate(e.date)}</td><td style="color:var(--green);font-weight:600">${fmtMoney(inc)}</td><td style="color:var(--red);font-weight:600">${fmtMoney(exp)}</td><td style="font-family:var(--font-serif);font-size:18px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</td></tr>`;
+        }).join(''):`<tr><td colspan="6" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εκδηλώσεις</td></tr>`}
+        <tr style="background:var(--black3)"><td colspan="3"><strong style="letter-spacing:.15em;font-size:12px">ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;font-size:16px">${fmtMoney(totalInc)}</td><td style="color:var(--red);font-weight:700;font-size:16px">${fmtMoney(totalExp)}</td><td style="font-family:var(--font-serif);font-size:20px;color:${totalInc-totalExp>=0?'var(--green)':'var(--red)'}">${fmtMoney(totalInc-totalExp)}</td></tr>
         </tbody>
       </table>
     </div>`;
@@ -1109,25 +1201,21 @@ function renderReports(){
 
 // ===== DASHBOARD =====
 function renderDashboard(){
-  const allEvents=[..._events,...DB.get('events')];
-  const tasks=DB.get('tasks');
-  const finance=DB.get('finance');
   const today=new Date().toISOString().split('T')[0];
-  const ue=[...allEvents].filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+  const ue=[..._events].filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const months=['ΙΑΝ','ΦΕΒ','ΜΑΡ','ΑΠΡ','ΜΑΙ','ΙΟΥΝ','ΙΟΥΛ','ΑΥΓ','ΣΕΠ','ΟΚΤ','ΝΟΕ','ΔΕΚ'];
-  document.getElementById('dash-upcoming').innerHTML=ue.length?ue.map(e=>{const d=new Date(e.date);return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="width:36px;text-align:center;flex-shrink:0"><div style="font-family:var(--font-serif);font-size:20px;color:var(--gold);line-height:1">${d.getDate()}</div><div style="font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--cream-dim)">${months[d.getMonth()]}</div></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div><div style="font-size:10px;color:var(--cream-dim);margin-top:2px">${e.venue||'—'}</div></div><span class="hub-badge ${hubClass(e.category||e.hub||'')}">${e.category||e.hub||''}</span></div>`;}).join(''):'<div class="empty-msg">Δεν υπάρχουν επερχόμενες εκδηλώσεις</div>';
-  const pt=tasks.filter(t=>t.status!=='Ολοκληρώθηκε').slice(0,4);
-  document.getElementById('dash-tasks').innerHTML=pt.length?pt.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><span class="priority-dot ${priorityClass(t.priority)}"></span><div style="flex:1"><div style="font-size:13px">${t.title}</div><div style="font-size:10px;color:var(--cream-dim);margin-top:2px">${t.assignee?'@'+t.assignee:'—'} ${t.deadline?'· '+fmtDate(t.deadline):''}</div></div><span class="status ${statusClass(t.status)}">${t.status}</span></div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν εκκρεμείς εργασίες</div>';
-  const totalInc=finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const totalExp=finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  document.getElementById('dash-upcoming').innerHTML=ue.length?ue.map(e=>{const d=new Date(e.date);return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="width:36px;text-align:center;flex-shrink:0"><div style="font-family:var(--font-serif);font-size:22px;color:var(--gold);line-height:1">${d.getDate()}</div><div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.5)">${months[d.getMonth()]}</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${e.venue||'—'}</div></div><span class="hub-badge ${hubClass(e.category||'')}">${e.category||''}</span></div>`;}).join(''):'<div class="empty-msg">Δεν υπάρχουν επερχόμενες εκδηλώσεις</div>';
+  const pt=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').slice(0,4);
+  document.getElementById('dash-tasks').innerHTML=pt.length?pt.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><span class="priority-dot ${priorityClass(t.priority)}"></span><div style="flex:1"><div style="font-size:14px;font-weight:600">${t.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${t.assignee?'@'+t.assignee:'—'} ${t.deadline?'· '+fmtDate(t.deadline):''}</div></div><span class="status ${statusClass(t.status)}">${t.status}</span></div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν εκκρεμείς εργασίες</div>';
+  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   const net=totalInc-totalExp;
-  document.getElementById('dash-finance').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)">Έσοδα</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--green)">${fmtMoney(totalInc)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--cream-dim)">Έξοδα</div><div style="font-family:var(--font-serif);font-size:20px;color:var(--red)">${fmtMoney(totalExp)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--gold-line);margin-top:2px"><div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Ισοζύγιο</div><div style="font-family:var(--font-serif);font-size:22px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</div></div>`;
+  document.getElementById('dash-finance').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έσοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--green)">${fmtMoney(totalInc)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έξοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--red)">${fmtMoney(totalExp)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Ισοζύγιο</div><div style="font-family:var(--font-serif);font-size:26px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</div></div>`;
   updateBadges();
 }
 
 function updateBadges(){
-  const tasks=DB.get('tasks');
-  document.getElementById('tasks-badge').textContent=tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
+  document.getElementById('tasks-badge').textContent=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
 }
 
 // ===== QUILL =====
@@ -1165,8 +1253,6 @@ const CLOUDINARY_CLOUD='dxodgbx3o',CLOUDINARY_PRESET='logosynthesi';
 function uploadToCloudinary(fieldId,previewId){const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=async()=>{const file=input.files[0];if(!file)return;const statusId=fieldId==='evPoster'?'evPosterStatus':'memPhotoStatus';const statusEl=document.getElementById(statusId);statusEl.textContent='Ανέβασμα...';const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);try{const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});const data=await res.json();if(data.secure_url){document.getElementById(fieldId).value=data.secure_url;statusEl.textContent='✓ Ανέβηκε';showImagePreview(previewId,data.secure_url,fieldId==='evPoster');}else{statusEl.textContent='✗ Σφάλμα';}}catch(e){statusEl.textContent='✗ Σφάλμα σύνδεσης';}};input.click();}
 function showImagePreview(previewId,url,isPoster){const el=document.getElementById(previewId);if(!el||!url)return;const maxH=isPoster?'180px':'70px';const radius=isPoster?'2px':'50%';const statusId=isPoster?'evPosterStatus':'memPhotoStatus';el.innerHTML=`<div style="position:relative;display:inline-block;"><img src="${url}" style="max-height:${maxH};border-radius:${radius};border:1px solid var(--gold-line);display:block;"><button type="button" onclick="clearImage('${previewId}','${isPoster?'evPoster':'memPhoto'}','${statusId}')" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:18px;text-align:center;">x</button></div>`;}
 function clearImage(previewId,fieldId,statusId){document.getElementById(fieldId).value='';document.getElementById(previewId).innerHTML='';document.getElementById(statusId).textContent='';}
-
-updateBadges();
 </script>
 </body>
 </html>
