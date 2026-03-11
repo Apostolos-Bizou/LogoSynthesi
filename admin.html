@@ -329,6 +329,41 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .task-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .task-cal-title{font-family:var(--font-serif);font-size:28px;font-weight:400;color:#ffffff;}
 
+/* CONTACTS */
+.contact-card{background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px;display:flex;align-items:flex-start;gap:16px;transition:border-color .2s;cursor:pointer;}
+.contact-card:hover{border-color:var(--gold);}
+.contact-avatar{width:50px;height:50px;background:var(--gold-dim);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;color:var(--gold);flex-shrink:0;border-radius:50%;}
+.contact-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.contact-info{flex:1;min-width:0;}
+.contact-name{font-family:var(--font-serif);font-size:17px;font-weight:400;color:#ffffff;margin-bottom:3px;}
+.contact-meta{font-size:11px;color:rgba(255,255,255,0.5);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:5px;}
+.contact-hubs{display:flex;gap:4px;flex-wrap:wrap;}
+.contact-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.contact-tag{font-size:8px;letter-spacing:0.15em;text-transform:uppercase;padding:2px 7px;background:rgba(200,169,110,0.08);border:1px solid var(--gold-line);color:var(--cream-dim);}
+.contact-actions{display:flex;gap:6px;flex-shrink:0;align-self:center;}
+.contact-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+.contact-detail-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(200,169,110,0.1);}
+.contact-detail-section:last-child{border-bottom:none;}
+.contact-detail-label{font-size:9px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.contact-detail-value{font-size:14px;color:#ffffff;line-height:1.6;}
+.bcard-preview{max-width:260px;border:1px solid var(--gold-line);margin-top:8px;cursor:pointer;transition:border-color .2s;}
+.bcard-preview:hover{border-color:var(--gold);}
+.bcard-preview img{width:100%;display:block;}
+.contact-event-chip{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 10px;background:rgba(200,169,110,0.08);border:1px solid var(--gold-line);margin:2px;cursor:pointer;transition:all .2s;}
+.contact-event-chip:hover{border-color:var(--gold);color:var(--gold);}
+.birthday-cal-day.has-bday{background:rgba(200,169,110,0.12);}
+.birthday-name{font-size:9px;font-weight:600;color:var(--gold);padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;}
+.birthday-name:hover{text-decoration:underline;}
+
+/* MODAL WIDE */
+.modal.wide{width:680px;}
+
+/* MULTI SELECT CHIPS */
+.chip-select{display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--black3);border:1px solid var(--gold-line);min-height:40px;}
+.chip-option{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border:1px solid var(--gold-line);color:rgba(255,255,255,0.6);cursor:pointer;transition:all .2s;}
+.chip-option:hover{border-color:var(--gold);color:var(--gold);}
+.chip-option.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+
 .dash-panel{background:var(--black2);border:1px solid var(--gold-line);margin-bottom:18px;}
 .dash-panel-header{padding:16px 20px;border-bottom:2px solid var(--gold-line);display:flex;align-items:center;justify-content:space-between;}
 .dash-panel-title{font-size:11px;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;color:#ffffff;}
@@ -394,6 +429,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
     <button class="mobile-tab" onclick="switchView('members')">+ Μέλος</button>
     <button class="mobile-tab" onclick="switchView('manage-members')">Μέλη</button>
     <button class="mobile-tab" onclick="switchView('erp-tasks')">Εργασίες</button>
+    <button class="mobile-tab" onclick="switchView('erp-contacts')">Επαφές</button>
     <button class="mobile-tab" onclick="switchView('erp-finance')">Οικονομικά</button>
     <button class="mobile-tab" onclick="switchView('erp-calendar')">Ημερολόγιο</button>
     <button class="mobile-tab" onclick="switchView('erp-users')">Χρήστες</button>
@@ -443,6 +479,11 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Εργασίες
         <span class="sidebar-badge" id="tasks-badge">0</span>
+      </button>
+      <button class="sidebar-link" onclick="switchView('erp-contacts')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Επαφές
+        <span class="sidebar-badge" id="contacts-badge">0</span>
       </button>
 
       <div class="sidebar-section">ERP — Οικονομικά</div>
@@ -651,6 +692,68 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         </div>
       </div>
 
+      <!-- ===== ERP: ΕΠΑΦΕΣ ===== -->
+      <div class="view" id="view-erp-contacts">
+        <div class="page-title">Ατζέντα <span>Επαφών</span></div>
+        <!-- View Tabs -->
+        <div class="task-view-tabs">
+          <button class="task-view-tab active" onclick="switchContactView('list')">☰ Λίστα</button>
+          <button class="task-view-tab" onclick="switchContactView('birthdays')">🎂 Γενέθλια</button>
+        </div>
+        <!-- LIST VIEW -->
+        <div id="contact-list-view">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openContactModal()">+ Νέα Επαφή</button>
+            <input type="text" class="search-input" id="contact-search" placeholder="Αναζήτηση ονόματος, email, τηλ…" oninput="renderContacts()" style="min-width:240px;">
+            <select class="filter-select" id="contact-filter-hub" onchange="renderContacts()">
+              <option value="">Όλα τα Hubs</option>
+              <option value="cinehub">CineHub</option>
+              <option value="logohub">LogoHub</option>
+              <option value="musichub">MusicHub</option>
+              <option value="photohub">PhotoHub</option>
+              <option value="schoolhub">SchoolHub</option>
+            </select>
+            <select class="filter-select" id="contact-filter-tag" onchange="renderContacts()">
+              <option value="">Όλες οι Ετικέτες</option>
+            </select>
+            <select class="filter-select" id="contact-filter-event" onchange="renderContacts()">
+              <option value="">Όλες οι Εκδηλώσεις</option>
+            </select>
+          </div>
+          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;" id="contacts-stats"></div>
+          <div class="contact-list" id="contacts-list-body"></div>
+        </div>
+        <!-- BIRTHDAY CALENDAR -->
+        <div id="contact-birthday-view" style="display:none;">
+          <div class="task-cal-nav">
+            <button class="btn-sm" onclick="bdayCalNav(-1)">← Προηγ.</button>
+            <div class="task-cal-title" id="bday-cal-title"></div>
+            <button class="btn-sm" onclick="bdayCalNav(1)">Επόμ. →</button>
+          </div>
+          <div class="task-cal-grid" id="bday-cal-headers"></div>
+          <div class="task-cal-grid" id="bday-cal-grid"></div>
+          <div style="margin-top:20px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">ΕΠΟΜΕΝΑ ΓΕΝΕΘΛΙΑ</div>
+            <div id="upcoming-birthdays"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CONTACT DETAIL PANEL (overlay) ===== -->
+      <div class="modal-overlay" id="modal-contact-detail">
+        <div class="modal wide">
+          <div class="modal-header">
+            <h2 class="modal-title" id="contact-detail-title">Επαφή</h2>
+            <button class="modal-close" onclick="closeModal('modal-contact-detail')">✕</button>
+          </div>
+          <div class="modal-body" id="contact-detail-body"></div>
+          <div class="modal-footer">
+            <button class="btn-sm" onclick="closeModal('modal-contact-detail')">Κλείσιμο</button>
+            <button class="btn-edit" id="contact-detail-edit-btn" onclick="">Επεξεργασία</button>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== ERP: ΟΙΚΟΝΟΜΙΚΑ ===== -->
       <div class="view" id="view-erp-finance">
         <div class="page-title">Οικονομικά <span>& Ισοζύγιο</span></div>
@@ -781,6 +884,78 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 
 <div class="toast-container" id="toast-container"></div>
 
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="modal-contact">
+  <div class="modal wide" style="max-height:92vh;">
+    <div class="modal-header"><h2 class="modal-title" id="modal-contact-title">Νέα Επαφή</h2><button class="modal-close" onclick="closeModal('modal-contact')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ct-id">
+      <!-- Row 1: Name / Org -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Ονοματεπώνυμο *</label><input type="text" class="form-input" id="ct-name" placeholder="π.χ. Μαρία Παπαδοπούλου"></div>
+        <div class="form-group"><label class="form-label">Οργανισμός / Εταιρεία</label><input type="text" class="form-input" id="ct-org" placeholder="π.χ. Δήμος Λευκάδας"></div>
+      </div>
+      <!-- Row 2: Role / Referred by -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Ιδιότητα / Ρόλος</label><input type="text" class="form-input" id="ct-role" placeholder="π.χ. Σκηνοθέτης, Δημοσιογράφος"></div>
+        <div class="form-group"><label class="form-label">Σύσταση από</label><input type="text" class="form-input" id="ct-referrer" placeholder="Ποιος σας σύστησε αυτήν την επαφή;"></div>
+      </div>
+      <!-- Row 3: Phone / Email -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Τηλέφωνο</label><input type="tel" class="form-input" id="ct-phone" placeholder="+30 697 123 4567"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="ct-email" placeholder="email@example.com"></div>
+      </div>
+      <!-- Row 4: Address / Birthday -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Διεύθυνση</label><input type="text" class="form-input" id="ct-address" placeholder="Οδός, Πόλη, Τ.Κ."></div>
+        <div class="form-group"><label class="form-label">Γενέθλια</label><input type="date" class="form-input" id="ct-birthday"></div>
+      </div>
+      <!-- Row 5: Website / Social -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Website / Portfolio</label><input type="url" class="form-input" id="ct-website" placeholder="https://…"></div>
+        <div class="form-group"><label class="form-label">Social Media</label><input type="text" class="form-input" id="ct-social" placeholder="Instagram, Facebook, κλπ."></div>
+      </div>
+      <!-- Hubs -->
+      <div class="form-group">
+        <label class="form-label">Ενδιαφέρον για Hub(s)</label>
+        <div class="chip-select" id="ct-hubs">
+          <div class="chip-option" data-val="cinehub" onclick="toggleChip(this)">CineHub</div>
+          <div class="chip-option" data-val="logohub" onclick="toggleChip(this)">LogoHub</div>
+          <div class="chip-option" data-val="musichub" onclick="toggleChip(this)">MusicHub</div>
+          <div class="chip-option" data-val="photohub" onclick="toggleChip(this)">PhotoHub</div>
+          <div class="chip-option" data-val="schoolhub" onclick="toggleChip(this)">SchoolHub</div>
+        </div>
+      </div>
+      <!-- Linked Events -->
+      <div class="form-group">
+        <label class="form-label">Σύνδεση με Εκδηλώσεις</label>
+        <div class="chip-select" id="ct-events" style="max-height:120px;overflow-y:auto;"></div>
+      </div>
+      <!-- Tags -->
+      <div class="form-group">
+        <label class="form-label">Ετικέτες / Κατηγορίες</label>
+        <input type="text" class="form-input" id="ct-tags" placeholder="π.χ. Χορηγός, Καλλιτέχνης, Τύπος (χωρισμένα με κόμμα)">
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;">Χώρισε τις ετικέτες με κόμμα</div>
+      </div>
+      <!-- Business Card -->
+      <div class="form-group">
+        <label class="form-label">Business Card</label>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button type="button" onclick="uploadToCloudinary('ct-bcard','ct-bcard-preview')" style="background:var(--gold);color:#111;border:none;padding:8px 16px;cursor:pointer;font-size:13px;">📇 Ανέβασμα κάρτας</button>
+          <span id="ct-bcardStatus" style="font-size:12px;color:var(--gold);opacity:0.7;"></span>
+        </div>
+        <input type="hidden" id="ct-bcard"><div id="ct-bcard-preview" style="margin-top:8px;"></div>
+      </div>
+      <!-- Notes -->
+      <div class="form-group"><label class="form-label">Σημειώσεις / Σχόλια</label><textarea class="form-textarea" id="ct-notes" placeholder="Ελεύθερα σχόλια, σημειώσεις…" style="min-height:80px;"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-contact')">Ακύρωση</button>
+      <button class="btn-primary" onclick="saveContact()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ===== FIREBASE VARS (παλιό σύστημα) =====
 let _events = [];
@@ -792,6 +967,7 @@ let _members = [];
 let _tasks = [];
 let _finance = [];
 let _erpUsers = [];
+let _contacts = [];
 
 function getFb() { return window._firebase; }
 function getDb() { return window._db; }
@@ -823,10 +999,11 @@ async function erpDelete(colName, id) {
 }
 
 async function loadErpData() {
-  [_tasks, _finance, _erpUsers] = await Promise.all([
+  [_tasks, _finance, _erpUsers, _contacts] = await Promise.all([
     erpLoad('tasks'),
     erpLoad('finance'),
     erpLoad('erp_users'),
+    erpLoad('contacts'),
   ]);
 }
 
@@ -890,6 +1067,7 @@ function switchView(v) {
   if(v==='erp-finance') renderFinance();
   if(v==='erp-calendar') renderCalendar();
   if(v==='erp-users') renderUsers();
+  if(v==='erp-contacts') renderContacts();
   if(v==='erp-reports') renderReports();
 }
 
@@ -979,7 +1157,7 @@ function renderEventList(){
   const el=document.getElementById('eventList');
   if(!_events.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν εκδηλώσεις ακόμα.</div>';return;}
   const catLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
-  el.innerHTML='<div class="event-list">'+_events.map(ev=>`<div class="event-row"><div class="event-row-info"><div class="event-row-cat">${catLabels[ev.category]||ev.category}</div><div class="event-row-title">${ev.title}</div><div class="event-row-meta"><span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>${ev.venue?`<span>📍 ${ev.venue}</span>`:''}<span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span></div></div><div class="event-row-actions"><button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button></div></div>`).join('')+'</div>';
+  el.innerHTML='<div class="event-list">'+_events.map(ev=>`<div class="event-row"><div class="event-row-info"><div class="event-row-cat">${catLabels[ev.category]||ev.category}</div><div class="event-row-title">${ev.title}</div><div class="event-row-meta"><span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>${ev.venue?`<span>📍 ${ev.venue}</span>`:''}<span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span>${renderEventContactsBadge(ev.id)}</div></div><div class="event-row-actions"><button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button></div></div>`).join('')+'</div>';
 }
 
 function editEvent(id){
@@ -1428,6 +1606,276 @@ function renderDashboard(){
 
 function updateBadges(){
   document.getElementById('tasks-badge').textContent=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
+  const cb=document.getElementById('contacts-badge');if(cb)cb.textContent=_contacts.length;
+}
+
+// ===== ERP: CONTACTS =====
+const hubLabelsShort={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
+
+function toggleChip(el){el.classList.toggle('selected');}
+function getSelectedChips(containerId){return[...document.querySelectorAll(`#${containerId} .chip-option.selected`)].map(c=>c.dataset.val);}
+
+function openContactModal(id){
+  // Reset
+  document.getElementById('ct-id').value='';
+  ['ct-name','ct-org','ct-role','ct-referrer','ct-phone','ct-email','ct-address','ct-birthday','ct-website','ct-social','ct-tags','ct-notes','ct-bcard'].forEach(fid=>document.getElementById(fid).value='');
+  document.getElementById('ct-bcard-preview').innerHTML='';
+  const bcStatus=document.getElementById('ct-bcardStatus');if(bcStatus)bcStatus.textContent='';
+  document.querySelectorAll('#ct-hubs .chip-option').forEach(c=>c.classList.remove('selected'));
+  // Populate events chips
+  const evContainer=document.getElementById('ct-events');
+  evContainer.innerHTML=_events.map(e=>`<div class="chip-option" data-val="${e.id}" onclick="toggleChip(this)">${e.title}</div>`).join('');
+  document.getElementById('modal-contact-title').textContent='Νέα Επαφή';
+
+  if(id){
+    const c=_contacts.find(x=>x.id===id);if(!c)return;
+    document.getElementById('ct-id').value=c.id;
+    document.getElementById('ct-name').value=c.name||'';
+    document.getElementById('ct-org').value=c.org||'';
+    document.getElementById('ct-role').value=c.role||'';
+    document.getElementById('ct-referrer').value=c.referrer||'';
+    document.getElementById('ct-phone').value=c.phone||'';
+    document.getElementById('ct-email').value=c.email||'';
+    document.getElementById('ct-address').value=c.address||'';
+    document.getElementById('ct-birthday').value=c.birthday||'';
+    document.getElementById('ct-website').value=c.website||'';
+    document.getElementById('ct-social').value=c.social||'';
+    document.getElementById('ct-tags').value=(c.tags||[]).join(', ');
+    document.getElementById('ct-notes').value=c.notes||'';
+    document.getElementById('ct-bcard').value=c.bcard||'';
+    if(c.bcard)showImagePreview('ct-bcard-preview',c.bcard,true);
+    (c.hubs||[]).forEach(h=>{const chip=document.querySelector(`#ct-hubs .chip-option[data-val="${h}"]`);if(chip)chip.classList.add('selected');});
+    (c.eventIds||[]).forEach(eid=>{const chip=document.querySelector(`#ct-events .chip-option[data-val="${eid}"]`);if(chip)chip.classList.add('selected');});
+    document.getElementById('modal-contact-title').textContent='Επεξεργασία Επαφής';
+  }
+  document.getElementById('modal-contact').classList.add('open');
+}
+
+async function saveContact(){
+  const id=document.getElementById('ct-id').value;
+  const name=document.getElementById('ct-name').value.trim();
+  if(!name){toast('Συμπλήρωσε το ονοματεπώνυμο','error');return;}
+  const rec={
+    name,
+    org:document.getElementById('ct-org').value.trim(),
+    role:document.getElementById('ct-role').value.trim(),
+    referrer:document.getElementById('ct-referrer').value.trim(),
+    phone:document.getElementById('ct-phone').value.trim(),
+    email:document.getElementById('ct-email').value.trim(),
+    address:document.getElementById('ct-address').value.trim(),
+    birthday:document.getElementById('ct-birthday').value,
+    website:document.getElementById('ct-website').value.trim(),
+    social:document.getElementById('ct-social').value.trim(),
+    hubs:getSelectedChips('ct-hubs'),
+    eventIds:getSelectedChips('ct-events'),
+    tags:document.getElementById('ct-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+    bcard:document.getElementById('ct-bcard').value.trim(),
+    notes:document.getElementById('ct-notes').value.trim()
+  };
+  try{
+    if(id){await erpUpdate('contacts',id,rec);const idx=_contacts.findIndex(c=>c.id===id);if(idx!==-1)_contacts[idx]={id,...rec};}
+    else{const newId=await erpAdd('contacts',rec);_contacts.unshift({id:newId,...rec,createdAt:Date.now()});}
+    closeModal('modal-contact');renderContacts();updateBadges();toast('Επαφή αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα αποθήκευσης','error');}
+}
+
+async function deleteContact(id){
+  if(!confirm('Διαγραφή επαφής;'))return;
+  try{await erpDelete('contacts',id);_contacts=_contacts.filter(c=>c.id!==id);renderContacts();updateBadges();toast('Επαφή διαγράφηκε','error');}catch(e){toast('Σφάλμα','error');}
+}
+
+function showContactDetail(id){
+  const c=_contacts.find(x=>x.id===id);if(!c)return;
+  document.getElementById('contact-detail-title').textContent=c.name;
+  document.getElementById('contact-detail-edit-btn').style.display='';
+  document.getElementById('contact-detail-edit-btn').setAttribute('onclick',`closeModal('modal-contact-detail');openContactModal('${id}')`);
+  const linkedEvents=(c.eventIds||[]).map(eid=>_events.find(e=>e.id===eid)).filter(Boolean);
+  let html='<div style="display:flex;gap:20px;flex-wrap:wrap;">';
+  // Left column - info
+  html+='<div style="flex:1;min-width:260px;">';
+  if(c.org)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Οργανισμός</div><div class="contact-detail-value">${c.org}</div></div>`;
+  if(c.role)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Ιδιότητα</div><div class="contact-detail-value">${c.role}</div></div>`;
+  if(c.phone||c.email){
+    html+='<div class="contact-detail-section"><div class="contact-detail-label">Επικοινωνία</div><div class="contact-detail-value">';
+    if(c.phone)html+=`📱 <a href="tel:${c.phone}" style="color:var(--gold);text-decoration:none;">${c.phone}</a><br>`;
+    if(c.email)html+=`✉ <a href="mailto:${c.email}" style="color:var(--gold);text-decoration:none;">${c.email}</a>`;
+    html+='</div></div>';
+  }
+  if(c.address)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Διεύθυνση</div><div class="contact-detail-value">${c.address}</div></div>`;
+  if(c.birthday)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Γενέθλια</div><div class="contact-detail-value">🎂 ${fmtDate(c.birthday)}</div></div>`;
+  if(c.website)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Website</div><div class="contact-detail-value"><a href="${c.website}" target="_blank" style="color:var(--gold)">${c.website}</a></div></div>`;
+  if(c.social)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Social Media</div><div class="contact-detail-value">${c.social}</div></div>`;
+  if(c.referrer)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Σύσταση από</div><div class="contact-detail-value">${c.referrer}</div></div>`;
+  if((c.hubs||[]).length)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Hubs</div><div class="contact-hubs">${c.hubs.map(h=>`<span class="hub-badge ${hubClass(h)}">${hubLabelsShort[h]||h}</span>`).join(' ')}</div></div>`;
+  if((c.tags||[]).length)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Ετικέτες</div><div class="contact-tags">${c.tags.map(t=>`<span class="contact-tag">${t}</span>`).join('')}</div></div>`;
+  if(c.notes)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Σημειώσεις</div><div class="contact-detail-value" style="white-space:pre-line;">${c.notes}</div></div>`;
+  html+='</div>';
+  // Right column - bcard + events
+  html+='<div style="width:280px;flex-shrink:0;">';
+  if(c.bcard)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Business Card</div><div class="bcard-preview"><img src="${c.bcard}" onclick="window.open('${c.bcard}','_blank')"></div></div>`;
+  if(linkedEvents.length){
+    html+='<div class="contact-detail-section"><div class="contact-detail-label">Συνδεδεμένες Εκδηλώσεις</div>';
+    linkedEvents.forEach(ev=>{
+      html+=`<div class="contact-event-chip" onclick="editEvent('${ev.id}');closeModal('modal-contact-detail')"><span class="hub-badge ${hubClass(ev.category||'')}" style="font-size:7px;">${ev.category||''}</span>${ev.title}</div>`;
+    });
+    html+='</div>';
+  }
+  html+='</div></div>';
+  document.getElementById('contact-detail-body').innerHTML=html;
+  document.getElementById('modal-contact-detail').classList.add('open');
+}
+
+function renderContacts(){
+  const search=(document.getElementById('contact-search')?.value||'').toLowerCase();
+  const hubFilter=document.getElementById('contact-filter-hub')?.value||'';
+  const tagFilter=document.getElementById('contact-filter-tag')?.value||'';
+  const evFilter=document.getElementById('contact-filter-event')?.value||'';
+
+  // Populate tag filter
+  const allTags=new Set();_contacts.forEach(c=>(c.tags||[]).forEach(t=>allTags.add(t)));
+  const tagSel=document.getElementById('contact-filter-tag');
+  if(tagSel){const cv=tagSel.value;tagSel.innerHTML='<option value="">Όλες οι Ετικέτες</option>';[...allTags].sort().forEach(t=>tagSel.insertAdjacentHTML('beforeend',`<option value="${t}">${t}</option>`));tagSel.value=cv;}
+  // Populate event filter
+  const evSel=document.getElementById('contact-filter-event');
+  if(evSel){const cv=evSel.value;evSel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';_events.forEach(e=>evSel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));evSel.value=cv;}
+
+  let filtered=[..._contacts];
+  if(search)filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.email||'').toLowerCase().includes(search)||(c.phone||'').includes(search)||(c.org||'').toLowerCase().includes(search)||(c.role||'').toLowerCase().includes(search)||(c.notes||'').toLowerCase().includes(search));
+  if(hubFilter)filtered=filtered.filter(c=>(c.hubs||[]).includes(hubFilter));
+  if(tagFilter)filtered=filtered.filter(c=>(c.tags||[]).includes(tagFilter));
+  if(evFilter)filtered=filtered.filter(c=>(c.eventIds||[]).includes(evFilter));
+  filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||'','el'));
+
+  // Stats
+  const statsEl=document.getElementById('contacts-stats');
+  if(statsEl){
+    const totalC=_contacts.length;
+    const withBday=_contacts.filter(c=>c.birthday).length;
+    const hubCounts=Object.entries(hubLabelsShort).map(([k,v])=>({hub:v,count:_contacts.filter(c=>(c.hubs||[]).includes(k)).length,key:k})).filter(h=>h.count>0);
+    statsEl.innerHTML=`<div class="stat-card"><div class="stat-num">${totalC}</div><div class="stat-label">Σύνολο Επαφών</div></div><div class="stat-card"><div class="stat-num">${withBday}</div><div class="stat-label">Με Γενέθλια</div></div><div class="stat-card"><div class="stat-num">${filtered.length}</div><div class="stat-label">Εμφανίζονται</div></div>`;
+  }
+
+  // List
+  const el=document.getElementById('contacts-list-body');
+  if(!filtered.length){el.innerHTML='<div class="empty-msg">Δεν βρέθηκαν επαφές.</div>';return;}
+  el.innerHTML=filtered.map(c=>{
+    const initials=(c.name||'?').split(' ').map(w=>w.charAt(0)).join('').slice(0,2).toUpperCase();
+    const hubBadges=(c.hubs||[]).map(h=>`<span class="hub-badge ${hubClass(h)}" style="font-size:7px;">${hubLabelsShort[h]||h}</span>`).join(' ');
+    const tagBadges=(c.tags||[]).slice(0,3).map(t=>`<span class="contact-tag">${t}</span>`).join('');
+    const evCount=(c.eventIds||[]).length;
+    return`<div class="contact-card" onclick="showContactDetail('${c.id}')">
+      <div class="contact-avatar">${c.bcard?`<img src="${c.bcard}" onerror="this.parentElement.innerHTML='${initials}'">`:`${initials}`}</div>
+      <div class="contact-info">
+        <div class="contact-name">${c.name}</div>
+        <div class="contact-meta">
+          ${c.role?`<span>${c.role}</span>`:''}${c.org?`<span>· ${c.org}</span>`:''}
+          ${c.phone?`<span>📱 ${c.phone}</span>`:''}${c.email?`<span>✉ ${c.email}</span>`:''}
+          ${evCount?`<span>🔗 ${evCount} εκδ.</span>`:''}
+          ${c.birthday?`<span>🎂 ${fmtDate(c.birthday)}</span>`:''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          ${hubBadges}${tagBadges}
+        </div>
+      </div>
+      <div class="contact-actions" onclick="event.stopPropagation()">
+        <button class="btn-edit" onclick="openContactModal('${c.id}')" style="padding:4px 10px;">✎</button>
+        <button class="btn-danger" onclick="deleteContact('${c.id}')" style="padding:4px 10px;">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== CONTACTS VIEW SWITCH =====
+let _contactViewMode='list';
+function switchContactView(mode){
+  _contactViewMode=mode;
+  document.querySelectorAll('#view-erp-contacts .task-view-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`#view-erp-contacts .task-view-tab[onclick*="${mode}"]`).classList.add('active');
+  document.getElementById('contact-list-view').style.display=mode==='list'?'':'none';
+  document.getElementById('contact-birthday-view').style.display=mode==='birthdays'?'':'none';
+  if(mode==='birthdays')renderBirthdayCalendar();
+  else renderContacts();
+}
+
+// ===== BIRTHDAY CALENDAR =====
+let bdayCalYear=new Date().getFullYear(),bdayCalMonth=new Date().getMonth();
+function bdayCalNav(dir){bdayCalMonth+=dir;if(bdayCalMonth>11){bdayCalMonth=0;bdayCalYear++;}if(bdayCalMonth<0){bdayCalMonth=11;bdayCalYear--;}renderBirthdayCalendar();}
+function renderBirthdayCalendar(){
+  const months=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+  document.getElementById('bday-cal-title').textContent='🎂 '+months[bdayCalMonth]+' '+bdayCalYear;
+  document.getElementById('bday-cal-headers').innerHTML=['ΔΕΥ','ΤΡΙ','ΤΕΤ','ΠΕΜ','ΠΑΡ','ΣΑΒ','ΚΥΡ'].map(d=>`<div class="task-cal-header">${d}</div>`).join('');
+  const first=new Date(bdayCalYear,bdayCalMonth,1),last=new Date(bdayCalYear,bdayCalMonth+1,0);
+  let startDow=first.getDay();if(startDow===0)startDow=7;
+  const today=new Date();
+  // Index birthdays by month-day
+  const bdayMap={};
+  _contacts.forEach(c=>{
+    if(!c.birthday)return;
+    const bd=new Date(c.birthday);
+    const key=`${String(bd.getMonth()+1).padStart(2,'0')}-${String(bd.getDate()).padStart(2,'0')}`;
+    if(!bdayMap[key])bdayMap[key]=[];
+    bdayMap[key].push(c);
+  });
+  let cells='';
+  for(let i=1;i<startDow;i++){const pd=new Date(bdayCalYear,bdayCalMonth,1-(startDow-i));cells+=`<div class="task-cal-day other-month"><span class="day-num">${pd.getDate()}</span></div>`;}
+  for(let d=1;d<=last.getDate();d++){
+    const isToday=today.getFullYear()===bdayCalYear&&today.getMonth()===bdayCalMonth&&today.getDate()===d;
+    const key=`${String(bdayCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayBdays=bdayMap[key]||[];
+    const hasBday=dayBdays.length>0;
+    cells+=`<div class="task-cal-day${isToday?' today':''}${hasBday?' has-bday':''}"><span class="day-num">${d}</span>${dayBdays.map(c=>{
+      const age=bdayCalYear-new Date(c.birthday).getFullYear();
+      return`<div class="birthday-name" onclick="showContactDetail('${c.id}')" title="${c.name} — ${age} ετών">🎂 ${c.name.split(' ')[0]}</div>`;
+    }).join('')}</div>`;
+  }
+  document.getElementById('bday-cal-grid').innerHTML=cells;
+
+  // Upcoming birthdays list
+  const todayMD=String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const withBday=_contacts.filter(c=>c.birthday).map(c=>{
+    const bd=new Date(c.birthday);
+    const md=String(bd.getMonth()+1).padStart(2,'0')+'-'+String(bd.getDate()).padStart(2,'0');
+    let next=new Date(today.getFullYear(),bd.getMonth(),bd.getDate());
+    if(next<today)next=new Date(today.getFullYear()+1,bd.getMonth(),bd.getDate());
+    const daysUntil=Math.ceil((next-today)/(1000*60*60*24));
+    const age=next.getFullYear()-bd.getFullYear();
+    return{...c,daysUntil,nextBday:next,age,md};
+  }).sort((a,b)=>a.daysUntil-b.daysUntil).slice(0,10);
+  const ubEl=document.getElementById('upcoming-birthdays');
+  ubEl.innerHTML=withBday.length?withBday.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid rgba(200,169,110,0.08);cursor:pointer;" onclick="showContactDetail('${c.id}')">
+    <div style="width:40px;text-align:center;flex-shrink:0;"><div style="font-family:var(--font-serif);font-size:20px;color:var(--gold);line-height:1">${c.nextBday.getDate()}</div><div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)">${months[c.nextBday.getMonth()].slice(0,3)}</div></div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">${c.age} ετών${c.role?' · '+c.role:''}</div></div>
+    <div style="font-size:12px;font-weight:600;color:${c.daysUntil<=7?'var(--gold)':'rgba(255,255,255,0.4)'};">${c.daysUntil===0?'Σήμερα! 🎉':c.daysUntil===1?'Αύριο!':'σε '+c.daysUntil+' μέρες'}</div>
+  </div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν επαφές με γενέθλια.</div>';
+}
+
+// ===== CONTACTS FOR EVENTS (render linked contacts inside event detail) =====
+function getEventContacts(eventId){return _contacts.filter(c=>(c.eventIds||[]).includes(eventId));}
+function renderEventContactsBadge(eventId){
+  const ecs=getEventContacts(eventId);
+  if(!ecs.length)return'';
+  return`<span style="font-size:10px;color:var(--gold);cursor:pointer;" onclick="event.stopPropagation();showEventContacts('${eventId}')" title="${ecs.length} επαφές">📇 ${ecs.length}</span>`;
+}
+function showEventContacts(eventId){
+  const ecs=getEventContacts(eventId);
+  const ev=_events.find(e=>e.id===eventId);
+  if(!ecs.length){toast('Δεν υπάρχουν συνδεδεμένες επαφές');return;}
+  document.getElementById('contact-detail-title').textContent='Επαφές: '+(ev?ev.title:'Εκδήλωση');
+  document.getElementById('contact-detail-edit-btn').style.display='none';
+  let html='<div style="display:flex;flex-direction:column;gap:8px;">';
+  ecs.forEach(c=>{
+    html+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--black3);border:1px solid var(--gold-line);cursor:pointer;" onclick="closeModal('modal-contact-detail');showContactDetail('${c.id}')">
+      <div class="contact-avatar" style="width:38px;height:38px;font-size:16px;">${(c.name||'?').split(' ').map(w=>w.charAt(0)).join('').slice(0,2).toUpperCase()}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);">${c.role||''}${c.org?' · '+c.org:''}</div></div>
+      <div style="display:flex;gap:8px;font-size:11px;">
+        ${c.phone?`<a href="tel:${c.phone}" style="color:var(--gold);text-decoration:none;" onclick="event.stopPropagation()">📱</a>`:''}
+        ${c.email?`<a href="mailto:${c.email}" style="color:var(--gold);text-decoration:none;" onclick="event.stopPropagation()">✉</a>`:''}
+      </div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('contact-detail-body').innerHTML=html;
+  document.getElementById('modal-contact-detail').classList.add('open');
 }
 
 // ===== QUILL =====
@@ -1462,7 +1910,7 @@ window.switchView=function(v){_origSwitchView(v);if(v==='about'){setTimeout(asyn
 
 // ===== CLOUDINARY =====
 const CLOUDINARY_CLOUD='dxodgbx3o',CLOUDINARY_PRESET='logosynthesi';
-function uploadToCloudinary(fieldId,previewId){const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=async()=>{const file=input.files[0];if(!file)return;const statusId=fieldId==='evPoster'?'evPosterStatus':'memPhotoStatus';const statusEl=document.getElementById(statusId);statusEl.textContent='Ανέβασμα...';const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);try{const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});const data=await res.json();if(data.secure_url){document.getElementById(fieldId).value=data.secure_url;statusEl.textContent='✓ Ανέβηκε';showImagePreview(previewId,data.secure_url,fieldId==='evPoster');}else{statusEl.textContent='✗ Σφάλμα';}}catch(e){statusEl.textContent='✗ Σφάλμα σύνδεσης';}};input.click();}
+function uploadToCloudinary(fieldId,previewId){const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=async()=>{const file=input.files[0];if(!file)return;const statusMap={'evPoster':'evPosterStatus','memPhoto':'memPhotoStatus','ct-bcard':'ct-bcardStatus'};const statusId=statusMap[fieldId]||fieldId+'Status';const statusEl=document.getElementById(statusId);if(statusEl)statusEl.textContent='Ανέβασμα...';const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);try{const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});const data=await res.json();if(data.secure_url){document.getElementById(fieldId).value=data.secure_url;if(statusEl)statusEl.textContent='✓ Ανέβηκε';showImagePreview(previewId,data.secure_url,fieldId==='evPoster');}else{if(statusEl)statusEl.textContent='✗ Σφάλμα';}}catch(e){if(statusEl)statusEl.textContent='✗ Σφάλμα σύνδεσης';}};input.click();}
 function showImagePreview(previewId,url,isPoster){const el=document.getElementById(previewId);if(!el||!url)return;const maxH=isPoster?'180px':'70px';const radius=isPoster?'2px':'50%';const statusId=isPoster?'evPosterStatus':'memPhotoStatus';el.innerHTML=`<div style="position:relative;display:inline-block;"><img src="${url}" style="max-height:${maxH};border-radius:${radius};border:1px solid var(--gold-line);display:block;"><button type="button" onclick="clearImage('${previewId}','${isPoster?'evPoster':'memPhoto'}','${statusId}')" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:18px;text-align:center;">x</button></div>`;}
 function clearImage(previewId,fieldId,statusId){document.getElementById(fieldId).value='';document.getElementById(previewId).innerHTML='';document.getElementById(statusId).textContent='';}
 </script>
