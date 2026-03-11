@@ -547,8 +547,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
               <option value="cinehub">CineHub — Κινηματογράφος</option>
               <option value="logohub">LogoHub — Βιβλίο &amp; Διαλέξεις</option>
               <option value="musichub">MusicHub — Μουσική</option>
-              <option value="photohub">PhotoHub — Φωτογραφία</option>
-              <option value="schoolhub">SchoolHub — Σχολεία</option>
+              <option value="arthub">ArtHub — Εικαστικά</option>
+              <option value="stagehub">StageHub — Θέατρο</option>
             </select></div>
           <div class="form-field"><label>Τίτλος (Ελληνικά) *</label><input type="text" id="evTitle" placeholder="π.χ. Ο Ψύλλος"></div>
           <div class="form-field"><label>Τίτλος (English)</label><input type="text" id="evTitleEn" placeholder="e.g. The Flea"></div>
@@ -710,14 +710,17 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
               <option value="cinehub">CineHub</option>
               <option value="logohub">LogoHub</option>
               <option value="musichub">MusicHub</option>
-              <option value="photohub">PhotoHub</option>
-              <option value="schoolhub">SchoolHub</option>
+              <option value="arthub">ArtHub</option>
+              <option value="stagehub">StageHub</option>
             </select>
             <select class="filter-select" id="contact-filter-tag" onchange="renderContacts()">
               <option value="">Όλες οι Ετικέτες</option>
             </select>
             <select class="filter-select" id="contact-filter-event" onchange="renderContacts()">
               <option value="">Όλες οι Εκδηλώσεις</option>
+            </select>
+            <select class="filter-select" id="contact-filter-member" onchange="renderContacts()">
+              <option value="">Όλα τα Μέλη</option>
             </select>
           </div>
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;" id="contacts-stats"></div>
@@ -900,6 +903,11 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div class="form-group"><label class="form-label">Ιδιότητα / Ρόλος</label><input type="text" class="form-input" id="ct-role" placeholder="π.χ. Σκηνοθέτης, Δημοσιογράφος"></div>
         <div class="form-group"><label class="form-label">Σύσταση από</label><input type="text" class="form-input" id="ct-referrer" placeholder="Ποιος σας σύστησε αυτήν την επαφή;"></div>
       </div>
+      <!-- Row 2b: Assigned Member -->
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Υπεύθυνο Μέλος Συνδέσμου</label><select class="form-select" id="ct-member"><option value="">— Κανένα —</option></select></div>
+        <div class="form-group"></div>
+      </div>
       <!-- Row 3: Phone / Email -->
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Τηλέφωνο</label><input type="tel" class="form-input" id="ct-phone" placeholder="+30 697 123 4567"></div>
@@ -922,8 +930,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <div class="chip-option" data-val="cinehub" onclick="toggleChip(this)">CineHub</div>
           <div class="chip-option" data-val="logohub" onclick="toggleChip(this)">LogoHub</div>
           <div class="chip-option" data-val="musichub" onclick="toggleChip(this)">MusicHub</div>
-          <div class="chip-option" data-val="photohub" onclick="toggleChip(this)">PhotoHub</div>
-          <div class="chip-option" data-val="schoolhub" onclick="toggleChip(this)">SchoolHub</div>
+          <div class="chip-option" data-val="arthub" onclick="toggleChip(this)">ArtHub</div>
+          <div class="chip-option" data-val="stagehub" onclick="toggleChip(this)">StageHub</div>
         </div>
       </div>
       <!-- Linked Events -->
@@ -1050,7 +1058,7 @@ function showAdmin(email) {
   document.getElementById('adminWrap').classList.add('visible');
   document.getElementById('userEmail').textContent=email;
   loadStats(); loadEvents();
-  loadErpData().then(() => { renderDashboard(); updateBadges(); });
+  loadErpData().then(() => { loadMembers().then(()=>{ renderDashboard(); updateBadges(); }); });
 }
 
 // ===== NAVIGATION =====
@@ -1084,7 +1092,7 @@ function uid() { return Date.now()+Math.random().toString(36).slice(2); }
 function fmtDate(d) { if(!d)return'—'; return new Date(d).toLocaleDateString('el-GR',{day:'2-digit',month:'short',year:'numeric'}); }
 function fmtMoney(n) { return Number(n).toLocaleString('el-GR',{minimumFractionDigits:2})+' €'; }
 function statusClass(s) { const m={'Προγραμματισμένη':'planned','Ενεργή':'active','Ολοκληρώθηκε':'done','Ακυρώθηκε':'cancelled','Ανοικτή':'pending','Σε εξέλιξη':'active'}; return m[s]||'planned'; }
-function hubClass(h) { const m={CineHub:'cine',MusicHub:'music',StageHub:'stage',ArtHub:'art',LogoHub:'logo',cinehub:'cine',musichub:'music',logohub:'logo',photohub:'art',schoolhub:'logo'}; return m[h]||'logo'; }
+function hubClass(h) { const m={CineHub:'cine',MusicHub:'music',StageHub:'stage',ArtHub:'art',LogoHub:'logo',cinehub:'cine',musichub:'music',logohub:'logo',arthub:'art',stagehub:'stage'}; return m[h]||'logo'; }
 function priorityClass(p) { return {'Υψηλή':'high','Μεσαία':'med','Χαμηλή':'low'}[p]||'med'; }
 
 // ===== FIREBASE: DEMO =====
@@ -1156,7 +1164,7 @@ function clearForm(){
 function renderEventList(){
   const el=document.getElementById('eventList');
   if(!_events.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν εκδηλώσεις ακόμα.</div>';return;}
-  const catLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
+  const catLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
   el.innerHTML='<div class="event-list">'+_events.map(ev=>`<div class="event-row"><div class="event-row-info"><div class="event-row-cat">${catLabels[ev.category]||ev.category}</div><div class="event-row-title">${ev.title}</div><div class="event-row-meta"><span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>${ev.venue?`<span>📍 ${ev.venue}</span>`:''}<span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span>${renderEventContactsBadge(ev.id)}</div></div><div class="event-row-actions"><button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button></div></div>`).join('')+'</div>';
 }
 
@@ -1562,8 +1570,8 @@ function editUser(id){
 
 // ===== ERP: REPORTS =====
 function renderReports(){
-  const hubs=['cinehub','logohub','musichub','photohub','schoolhub'];
-  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
+  const hubs=['cinehub','logohub','musichub','arthub','stagehub'];
+  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
   const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   let hubHTML=hubs.map(h=>{
@@ -1610,7 +1618,7 @@ function updateBadges(){
 }
 
 // ===== ERP: CONTACTS =====
-const hubLabelsShort={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',photohub:'PhotoHub',schoolhub:'SchoolHub'};
+const hubLabelsShort={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
 
 function toggleChip(el){el.classList.toggle('selected');}
 function getSelectedChips(containerId){return[...document.querySelectorAll(`#${containerId} .chip-option.selected`)].map(c=>c.dataset.val);}
@@ -1622,6 +1630,10 @@ function openContactModal(id){
   document.getElementById('ct-bcard-preview').innerHTML='';
   const bcStatus=document.getElementById('ct-bcardStatus');if(bcStatus)bcStatus.textContent='';
   document.querySelectorAll('#ct-hubs .chip-option').forEach(c=>c.classList.remove('selected'));
+  // Populate member select
+  const memSel=document.getElementById('ct-member');
+  memSel.innerHTML='<option value="">— Κανένα —</option>';
+  _members.forEach(m=>memSel.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name} (${m.role||''})</option>`));
   // Populate events chips
   const evContainer=document.getElementById('ct-events');
   evContainer.innerHTML=_events.map(e=>`<div class="chip-option" data-val="${e.id}" onclick="toggleChip(this)">${e.title}</div>`).join('');
@@ -1644,6 +1656,7 @@ function openContactModal(id){
     document.getElementById('ct-notes').value=c.notes||'';
     document.getElementById('ct-bcard').value=c.bcard||'';
     if(c.bcard)showImagePreview('ct-bcard-preview',c.bcard,true);
+    memSel.value=c.memberId||'';
     (c.hubs||[]).forEach(h=>{const chip=document.querySelector(`#ct-hubs .chip-option[data-val="${h}"]`);if(chip)chip.classList.add('selected');});
     (c.eventIds||[]).forEach(eid=>{const chip=document.querySelector(`#ct-events .chip-option[data-val="${eid}"]`);if(chip)chip.classList.add('selected');});
     document.getElementById('modal-contact-title').textContent='Επεξεργασία Επαφής';
@@ -1660,6 +1673,7 @@ async function saveContact(){
     org:document.getElementById('ct-org').value.trim(),
     role:document.getElementById('ct-role').value.trim(),
     referrer:document.getElementById('ct-referrer').value.trim(),
+    memberId:document.getElementById('ct-member').value,
     phone:document.getElementById('ct-phone').value.trim(),
     email:document.getElementById('ct-email').value.trim(),
     address:document.getElementById('ct-address').value.trim(),
@@ -1706,6 +1720,8 @@ function showContactDetail(id){
   if(c.website)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Website</div><div class="contact-detail-value"><a href="${c.website}" target="_blank" style="color:var(--gold)">${c.website}</a></div></div>`;
   if(c.social)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Social Media</div><div class="contact-detail-value">${c.social}</div></div>`;
   if(c.referrer)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Σύσταση από</div><div class="contact-detail-value">${c.referrer}</div></div>`;
+  const assignedMem=c.memberId?_members.find(m=>m.id===c.memberId):null;
+  if(assignedMem)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Υπεύθυνο Μέλος</div><div class="contact-detail-value" style="color:var(--gold);font-weight:600;">👤 ${assignedMem.name}<span style="color:rgba(255,255,255,0.5);font-weight:400;margin-left:8px;">${assignedMem.role||''}</span></div></div>`;
   if((c.hubs||[]).length)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Hubs</div><div class="contact-hubs">${c.hubs.map(h=>`<span class="hub-badge ${hubClass(h)}">${hubLabelsShort[h]||h}</span>`).join(' ')}</div></div>`;
   if((c.tags||[]).length)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Ετικέτες</div><div class="contact-tags">${c.tags.map(t=>`<span class="contact-tag">${t}</span>`).join('')}</div></div>`;
   if(c.notes)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Σημειώσεις</div><div class="contact-detail-value" style="white-space:pre-line;">${c.notes}</div></div>`;
@@ -1730,6 +1746,7 @@ function renderContacts(){
   const hubFilter=document.getElementById('contact-filter-hub')?.value||'';
   const tagFilter=document.getElementById('contact-filter-tag')?.value||'';
   const evFilter=document.getElementById('contact-filter-event')?.value||'';
+  const memFilter=document.getElementById('contact-filter-member')?.value||'';
 
   // Populate tag filter
   const allTags=new Set();_contacts.forEach(c=>(c.tags||[]).forEach(t=>allTags.add(t)));
@@ -1738,12 +1755,16 @@ function renderContacts(){
   // Populate event filter
   const evSel=document.getElementById('contact-filter-event');
   if(evSel){const cv=evSel.value;evSel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';_events.forEach(e=>evSel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));evSel.value=cv;}
+  // Populate member filter
+  const memSel=document.getElementById('contact-filter-member');
+  if(memSel){const cv=memSel.value;memSel.innerHTML='<option value="">Όλα τα Μέλη</option>';_members.forEach(m=>memSel.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name}</option>`));memSel.value=cv;}
 
   let filtered=[..._contacts];
   if(search)filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.email||'').toLowerCase().includes(search)||(c.phone||'').includes(search)||(c.org||'').toLowerCase().includes(search)||(c.role||'').toLowerCase().includes(search)||(c.notes||'').toLowerCase().includes(search));
   if(hubFilter)filtered=filtered.filter(c=>(c.hubs||[]).includes(hubFilter));
   if(tagFilter)filtered=filtered.filter(c=>(c.tags||[]).includes(tagFilter));
   if(evFilter)filtered=filtered.filter(c=>(c.eventIds||[]).includes(evFilter));
+  if(memFilter)filtered=filtered.filter(c=>c.memberId===memFilter);
   filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||'','el'));
 
   // Stats
@@ -1763,6 +1784,7 @@ function renderContacts(){
     const hubBadges=(c.hubs||[]).map(h=>`<span class="hub-badge ${hubClass(h)}" style="font-size:7px;">${hubLabelsShort[h]||h}</span>`).join(' ');
     const tagBadges=(c.tags||[]).slice(0,3).map(t=>`<span class="contact-tag">${t}</span>`).join('');
     const evCount=(c.eventIds||[]).length;
+    const mem=c.memberId?_members.find(m=>m.id===c.memberId):null;
     return`<div class="contact-card" onclick="showContactDetail('${c.id}')">
       <div class="contact-avatar">${c.bcard?`<img src="${c.bcard}" onerror="this.parentElement.innerHTML='${initials}'">`:`${initials}`}</div>
       <div class="contact-info">
@@ -1772,6 +1794,7 @@ function renderContacts(){
           ${c.phone?`<span>📱 ${c.phone}</span>`:''}${c.email?`<span>✉ ${c.email}</span>`:''}
           ${evCount?`<span>🔗 ${evCount} εκδ.</span>`:''}
           ${c.birthday?`<span>🎂 ${fmtDate(c.birthday)}</span>`:''}
+          ${mem?`<span style="color:var(--gold);">👤 ${mem.name}</span>`:''}
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
           ${hubBadges}${tagBadges}
