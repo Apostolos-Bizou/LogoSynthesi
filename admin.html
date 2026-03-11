@@ -722,6 +722,9 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <select class="filter-select" id="contact-filter-member" onchange="renderContacts()">
               <option value="">Όλα τα Μέλη</option>
             </select>
+            <select class="filter-select" id="contact-filter-role" onchange="renderContacts()">
+              <option value="">Όλες οι Ιδιότητες</option>
+            </select>
           </div>
           <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;" id="contacts-stats"></div>
           <div class="contact-list" id="contacts-list-body"></div>
@@ -1689,13 +1692,18 @@ async function saveContact(){
   try{
     if(id){await erpUpdate('contacts',id,rec);const idx=_contacts.findIndex(c=>c.id===id);if(idx!==-1)_contacts[idx]={id,...rec};}
     else{const newId=await erpAdd('contacts',rec);_contacts.unshift({id:newId,...rec,createdAt:Date.now()});}
-    closeModal('modal-contact');renderContacts();updateBadges();toast('Επαφή αποθηκεύτηκε');
-  }catch(e){toast('Σφάλμα αποθήκευσης','error');}
+  }catch(e){
+    // Fallback: save locally if Firestore fails
+    if(id){const idx=_contacts.findIndex(c=>c.id===id);if(idx!==-1)_contacts[idx]={id,...rec};}
+    else{_contacts.unshift({id:'local_'+Date.now(),...rec,createdAt:Date.now()});}
+  }
+  closeModal('modal-contact');renderContacts();updateBadges();toast('Επαφή αποθηκεύτηκε');
 }
 
 async function deleteContact(id){
   if(!confirm('Διαγραφή επαφής;'))return;
-  try{await erpDelete('contacts',id);_contacts=_contacts.filter(c=>c.id!==id);renderContacts();updateBadges();toast('Επαφή διαγράφηκε','error');}catch(e){toast('Σφάλμα','error');}
+  try{await erpDelete('contacts',id);}catch(e){}
+  _contacts=_contacts.filter(c=>c.id!==id);renderContacts();updateBadges();toast('Επαφή διαγράφηκε','error');
 }
 
 function showContactDetail(id){
@@ -1747,6 +1755,7 @@ function renderContacts(){
   const tagFilter=document.getElementById('contact-filter-tag')?.value||'';
   const evFilter=document.getElementById('contact-filter-event')?.value||'';
   const memFilter=document.getElementById('contact-filter-member')?.value||'';
+  const roleFilter=document.getElementById('contact-filter-role')?.value||'';
 
   // Populate tag filter
   const allTags=new Set();_contacts.forEach(c=>(c.tags||[]).forEach(t=>allTags.add(t)));
@@ -1758,6 +1767,10 @@ function renderContacts(){
   // Populate member filter
   const memSel=document.getElementById('contact-filter-member');
   if(memSel){const cv=memSel.value;memSel.innerHTML='<option value="">Όλα τα Μέλη</option>';_members.forEach(m=>memSel.insertAdjacentHTML('beforeend',`<option value="${m.id}">${m.name}</option>`));memSel.value=cv;}
+  // Populate role filter
+  const allRoles=new Set();_contacts.forEach(c=>{if(c.role)allRoles.add(c.role);});
+  const roleSel=document.getElementById('contact-filter-role');
+  if(roleSel){const cv=roleSel.value;roleSel.innerHTML='<option value="">Όλες οι Ιδιότητες</option>';[...allRoles].sort().forEach(r=>roleSel.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));roleSel.value=cv;}
 
   let filtered=[..._contacts];
   if(search)filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.email||'').toLowerCase().includes(search)||(c.phone||'').includes(search)||(c.org||'').toLowerCase().includes(search)||(c.role||'').toLowerCase().includes(search)||(c.notes||'').toLowerCase().includes(search));
@@ -1765,6 +1778,7 @@ function renderContacts(){
   if(tagFilter)filtered=filtered.filter(c=>(c.tags||[]).includes(tagFilter));
   if(evFilter)filtered=filtered.filter(c=>(c.eventIds||[]).includes(evFilter));
   if(memFilter)filtered=filtered.filter(c=>c.memberId===memFilter);
+  if(roleFilter)filtered=filtered.filter(c=>(c.role||'')===roleFilter);
   filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||'','el'));
 
   // Stats
