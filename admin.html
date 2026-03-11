@@ -294,6 +294,39 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .quill-wrap .ql-editor a{color:var(--gold);}
 .quill-wrap .ql-editor blockquote{border-left:3px solid var(--gold);padding-left:12px;color:rgba(255,255,255,0.7);font-style:italic;margin:10px 0;}
 
+/* TASK VIEW MODES */
+.task-view-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.task-view-tab{background:none;border:1px solid var(--gold-line);color:#ffffff;padding:8px 16px;font-family:var(--font-sans);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.task-view-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.task-view-tab:hover{border-color:var(--gold);color:var(--gold);}
+
+/* TASK GROUP */
+.task-group{margin-bottom:20px;}
+.task-group-header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--black3);border:1px solid var(--gold-line);border-bottom:2px solid var(--gold-line);cursor:pointer;transition:background .2s;}
+.task-group-header:hover{background:rgba(200,169,110,0.08);}
+.task-group-title{font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);}
+.task-group-count{font-family:var(--font-serif);font-size:18px;color:var(--gold);margin-left:auto;}
+.task-group-arrow{color:var(--gold);font-size:10px;transition:transform .2s;}
+.task-group-arrow.collapsed{transform:rotate(-90deg);}
+.task-group-body{overflow:hidden;transition:max-height .3s ease;}
+
+/* TASK CALENDAR */
+.task-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.task-cal-header{text-align:center;font-size:10px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:#ffffff;padding:10px 0;}
+.task-cal-day{background:var(--black2);border:1px solid rgba(200,169,110,0.08);min-height:90px;padding:6px;transition:background .2s,border-color .2s;}
+.task-cal-day:hover{background:var(--black3);border-color:var(--gold-line);}
+.task-cal-day.other-month{opacity:0.25;}
+.task-cal-day.today{border-color:var(--gold);}
+.task-cal-day .day-num{font-size:13px;font-weight:600;color:#ffffff;display:block;margin-bottom:4px;}
+.task-cal-day.today .day-num{color:var(--gold);font-weight:700;}
+.task-cal-item{font-size:9px;font-weight:600;padding:2px 4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid;cursor:default;}
+.task-cal-item.high{border-color:var(--red);color:rgba(220,100,100,0.9);background:rgba(220,60,60,0.08);}
+.task-cal-item.med{border-color:var(--orange);color:var(--orange);background:rgba(200,149,110,0.08);}
+.task-cal-item.low{border-color:var(--green);color:var(--green);background:rgba(60,180,100,0.08);}
+.task-cal-item.done{opacity:0.35;text-decoration:line-through;}
+.task-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.task-cal-title{font-family:var(--font-serif);font-size:28px;font-weight:400;color:#ffffff;}
+
 .dash-panel{background:var(--black2);border:1px solid var(--gold-line);margin-bottom:18px;}
 .dash-panel-header{padding:16px 20px;border-bottom:2px solid var(--gold-line);display:flex;align-items:center;justify-content:space-between;}
 .dash-panel-title{font-size:11px;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;color:#ffffff;}
@@ -561,21 +594,58 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- ===== ERP: ΕΡΓΑΣΙΕΣ ===== -->
       <div class="view" id="view-erp-tasks">
         <div class="page-title">Εργασίες <span>& Ανάθεση</span></div>
-        <div class="toolbar">
-          <button class="btn-primary" onclick="openModal('modal-task')">+ Νέα Εργασία</button>
-          <input type="text" class="search-input" placeholder="Αναζήτηση εργασίας…" oninput="renderTasks()">
-          <select class="filter-select" id="task-filter-priority" onchange="renderTasks()">
-            <option value="">Όλες οι Προτ.</option><option>Υψηλή</option><option>Μεσαία</option><option>Χαμηλή</option>
-          </select>
-          <select class="filter-select" id="task-filter-status" onchange="renderTasks()">
-            <option value="">Όλες</option><option>Ανοικτή</option><option>Σε εξέλιξη</option><option>Ολοκληρώθηκε</option>
-          </select>
+        <!-- View Tabs: Λίστα / Ημερολόγιο -->
+        <div class="task-view-tabs">
+          <button class="task-view-tab active" onclick="switchTaskView('list')">☰ Λίστα</button>
+          <button class="task-view-tab" onclick="switchTaskView('calendar')">📅 Ημερολόγιο</button>
         </div>
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead><tr><th>✓</th><th>Εργασία</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
-            <tbody id="tasks-tbody"></tbody>
-          </table>
+        <!-- LIST VIEW -->
+        <div id="task-list-view">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openModal('modal-task')">+ Νέα Εργασία</button>
+            <input type="text" class="search-input" id="task-search-input" placeholder="Αναζήτηση εργασίας…" oninput="renderTasks()">
+            <select class="filter-select" id="task-filter-priority" onchange="renderTasks()">
+              <option value="">Όλες οι Προτ.</option><option>Υψηλή</option><option>Μεσαία</option><option>Χαμηλή</option>
+            </select>
+            <select class="filter-select" id="task-filter-status" onchange="renderTasks()">
+              <option value="">Όλες</option><option>Ανοικτή</option><option>Σε εξέλιξη</option><option>Ολοκληρώθηκε</option>
+            </select>
+            <select class="filter-select" id="task-filter-assignee" onchange="renderTasks()">
+              <option value="">Όλοι</option>
+            </select>
+            <select class="filter-select" id="task-group-by" onchange="renderTasks()" style="border-color:var(--gold);color:var(--gold);">
+              <option value="">— Χωρίς ομαδοποίηση —</option>
+              <option value="assignee">Ομαδοποίηση ανά Άτομο</option>
+              <option value="deadline">Ομαδοποίηση ανά Deadline</option>
+              <option value="status">Ομαδοποίηση ανά Κατάσταση</option>
+              <option value="priority">Ομαδοποίηση ανά Προτεραιότητα</option>
+              <option value="event">Ομαδοποίηση ανά Εκδήλωση</option>
+            </select>
+          </div>
+          <!-- Flat table (when no grouping) -->
+          <div id="tasks-flat-view">
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead><tr><th>✓</th><th>Εργασία</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
+                <tbody id="tasks-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Grouped view -->
+          <div id="tasks-grouped-view" style="display:none;"></div>
+        </div>
+        <!-- CALENDAR VIEW -->
+        <div id="task-calendar-view" style="display:none;">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openModal('modal-task')">+ Νέα Εργασία</button>
+          </div>
+          <div class="task-cal-nav">
+            <button class="btn-sm" onclick="taskCalNav(-1)">← Προηγ.</button>
+            <div class="task-cal-title" id="task-cal-month-title"></div>
+            <button class="btn-sm" onclick="taskCalNav(1)">Επόμ. →</button>
+          </div>
+          <div class="task-cal-grid" id="task-cal-headers"></div>
+          <div class="task-cal-grid" id="task-cal-grid"></div>
         </div>
       </div>
 
@@ -814,7 +884,7 @@ function switchView(v) {
   if(v==='votes') renderVotes();
   if(v==='about') loadAbout();
   if(v==='manage-members') loadMembers();
-  if(v==='erp-tasks') renderTasks();
+  if(v==='erp-tasks'){ if(_taskViewMode==='calendar') renderTaskCalendar(); else renderTasks(); }
   if(v==='erp-finance') renderFinance();
   if(v==='erp-calendar') renderCalendar();
   if(v==='erp-users') renderUsers();
@@ -1020,31 +1090,171 @@ function editTaskModal(id){
   document.getElementById('modal-task').classList.add('open');
 }
 function renderTasks(){
+  // Populate assignee filter dynamically
+  const assigneeSet=new Set(_tasks.map(t=>t.assignee).filter(Boolean));
+  const asel=document.getElementById('task-filter-assignee');
+  if(asel){const cv=asel.value;asel.innerHTML='<option value="">Όλοι</option>';[...assigneeSet].sort().forEach(a=>asel.insertAdjacentHTML('beforeend',`<option value="${a}">${a}</option>`));asel.value=cv;}
+
   const pf=document.getElementById('task-filter-priority')?.value||'';
   const sf=document.getElementById('task-filter-status')?.value||'';
+  const af=document.getElementById('task-filter-assignee')?.value||'';
+  const searchVal=(document.getElementById('task-search-input')?.value||'').toLowerCase();
+  const groupBy=document.getElementById('task-group-by')?.value||'';
+
   let tasks=[..._tasks];
   if(pf)tasks=tasks.filter(t=>t.priority===pf);
   if(sf)tasks=tasks.filter(t=>t.status===sf);
+  if(af)tasks=tasks.filter(t=>t.assignee===af);
+  if(searchVal)tasks=tasks.filter(t=>(t.title||'').toLowerCase().includes(searchVal)||(t.assignee||'').toLowerCase().includes(searchVal)||(t.notes||'').toLowerCase().includes(searchVal));
   tasks.sort((a,b)=>(a.deadline||'9').localeCompare(b.deadline||'9'));
-  const tbody=document.getElementById('tasks-tbody');
-  if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
-  tbody.innerHTML=tasks.map(t=>{
-    const ev=_events.find(e=>e.id===t.eventId);
-    const done=t.status==='Ολοκληρώθηκε';
-    return`<tr style="${done?'opacity:0.5':''}">
-      <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
-      <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
-      <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
-      <td>${t.assignee||'—'}</td>
-      <td>${fmtDate(t.deadline)}</td>
-      <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
-      <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
-      <td style="display:flex;gap:5px">
-        <button class="btn-edit" onclick="editTaskModal('${t.id}')" style="padding:4px 8px;">✎</button>
-        <button class="btn-danger" onclick="deleteTask('${t.id}')" style="padding:4px 8px;">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
+
+  if(!groupBy){
+    // Flat table view
+    document.getElementById('tasks-flat-view').style.display='';
+    document.getElementById('tasks-grouped-view').style.display='none';
+    const tbody=document.getElementById('tasks-tbody');
+    if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
+    tbody.innerHTML=tasks.map(t=>{
+      const ev=_events.find(e=>e.id===t.eventId);
+      const done=t.status==='Ολοκληρώθηκε';
+      return`<tr style="${done?'opacity:0.5':''}">
+        <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
+        <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
+        <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
+        <td>${t.assignee||'—'}</td>
+        <td>${fmtDate(t.deadline)}</td>
+        <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
+        <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
+        <td style="display:flex;gap:5px">
+          <button class="btn-edit" onclick="editTaskModal('${t.id}')" style="padding:4px 8px;">✎</button>
+          <button class="btn-danger" onclick="deleteTask('${t.id}')" style="padding:4px 8px;">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } else {
+    // Grouped view
+    document.getElementById('tasks-flat-view').style.display='none';
+    document.getElementById('tasks-grouped-view').style.display='';
+    const groups={};
+    tasks.forEach(t=>{
+      let key='';
+      if(groupBy==='assignee') key=t.assignee||'Χωρίς ανάθεση';
+      else if(groupBy==='deadline'){
+        if(!t.deadline) key='Χωρίς deadline';
+        else {
+          const dl=new Date(t.deadline);const today=new Date();today.setHours(0,0,0,0);
+          const diff=Math.ceil((dl-today)/(1000*60*60*24));
+          if(diff<0)key='⚠ Εκπρόθεσμες';
+          else if(diff===0)key='Σήμερα';
+          else if(diff<=7)key='Αυτή την εβδομάδα';
+          else if(diff<=30)key='Αυτόν τον μήνα';
+          else key='Μετά από 1+ μήνα';
+        }
+      }
+      else if(groupBy==='status') key=t.status||'Ανοικτή';
+      else if(groupBy==='priority') key=t.priority||'Μεσαία';
+      else if(groupBy==='event'){const ev=_events.find(e=>e.id===t.eventId);key=ev?ev.title:'Γενική';}
+      if(!groups[key])groups[key]=[];
+      groups[key].push(t);
+    });
+    // Sort group keys
+    let keys=Object.keys(groups);
+    if(groupBy==='deadline'){
+      const order=['⚠ Εκπρόθεσμες','Σήμερα','Αυτή την εβδομάδα','Αυτόν τον μήνα','Μετά από 1+ μήνα','Χωρίς deadline'];
+      keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+    }
+    else if(groupBy==='priority'){
+      const order=['Υψηλή','Μεσαία','Χαμηλή'];
+      keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+    }
+    else if(groupBy==='status'){
+      const order=['Ανοικτή','Σε εξέλιξη','Ολοκληρώθηκε'];
+      keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+    }
+    else keys.sort();
+
+    let html='';
+    keys.forEach((k,gi)=>{
+      const grpTasks=groups[k];
+      html+=`<div class="task-group">
+        <div class="task-group-header" onclick="toggleTaskGroup(this)">
+          <span class="task-group-arrow">▼</span>
+          <span class="task-group-title">${k}</span>
+          <span class="task-group-count">${grpTasks.length}</span>
+        </div>
+        <div class="task-group-body">
+          <div class="table-wrapper" style="border-top:none;">
+            <table class="data-table">
+              <thead><tr><th>✓</th><th>Εργασία</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
+              <tbody>${grpTasks.map(t=>{
+                const ev=_events.find(e=>e.id===t.eventId);
+                const done=t.status==='Ολοκληρώθηκε';
+                return`<tr style="${done?'opacity:0.5':''}">
+                  <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
+                  <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
+                  <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
+                  <td>${t.assignee||'—'}</td>
+                  <td>${fmtDate(t.deadline)}</td>
+                  <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
+                  <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
+                  <td style="display:flex;gap:5px">
+                    <button class="btn-edit" onclick="editTaskModal('${t.id}')" style="padding:4px 8px;">✎</button>
+                    <button class="btn-danger" onclick="deleteTask('${t.id}')" style="padding:4px 8px;">✕</button>
+                  </td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    });
+    if(!keys.length) html='<div style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</div>';
+    document.getElementById('tasks-grouped-view').innerHTML=html;
+  }
+}
+
+function toggleTaskGroup(headerEl){
+  const body=headerEl.nextElementSibling;
+  const arrow=headerEl.querySelector('.task-group-arrow');
+  if(body.style.display==='none'){body.style.display='';arrow.classList.remove('collapsed');}
+  else{body.style.display='none';arrow.classList.add('collapsed');}
+}
+
+// ===== TASK VIEW SWITCH (List / Calendar) =====
+let _taskViewMode='list';
+function switchTaskView(mode){
+  _taskViewMode=mode;
+  document.querySelectorAll('.task-view-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.task-view-tab[onclick*="${mode}"]`).classList.add('active');
+  document.getElementById('task-list-view').style.display=mode==='list'?'':'none';
+  document.getElementById('task-calendar-view').style.display=mode==='calendar'?'':'none';
+  if(mode==='calendar')renderTaskCalendar();
+  else renderTasks();
+}
+
+// ===== TASK CALENDAR =====
+let taskCalYear=new Date().getFullYear(),taskCalMonth=new Date().getMonth();
+function taskCalNav(dir){taskCalMonth+=dir;if(taskCalMonth>11){taskCalMonth=0;taskCalYear++;}if(taskCalMonth<0){taskCalMonth=11;taskCalYear--;}renderTaskCalendar();}
+function renderTaskCalendar(){
+  const months=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+  document.getElementById('task-cal-month-title').textContent=months[taskCalMonth]+' '+taskCalYear;
+  document.getElementById('task-cal-headers').innerHTML=['ΔΕΥ','ΤΡΙ','ΤΕΤ','ΠΕΜ','ΠΑΡ','ΣΑΒ','ΚΥΡ'].map(d=>`<div class="task-cal-header">${d}</div>`).join('');
+  const first=new Date(taskCalYear,taskCalMonth,1),last=new Date(taskCalYear,taskCalMonth+1,0);
+  let startDow=first.getDay();if(startDow===0)startDow=7;
+  const today=new Date();
+  let cells='';
+  for(let i=1;i<startDow;i++){const pd=new Date(taskCalYear,taskCalMonth,1-(startDow-i));cells+=`<div class="task-cal-day other-month"><span class="day-num">${pd.getDate()}</span></div>`;}
+  for(let d=1;d<=last.getDate();d++){
+    const isToday=today.getFullYear()===taskCalYear&&today.getMonth()===taskCalMonth&&today.getDate()===d;
+    const dateStr=`${taskCalYear}-${String(taskCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayTasks=_tasks.filter(t=>t.deadline===dateStr);
+    cells+=`<div class="task-cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayTasks.map(t=>{
+      const done=t.status==='Ολοκληρώθηκε';
+      const pClass=priorityClass(t.priority);
+      return`<div class="task-cal-item ${pClass}${done?' done':''}" title="${t.title}${t.assignee?' — @'+t.assignee:''}">${t.assignee?'@'+t.assignee.split(' ')[0]+': ':''}${t.title}</div>`;
+    }).join('')}</div>`;
+  }
+  document.getElementById('task-cal-grid').innerHTML=cells;
 }
 
 // ===== ERP: FINANCE (Firebase) =====
