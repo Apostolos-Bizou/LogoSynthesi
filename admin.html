@@ -371,6 +371,23 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .chip-option:hover{border-color:var(--gold);color:var(--gold);}
 .chip-option.selected{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
 
+/* CONTACT PICKER */
+.contact-picker-wrap{position:relative;}
+.contact-picker-search{width:100%;background:var(--black3);border:1px solid var(--gold-line);color:#ffffff;font-family:var(--font-sans);font-size:13px;padding:10px 14px;outline:none;transition:border-color .2s;}
+.contact-picker-search:focus{border-color:var(--gold);}
+.contact-picker-dropdown{position:absolute;top:100%;left:0;right:0;background:var(--black2);border:1px solid var(--gold-line);border-top:none;max-height:200px;overflow-y:auto;z-index:10;display:none;}
+.contact-picker-dropdown.open{display:block;}
+.contact-picker-item{padding:8px 14px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s;border-bottom:1px solid rgba(200,169,110,0.06);}
+.contact-picker-item:hover{background:rgba(200,169,110,0.1);}
+.contact-picker-item .cp-name{font-weight:600;color:#ffffff;}
+.contact-picker-item .cp-detail{font-size:10px;color:rgba(255,255,255,0.4);}
+.selected-contacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.selected-contact-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--gold-dim);border:1px solid var(--gold-line);font-size:11px;font-weight:600;color:var(--gold);}
+.selected-contact-chip .chip-remove{cursor:pointer;color:rgba(220,100,100,0.8);font-size:13px;font-weight:700;margin-left:2px;}
+.selected-contact-chip .chip-remove:hover{color:var(--red);}
+.selected-contact-chip a{color:var(--gold);text-decoration:none;font-weight:400;font-size:10px;}
+.selected-contact-chip a:hover{text-decoration:underline;}
+
 .dash-panel{background:var(--black2);border:1px solid var(--gold-line);margin-bottom:18px;}
 .dash-panel-header{padding:16px 20px;border-bottom:2px solid var(--gold-line);display:flex;align-items:center;justify-content:space-between;}
 .dash-panel-title{font-size:11px;font-weight:700;letter-spacing:0.35em;text-transform:uppercase;color:#ffffff;}
@@ -828,7 +845,16 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <div class="form-group"><label class="form-label">Τίτλος *</label><input type="text" class="form-input" id="task-title" placeholder="π.χ. Εκτύπωση αφισών"></div>
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Εκδήλωση</label><select class="form-select" id="task-event"><option value="">— Γενική —</option></select></div>
-        <div class="form-group"><label class="form-label">Ανατέθηκε σε</label><input type="text" class="form-input" id="task-assignee" placeholder="Όνομα"></div>
+        <div class="form-group"><label class="form-label">Ανατέθηκε σε (ελεύθερο)</label><input type="text" class="form-input" id="task-assignee" placeholder="Όνομα (προαιρετικό)"></div>
+      </div>
+      <!-- Contact Picker -->
+      <div class="form-group">
+        <label class="form-label">Επαφές Εργασίας (από Ατζέντα)</label>
+        <div class="contact-picker-wrap">
+          <input type="text" class="contact-picker-search" id="task-contact-search" placeholder="Αναζήτηση επαφής…" oninput="filterTaskContacts()" onfocus="filterTaskContacts()">
+          <div class="contact-picker-dropdown" id="task-contact-dropdown"></div>
+        </div>
+        <div class="selected-contacts" id="task-selected-contacts"></div>
       </div>
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Deadline</label><input type="date" class="form-input" id="task-deadline"></div>
@@ -1244,7 +1270,7 @@ function openModal(id){
     sel.innerHTML='<option value="">— Γενική —</option>';
     _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
   }
-  if(id==='modal-task'){document.getElementById('task-id').value='';document.getElementById('task-title').value='';document.getElementById('task-assignee').value='';document.getElementById('task-deadline').value='';document.getElementById('task-notes').value='';document.getElementById('task-priority').value='Μεσαία';document.getElementById('task-status').value='Ανοικτή';document.getElementById('modal-task-title').textContent='Νέα Εργασία';}
+  if(id==='modal-task'){document.getElementById('task-id').value='';document.getElementById('task-title').value='';document.getElementById('task-assignee').value='';document.getElementById('task-deadline').value='';document.getElementById('task-notes').value='';document.getElementById('task-priority').value='Μεσαία';document.getElementById('task-status').value='Ανοικτή';document.getElementById('modal-task-title').textContent='Νέα Εργασία';_taskSelectedContactIds=[];renderTaskSelectedContacts();}
   if(id==='modal-finance'){document.getElementById('fin-id').value='';document.getElementById('fin-amount').value='';document.getElementById('fin-desc').value='';document.getElementById('fin-date').value=new Date().toISOString().split('T')[0];document.getElementById('fin-type').value='income';document.getElementById('modal-finance-title').textContent='Νέα Οικονομική Εγγραφή';}
   if(id==='modal-user'){document.getElementById('usr-id').value='';document.getElementById('usr-name').value='';document.getElementById('usr-username').value='';document.getElementById('usr-pass').value='';document.getElementById('usr-email').value='';document.getElementById('usr-role').value='Μέλος';document.getElementById('modal-user-title').textContent='Νέος Χρήστης ERP';}
   document.getElementById(id).classList.add('open');
@@ -1253,11 +1279,68 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 // Modals close only via ✕ button or Ακύρωση
 
 // ===== ERP: TASKS (Firebase) =====
+let _taskSelectedContactIds=[];
+
+function filterTaskContacts(){
+  const q=(document.getElementById('task-contact-search')?.value||'').toLowerCase();
+  const dd=document.getElementById('task-contact-dropdown');
+  const available=_contacts.filter(c=>!_taskSelectedContactIds.includes(c.id));
+  const filtered=q?available.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.email||'').toLowerCase().includes(q)):available.slice(0,8);
+  if(!filtered.length){dd.innerHTML='<div style="padding:10px 14px;font-size:11px;color:rgba(255,255,255,0.3);font-style:italic;">Δεν βρέθηκαν επαφές</div>';dd.classList.add('open');return;}
+  dd.innerHTML=filtered.slice(0,10).map(c=>`<div class="contact-picker-item" onclick="addTaskContact('${c.id}')"><span class="cp-name">${c.name}</span><span class="cp-detail">${c.role||''}${c.phone?' · '+c.phone:''}${c.email?' · '+c.email:''}</span></div>`).join('');
+  dd.classList.add('open');
+}
+function addTaskContact(cid){
+  if(_taskSelectedContactIds.includes(cid))return;
+  _taskSelectedContactIds.push(cid);
+  document.getElementById('task-contact-search').value='';
+  document.getElementById('task-contact-dropdown').classList.remove('open');
+  renderTaskSelectedContacts();
+}
+function removeTaskContact(cid){
+  _taskSelectedContactIds=_taskSelectedContactIds.filter(id=>id!==cid);
+  renderTaskSelectedContacts();
+}
+function renderTaskSelectedContacts(){
+  const el=document.getElementById('task-selected-contacts');
+  el.innerHTML=_taskSelectedContactIds.map(cid=>{
+    const c=_contacts.find(x=>x.id===cid);if(!c)return'';
+    return`<div class="selected-contact-chip">
+      ${c.name}
+      ${c.phone?`<a href="tel:${c.phone}" onclick="event.stopPropagation()">📱</a>`:''}
+      ${c.email?`<a href="mailto:${c.email}" onclick="event.stopPropagation()">✉</a>`:''}
+      <span class="chip-remove" onclick="removeTaskContact('${cid}')">✕</span>
+    </div>`;
+  }).join('');
+}
+// Close dropdown on outside click
+document.addEventListener('click',e=>{if(!e.target.closest('.contact-picker-wrap')){const dd=document.getElementById('task-contact-dropdown');if(dd)dd.classList.remove('open');}});
+
+function renderTaskContactsCell(t){
+  const contacts=(t.contactIds||[]).map(cid=>_contacts.find(c=>c.id===cid)).filter(Boolean);
+  if(!contacts.length&&!t.assignee)return'—';
+  let html='';
+  if(t.assignee)html+=`<span style="font-size:11px;">${t.assignee}</span>`;
+  contacts.forEach(c=>{
+    html+=`<div style="font-size:10px;display:flex;align-items:center;gap:4px;margin-top:2px;">
+      <span style="color:var(--gold);font-weight:600;">${c.name}</span>
+      ${c.phone?`<a href="tel:${c.phone}" style="color:rgba(255,255,255,0.5);text-decoration:none;" onclick="event.stopPropagation()">📱</a>`:''}
+      ${c.email?`<a href="mailto:${c.email}" style="color:rgba(255,255,255,0.5);text-decoration:none;" onclick="event.stopPropagation()">✉</a>`:''}
+    </div>`;
+  });
+  return html;
+}
+function getTaskAssigneeNames(t){
+  const names=[];
+  if(t.assignee)names.push(t.assignee);
+  (t.contactIds||[]).forEach(cid=>{const c=_contacts.find(x=>x.id===cid);if(c)names.push(c.name);});
+  return names.join(', ')||'—';
+}
 async function saveTask(){
   const id=document.getElementById('task-id').value;
   const title=document.getElementById('task-title').value.trim();
   if(!title){toast('Συμπλήρωσε τον τίτλο','error');return;}
-  const rec={title,eventId:document.getElementById('task-event').value,assignee:document.getElementById('task-assignee').value,deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
+  const rec={title,eventId:document.getElementById('task-event').value,assignee:document.getElementById('task-assignee').value,contactIds:[..._taskSelectedContactIds],deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
   try {
     if(id){ await erpUpdate('tasks',id,rec); const idx=_tasks.findIndex(t=>t.id===id); if(idx!==-1)_tasks[idx]={id,...rec}; }
     else { const newId=await erpAdd('tasks',rec); _tasks.unshift({id:newId,...rec,createdAt:Date.now()}); }
@@ -1278,6 +1361,7 @@ function editTaskModal(id){
   document.getElementById('task-id').value=t.id;
   document.getElementById('task-title').value=t.title||'';
   document.getElementById('task-assignee').value=t.assignee||'';
+  _taskSelectedContactIds=[...(t.contactIds||[])];renderTaskSelectedContacts();
   document.getElementById('task-deadline').value=t.deadline||'';
   document.getElementById('task-priority').value=t.priority||'Μεσαία';
   document.getElementById('task-status').value=t.status||'Ανοικτή';
@@ -1292,7 +1376,11 @@ function editTaskModal(id){
 }
 function renderTasks(){
   // Populate assignee filter dynamically
-  const assigneeSet=new Set(_tasks.map(t=>t.assignee).filter(Boolean));
+  const assigneeSet=new Set();
+  _tasks.forEach(t=>{
+    if(t.assignee)assigneeSet.add(t.assignee);
+    (t.contactIds||[]).forEach(cid=>{const c=_contacts.find(x=>x.id===cid);if(c)assigneeSet.add(c.name);});
+  });
   const asel=document.getElementById('task-filter-assignee');
   if(asel){const cv=asel.value;asel.innerHTML='<option value="">Όλοι</option>';[...assigneeSet].sort().forEach(a=>asel.insertAdjacentHTML('beforeend',`<option value="${a}">${a}</option>`));asel.value=cv;}
 
@@ -1305,8 +1393,8 @@ function renderTasks(){
   let tasks=[..._tasks];
   if(pf)tasks=tasks.filter(t=>t.priority===pf);
   if(sf)tasks=tasks.filter(t=>t.status===sf);
-  if(af)tasks=tasks.filter(t=>t.assignee===af);
-  if(searchVal)tasks=tasks.filter(t=>(t.title||'').toLowerCase().includes(searchVal)||(t.assignee||'').toLowerCase().includes(searchVal)||(t.notes||'').toLowerCase().includes(searchVal));
+  if(af)tasks=tasks.filter(t=>t.assignee===af||(t.contactIds||[]).some(cid=>{const c=_contacts.find(x=>x.id===cid);return c&&c.name===af;}));
+  if(searchVal)tasks=tasks.filter(t=>(t.title||'').toLowerCase().includes(searchVal)||(t.assignee||'').toLowerCase().includes(searchVal)||(t.notes||'').toLowerCase().includes(searchVal)||getTaskAssigneeNames(t).toLowerCase().includes(searchVal));
   tasks.sort((a,b)=>(a.deadline||'9').localeCompare(b.deadline||'9'));
 
   if(!groupBy){
@@ -1322,7 +1410,7 @@ function renderTasks(){
         <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
         <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
         <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
-        <td>${t.assignee||'—'}</td>
+        <td>${renderTaskContactsCell(t)}</td>
         <td>${fmtDate(t.deadline)}</td>
         <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
         <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
@@ -1339,7 +1427,7 @@ function renderTasks(){
     const groups={};
     tasks.forEach(t=>{
       let key='';
-      if(groupBy==='assignee') key=t.assignee||'Χωρίς ανάθεση';
+      if(groupBy==='assignee') key=getTaskAssigneeNames(t)||'Χωρίς ανάθεση';
       else if(groupBy==='deadline'){
         if(!t.deadline) key='Χωρίς deadline';
         else {
@@ -1394,7 +1482,7 @@ function renderTasks(){
                   <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
                   <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
                   <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
-                  <td>${t.assignee||'—'}</td>
+                  <td>${renderTaskContactsCell(t)}</td>
                   <td>${fmtDate(t.deadline)}</td>
                   <td><span style="display:inline-flex;align-items:center;gap:6px"><span class="priority-dot ${priorityClass(t.priority)}"></span>${t.priority}</span></td>
                   <td><span class="status ${statusClass(t.status)}">${t.status}</span></td>
