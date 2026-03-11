@@ -914,6 +914,9 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- Row 3: Phone / Email -->
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Τηλέφωνο</label><input type="tel" class="form-input" id="ct-phone" placeholder="+30 697 123 4567"></div>
+        <div class="form-group"><label class="form-label">Τηλέφωνο 2</label><input type="tel" class="form-input" id="ct-phone2" placeholder="+30 694 000 0000"></div>
+      </div>
+      <div class="form-2col">
         <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="ct-email" placeholder="email@example.com"></div>
       </div>
       <!-- Row 4: Address / Birthday -->
@@ -1629,7 +1632,7 @@ function getSelectedChips(containerId){return[...document.querySelectorAll(`#${c
 function openContactModal(id){
   // Reset
   document.getElementById('ct-id').value='';
-  ['ct-name','ct-org','ct-role','ct-referrer','ct-phone','ct-email','ct-address','ct-birthday','ct-website','ct-social','ct-tags','ct-notes','ct-bcard'].forEach(fid=>document.getElementById(fid).value='');
+  ['ct-name','ct-org','ct-role','ct-referrer','ct-phone','ct-phone2','ct-email','ct-address','ct-birthday','ct-website','ct-social','ct-tags','ct-notes','ct-bcard'].forEach(fid=>document.getElementById(fid).value='');
   document.getElementById('ct-bcard-preview').innerHTML='';
   const bcStatus=document.getElementById('ct-bcardStatus');if(bcStatus)bcStatus.textContent='';
   document.querySelectorAll('#ct-hubs .chip-option').forEach(c=>c.classList.remove('selected'));
@@ -1650,6 +1653,7 @@ function openContactModal(id){
     document.getElementById('ct-role').value=c.role||'';
     document.getElementById('ct-referrer').value=c.referrer||'';
     document.getElementById('ct-phone').value=c.phone||'';
+    document.getElementById('ct-phone2').value=c.phone2||'';
     document.getElementById('ct-email').value=c.email||'';
     document.getElementById('ct-address').value=c.address||'';
     document.getElementById('ct-birthday').value=c.birthday||'';
@@ -1678,6 +1682,7 @@ async function saveContact(){
     referrer:document.getElementById('ct-referrer').value.trim(),
     memberId:document.getElementById('ct-member').value,
     phone:document.getElementById('ct-phone').value.trim(),
+    phone2:document.getElementById('ct-phone2').value.trim(),
     email:document.getElementById('ct-email').value.trim(),
     address:document.getElementById('ct-address').value.trim(),
     birthday:document.getElementById('ct-birthday').value,
@@ -1720,6 +1725,7 @@ function showContactDetail(id){
   if(c.phone||c.email){
     html+='<div class="contact-detail-section"><div class="contact-detail-label">Επικοινωνία</div><div class="contact-detail-value">';
     if(c.phone)html+=`📱 <a href="tel:${c.phone}" style="color:var(--gold);text-decoration:none;">${c.phone}</a><br>`;
+    if(c.phone2)html+=`📱 <a href="tel:${c.phone2}" style="color:var(--gold);text-decoration:none;">${c.phone2}</a><br>`;
     if(c.email)html+=`✉ <a href="mailto:${c.email}" style="color:var(--gold);text-decoration:none;">${c.email}</a>`;
     html+='</div></div>';
   }
@@ -1773,7 +1779,7 @@ function renderContacts(){
   if(roleSel){const cv=roleSel.value;roleSel.innerHTML='<option value="">Όλες οι Ιδιότητες</option>';[...allRoles].sort().forEach(r=>roleSel.insertAdjacentHTML('beforeend',`<option value="${r}">${r}</option>`));roleSel.value=cv;}
 
   let filtered=[..._contacts];
-  if(search)filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.email||'').toLowerCase().includes(search)||(c.phone||'').includes(search)||(c.org||'').toLowerCase().includes(search)||(c.role||'').toLowerCase().includes(search)||(c.notes||'').toLowerCase().includes(search));
+  if(search)filtered=filtered.filter(c=>(c.name||'').toLowerCase().includes(search)||(c.email||'').toLowerCase().includes(search)||(c.phone||'').includes(search)||(c.phone2||'').includes(search)||(c.org||'').toLowerCase().includes(search)||(c.role||'').toLowerCase().includes(search)||(c.notes||'').toLowerCase().includes(search));
   if(hubFilter)filtered=filtered.filter(c=>(c.hubs||[]).includes(hubFilter));
   if(tagFilter)filtered=filtered.filter(c=>(c.tags||[]).includes(tagFilter));
   if(evFilter)filtered=filtered.filter(c=>(c.eventIds||[]).includes(evFilter));
