@@ -816,7 +816,15 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- ===== VOTES ===== -->
       <div class="view" id="view-votes">
         <div class="page-title">Ψηφοφορίες &amp; <span>Αποτελέσματα</span></div>
-        <div id="votesList"><div class="empty-msg">Φόρτωση…</div></div>
+        <div class="toolbar">
+          <select class="filter-select" id="votes-filter-event" onchange="renderVotes()"><option value="">Όλες οι Εκδηλώσεις</option></select>
+        </div>
+        <div id="votesSummary"></div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:20px 0 8px">Αναλυτικές Ψήφοι</div>
+        <div class="table-wrapper"><table class="data-table">
+          <thead><tr><th>Εκδήλωση</th><th>Email</th><th>Βαθμολογία</th><th>Ημερομηνία</th></tr></thead>
+          <tbody id="votesDetailTbody"></tbody>
+        </table></div>
       </div>
 
       <!-- ===== ABOUT ===== -->
@@ -1795,11 +1803,51 @@ async function deleteEvent(id){
 }
 
 async function renderVotes(){
-  const el=document.getElementById('votesList');let votesData={};
-  try{if(!window._db)throw new Error('demo');const{collection,getDocs}=window._firebase;const snap=await getDocs(collection(window._db,'votes'));snap.docs.forEach(d=>{const v=d.data();if(!votesData[v.eventId])votesData[v.eventId]={};votesData[v.eventId][v.rating]=(votesData[v.eventId][v.rating]||0)+1;});}
-  catch(e){_events.forEach(ev=>{if(ev.votes)votesData[ev.id]=ev.votes;});}
-  if(!Object.keys(votesData).length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν ψήφοι ακόμα.</div>';return;}
-  el.innerHTML=Object.entries(votesData).map(([evId,votes])=>{const ev=_events.find(e=>e.id===evId);const title=ev?ev.title:evId;const total=Object.values(votes).reduce((a,b)=>a+b,0);const avg=total?Object.entries(votes).reduce((a,[k,n])=>a+parseInt(k)*n,0)/total:0;return`<div class="vote-summary"><div class="vote-sum-title">${title}</div><div class="vote-avg">★ ${avg.toFixed(2)} / 5 <span style="font-size:12px;color:var(--cream-dim);font-family:var(--font-sans);">(${total} ψήφοι)</span></div>${[5,4,3,2,1].map(s=>{const c=votes[s]||0;const p=total?Math.round(c/total*100):0;return`<div class="vote-bar-wrap"><span class="vote-bar-label">${s}</span><div class="vote-bar-track"><div class="vote-bar-fill" style="width:${p}%"></div></div><span class="vote-bar-count">${c}</span></div>`;}).join('')}</div>`;}).join('');
+  let allVotes=[];
+  try{
+    if(!window._db)throw new Error('demo');
+    const{collection,getDocs}=window._firebase;
+    const snap=await getDocs(collection(window._db,'votes'));
+    allVotes=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    _events.forEach(ev=>{
+      if(ev.votes){Object.entries(ev.votes).forEach(([star,count])=>{for(let i=0;i<count;i++)allVotes.push({eventId:ev.id,rating:parseInt(star),email:'demo@example.com',ts:Date.now()});});}
+    });
+  }
+  const sel=document.getElementById('votes-filter-event');
+  const cv=sel.value;
+  sel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';
+  const evIds=[...new Set(allVotes.map(v=>v.eventId))];
+  evIds.forEach(eid=>{const ev=_events.find(e=>e.id===eid);sel.insertAdjacentHTML('beforeend','<option value="'+eid+'">'+(ev?ev.title:eid)+'</option>');});
+  sel.value=cv;
+  let filtered=cv?allVotes.filter(v=>v.eventId===cv):allVotes;
+  const summaryMap={};
+  filtered.forEach(v=>{
+    if(!summaryMap[v.eventId])summaryMap[v.eventId]={total:0,sum:0,stars:{1:0,2:0,3:0,4:0,5:0},emails:new Set()};
+    const s=summaryMap[v.eventId];
+    s.total++;s.sum+=Number(v.rating||0);s.stars[v.rating]=(s.stars[v.rating]||0)+1;
+    if(v.email)s.emails.add(v.email);
+  });
+  const summaryEl=document.getElementById('votesSummary');
+  if(!Object.keys(summaryMap).length){summaryEl.innerHTML='<div class="empty-msg">Δεν υπάρχουν ψήφοι ακόμα.</div>';document.getElementById('votesDetailTbody').innerHTML='';return;}
+  summaryEl.innerHTML=Object.entries(summaryMap).map(([evId,s])=>{
+    const ev=_events.find(e=>e.id===evId);
+    const title=ev?ev.title:evId;
+    const avg=s.total?s.sum/s.total:0;
+    const bars=[5,4,3,2,1].map(star=>{
+      const c=s.stars[star]||0;const p=s.total?Math.round(c/s.total*100):0;
+      return '<div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="width:16px;text-align:right;font-size:12px;color:var(--gold)">'+star+'</span><div style="flex:1;height:8px;background:var(--black3);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--gold);width:'+p+'%;border-radius:4px"></div></div><span style="width:28px;font-size:11px;color:rgba(255,255,255,0.5)">'+c+'</span></div>';
+    }).join('');
+    return '<div class="stat-card" style="text-align:left;margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:700;font-size:16px">'+title+'</div><div style="font-family:var(--font-serif);font-size:28px;color:var(--gold)">★ '+avg.toFixed(1)+'</div></div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px">'+s.total+' ψήφοι · '+s.emails.size+' μοναδικά emails</div>'+bars+'</div>';
+  }).join('');
+  filtered.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const tbody=document.getElementById('votesDetailTbody');
+  tbody.innerHTML=filtered.map(v=>{
+    const ev=_events.find(e=>e.id===v.eventId);
+    const stars='\u2605'.repeat(v.rating||0)+'\u2606'.repeat(5-(v.rating||0));
+    const dt=v.ts?new Date(v.ts).toLocaleDateString('el-GR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'\u2014';
+    return '<tr><td>'+(ev?ev.title:v.eventId)+'</td><td style="font-weight:600">'+(v.email||'\u2014')+'</td><td style="color:var(--gold);font-size:16px">'+stars+'</td><td style="font-size:12px;color:rgba(255,255,255,0.5)">'+dt+'</td></tr>';
+  }).join('');
 }
 
 function calcAvg(v){const t=Object.values(v).reduce((a,b)=>a+b,0);if(!t)return 0;return Object.entries(v).reduce((a,[k,n])=>a+parseInt(k)*n,0)/t;}
