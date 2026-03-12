@@ -1693,6 +1693,15 @@ footer {
 }
 .fade-up.visible { opacity: 1; transform: translateY(0); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+  // EmailJS initialization — Ρύθμιση:
+  // 1. Δημιούργησε λογαριασμό στο https://www.emailjs.com
+  // 2. Πρόσθεσε Email Service (Gmail με logosynthesi2026@gmail.com)
+  // 3. Δημιούργησε Template με variables: {{to_email}}, {{event_title}}, {{rating}}
+  // 4. Αντικατέστησε τα IDs παρακάτω
+  (function(){ emailjs.init({ publicKey: 'YOUR_EMAILJS_PUBLIC_KEY' }); })();
+</script>
 </head>
 <script>
 /* Stubs in <head>: defined before body parses so onclick attrs never throw */
@@ -2265,13 +2274,14 @@ async function subV(id) {
   const btn = document.querySelector('#vb-' + id + ' .vote-submit');
   btn.disabled = true; btn.textContent = 'Αποθήκευση…';
   try {
+    const ev = ALL_EV.find(e => e.id === id);
+    const evTitle = ev ? ev.title : '';
     if (window._db) {
       const {collection, addDoc, getDocs, query, where} = window._firebase;
       const ex = await getDocs(query(collection(window._db,'votes'), where('eventId','==',id), where('email','==',email)));
       if (!ex.empty) { localStorage.setItem('voted_' + id,'1'); msg.innerHTML = '<div class="vote-msg">Αυτό το email έχει ήδη ψηφίσει.</div>'; btn.disabled=false; btn.textContent='ΑΠΟΣΤΟΛΗ ΨΗΦΟΥ'; return; }
-      await addDoc(collection(window._db,'votes'), {eventId:id, email, rating:star, ts:Date.now()});
+      await addDoc(collection(window._db,'votes'), {eventId:id, eventTitle:evTitle, email, rating:star, ts:Date.now()});
     }
-    const ev = ALL_EV.find(e => e.id === id);
     if (ev) { ev.votes = ev.votes || {}; ev.votes[star] = (ev.votes[star] || 0) + 1; }
     localStorage.setItem('voted_' + id,'1');
     document.getElementById('ve-' + id).disabled = true;
@@ -2280,10 +2290,31 @@ async function subV(id) {
     const old = document.querySelector('#vb-' + id + ' .vote-results');
     if (old) old.remove();
     document.getElementById('vb-' + id).insertAdjacentHTML('beforeend', vresH(ev ? ev.votes : {}));
+    // Send thank-you email via EmailJS
+    sendThankYouEmail(email, evTitle, star);
   } catch {
     localStorage.setItem('voted_' + id,'1');
     btn.textContent = '✓ ΕΥΧΑΡΙΣΤΟΥΜΕ';
     msg.innerHTML = '<div class="vote-msg">Η ψήφος σου καταχωρήθηκε! 🙏</div>';
+  }
+}
+
+/* ─── THANK YOU EMAIL ─── */
+function sendThankYouEmail(toEmail, eventTitle, rating) {
+  try {
+    emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+      to_email: toEmail,
+      event_title: eventTitle,
+      rating: '★'.repeat(rating),
+      from_name: 'ΛογοΣύνθεση',
+      reply_to: 'logosynthesi2026@gmail.com'
+    }).then(()=>{
+      console.log('Thank-you email sent to', toEmail);
+    }).catch(err=>{
+      console.log('Email send failed (EmailJS not configured yet):', err);
+    });
+  } catch(e) {
+    console.log('EmailJS not loaded or not configured');
   }
 }
 
