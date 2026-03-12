@@ -2868,6 +2868,7 @@ function editUser(id){
 }
 
 // ===== ERP: REPORTS =====
+let _reportHubFilter='';
 function renderReports(){
   const hubs=['cinehub','logohub','musichub','arthub','stagehub'];
   const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
@@ -2877,30 +2878,35 @@ function renderReports(){
     const hevs=_events.filter(e=>(e.category||'').toLowerCase()===h);
     const hinc=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
     const hexp=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
-    return`<div class="stat-card" style="text-align:left;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="hub-badge ${hubClass(h)}">${hubLabels[h]}</span><span style="font-family:var(--font-serif);font-size:28px;color:var(--gold)">${hevs.length}</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:#fff;margin-bottom:8px">εκδηλώσεις</div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600"><span style="color:var(--green)">+${fmtMoney(hinc)}</span><span style="color:var(--red)">−${fmtMoney(hexp)}</span></div></div>`;
+    const isActive=_reportHubFilter===h;
+    return '<div class="stat-card" style="text-align:left;cursor:pointer;border:2px solid '+(isActive?'var(--gold)':'var(--gold-line)')+';'+(isActive?'background:var(--gold-dim);':'')+'transition:all .2s" onclick="filterReportHub(\''+h+'\')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="hub-badge '+hubClass(h)+'">'+hubLabels[h]+'</span><span style="font-family:var(--font-serif);font-size:28px;color:var(--gold)">'+hevs.length+'</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:#fff;margin-bottom:8px">εκδηλώσεις</div><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600"><span style="color:var(--green)">+'+fmtMoney(hinc)+'</span><span style="color:var(--red)">-'+fmtMoney(hexp)+'</span></div></div>';
   }).join('');
-  document.getElementById('reports-body').innerHTML=`
-    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">${hubHTML}</div>
-    <div class="table-wrapper" style="margin-top:24px">
-      <table class="data-table">
-        <thead><tr><th>Εκδήλωση</th><th>Κατηγορία</th><th>Ημερομηνία</th><th>Έσοδα</th><th>Έξοδα</th><th>Ισοζύγιο</th></tr></thead>
-        <tbody>${_events.length?_events.map(e=>{
-          const inc=_finance.filter(f=>f.eventId===e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-          const exp=_finance.filter(f=>f.eventId===e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
-          const net=inc-exp;
-          return`<tr><td>${e.title}</td><td><span class="hub-badge ${hubClass(e.category||'')}">${hubLabels[(e.category||'').toLowerCase()]||e.category}</span></td><td>${fmtDate(e.date)}</td><td style="color:var(--green);font-weight:600">${fmtMoney(inc)}</td><td style="color:var(--red);font-weight:600">${fmtMoney(exp)}</td><td style="font-family:var(--font-serif);font-size:18px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</td></tr>`;
-        }).join(''):`<tr><td colspan="6" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εκδηλώσεις</td></tr>`}
-        <tr style="background:var(--black3)"><td colspan="3"><strong style="letter-spacing:.15em;font-size:12px">ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;font-size:16px">${fmtMoney(totalInc)}</td><td style="color:var(--red);font-weight:700;font-size:16px">${fmtMoney(totalExp)}</td><td style="font-family:var(--font-serif);font-size:20px;color:${totalInc-totalExp>=0?'var(--green)':'var(--red)'}">${fmtMoney(totalInc-totalExp)}</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Μήνα — ${new Date().getFullYear()}</div>
-    ${renderMonthlyTable(new Date().getFullYear())}
-    <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>
-    <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Τρίμηνο — ${new Date().getFullYear()}</div>
-    ${renderQuarterlyTable(new Date().getFullYear())}
-    `;
+  // Filter events by hub
+  let filteredEvents=_reportHubFilter?_events.filter(e=>(e.category||'').toLowerCase()===_reportHubFilter):_events;
+  let filteredLabel=_reportHubFilter?hubLabels[_reportHubFilter]:'Όλες';
+  document.getElementById('reports-body').innerHTML=
+    '<div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">'+hubHTML+'</div>'+
+    (_reportHubFilter?'<div style="margin:16px 0;display:flex;align-items:center;gap:10px"><span style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Φίλτρο: '+filteredLabel+'</span><button class="btn-sm" onclick="filterReportHub(\'\')" style="font-size:10px;padding:4px 12px">Εμφάνιση Όλων ✕</button></div>':'')+
+    '<div class="table-wrapper" style="margin-top:16px"><table class="data-table"><thead><tr><th>Εκδήλωση</th><th>Κατηγορία</th><th>Ημερομηνία</th><th>Έσοδα</th><th>Έξοδα</th><th>Ισοζύγιο</th></tr></thead><tbody>'+
+    (filteredEvents.length?filteredEvents.map(e=>{
+      const inc=_finance.filter(f=>f.eventId===e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+      const exp=_finance.filter(f=>f.eventId===e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+      const net=inc-exp;
+      const eb=_eventBudgets.find(b=>b.eventId===e.id);
+      const onclick=eb?'onclick="openEventBudgetModal(\''+eb.id+'\')" style="cursor:pointer"':'style="cursor:default"';
+      return '<tr '+onclick+'><td style="font-weight:600">'+e.title+'</td><td><span class="hub-badge '+hubClass(e.category||'')+'">'+(hubLabels[(e.category||'').toLowerCase()]||e.category)+'</span></td><td>'+fmtDate(e.date)+'</td><td style="color:var(--green);font-weight:600">'+fmtMoney(inc)+'</td><td style="color:var(--red);font-weight:600">'+fmtMoney(exp)+'</td><td style="font-family:var(--font-serif);font-size:18px;color:'+(net>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(net)+'</td></tr>';
+    }).join(''):'<tr><td colspan="6" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εκδηλώσεις</td></tr>')+
+    '<tr style="background:var(--black3)"><td colspan="3"><strong style="letter-spacing:.15em;font-size:12px">ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;font-size:16px">'+fmtMoney(totalInc)+'</td><td style="color:var(--red);font-weight:700;font-size:16px">'+fmtMoney(totalExp)+'</td><td style="font-family:var(--font-serif);font-size:20px;color:'+(totalInc-totalExp>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(totalInc-totalExp)+'</td></tr></tbody></table></div>'+
+    '<div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>'+
+    '<div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Μήνα — '+new Date().getFullYear()+'</div>'+
+    renderMonthlyTable(new Date().getFullYear())+
+    '<div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>'+
+    '<div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Τρίμηνο — '+new Date().getFullYear()+'</div>'+
+    renderQuarterlyTable(new Date().getFullYear());
+}
+function filterReportHub(h){
+  _reportHubFilter=(_reportHubFilter===h)?'':h;
+  renderReports();
 }
 
 function renderMonthlyTable(year){
