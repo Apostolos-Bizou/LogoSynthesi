@@ -211,6 +211,28 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 
 /* SECTION DIVIDER */
 .section-div{height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0;}
+/* Finance tabs */
+.fin-tabs{display:flex;gap:5px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;flex-wrap:wrap;}
+.fin-tabs::-webkit-scrollbar{display:none;}
+.fin-tab{flex-shrink:0;background:none;border:1px solid var(--gold-line);color:#ffffff;padding:9px 16px;font-family:var(--font-sans);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.fin-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.fin-tab:hover{border-color:var(--gold);color:var(--gold);}
+.fin-panel{display:none;}
+.fin-panel.active{display:block;}
+/* Editable cells in budget tables */
+.eb-input{background:transparent;border:1px solid var(--gold-line);color:#fff;font-family:var(--font-sans);font-size:15px;padding:10px 12px;width:100%;text-align:right;transition:border-color .2s;}
+.eb-input:focus{outline:none;border-color:var(--gold);background:rgba(200,169,110,0.06);}
+.eb-input.notes{text-align:left;}
+.eb-computed{color:var(--gold);font-weight:600;font-size:15px;}
+.paid-yes{color:var(--green);font-weight:700;}.paid-no{color:var(--red);opacity:.7;}.paid-partial{color:var(--orange);font-weight:600;}
+/* Budget modal: bigger table text */
+#modal-event-budget .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+#modal-event-budget .data-table{min-width:750px;}
+#modal-event-budget .data-table td{font-size:14px;padding:12px 10px;}
+#modal-event-budget .form-label{font-size:13px;}
+#modal-event-budget .form-input,#modal-event-budget .form-select{font-size:15px;padding:11px 14px;}
+#modal-sponsor .form-input,#modal-sponsor .form-select,#modal-artist .form-input,#modal-artist .form-select{font-size:15px;padding:11px 14px;}
+#modal-sponsor .form-label,#modal-artist .form-label{font-size:13px;}
 
 /* ERP TABLE */
 .table-wrapper{background:var(--black2);border:1px solid var(--gold-line);overflow:hidden;}
@@ -960,27 +982,116 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         </div>
       </div>
 
-      <!-- ===== ERP: ΟΙΚΟΝΟΜΙΚΑ ===== -->
+      <!-- ===== ERP: ΟΙΚΟΝΟΜΙΚΑ — BUDGET ENGINE ===== -->
       <div class="view" id="view-erp-finance">
-        <div class="page-title">Οικονομικά <span>& Ισοζύγιο</span></div>
-        <div class="fin-cards">
-          <div class="fin-card"><div class="fin-card-label">Σύνολο Εσόδων</div><div class="fin-card-value inc" id="fin-total-inc">0 €</div><div class="fin-card-sub" id="fin-inc-count">0 εγγραφές</div><div class="progress-bar"><div class="progress-fill" id="fin-inc-bar" style="width:0%"></div></div></div>
-          <div class="fin-card"><div class="fin-card-label">Σύνολο Εξόδων</div><div class="fin-card-value exp" id="fin-total-exp">0 €</div><div class="fin-card-sub" id="fin-exp-count">0 εγγραφές</div><div class="progress-bar"><div class="progress-fill" id="fin-exp-bar" style="width:0%;background:var(--red)"></div></div></div>
-          <div class="fin-card"><div class="fin-card-label">Καθαρό Αποτέλεσμα</div><div class="fin-card-value net" id="fin-net">0 €</div><div class="fin-card-sub" id="fin-net-sub">Συνολικό ισοζύγιο</div></div>
+        <div class="page-title">Οικονομικά <span>— Budget Engine</span></div>
+
+        <!-- Finance Sub-Tabs -->
+        <div class="fin-tabs">
+          <button class="fin-tab active" onclick="switchFinTab('fin-dashboard')">Dashboard</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-org-budget')">Budget Φορέα</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-events')">Εκδηλώσεις</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-tickets')">Εισιτήρια</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-sponsors')">Χορηγοί</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-artists')">Καλλιτέχνες</button>
         </div>
-        <div class="toolbar">
-          <button class="btn-primary" onclick="openModal('modal-finance')">+ Νέα Εγγραφή</button>
-          <select class="filter-select" id="fin-filter-event" onchange="renderFinance()"><option value="">Όλες οι Εκδηλώσεις</option></select>
-          <select class="filter-select" id="fin-filter-type" onchange="renderFinance()">
-            <option value="">Έσοδα & Έξοδα</option><option value="income">Μόνο Έσοδα</option><option value="expense">Μόνο Έξοδα</option>
-          </select>
+
+        <!-- TAB: Dashboard -->
+        <div class="fin-panel active" id="fin-dashboard">
+          <div class="fin-cards">
+            <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Εσόδων (Events)</div><div class="fin-card-value inc" id="fd-planned-inc">0 €</div><div class="fin-card-sub" id="fd-planned-inc-sub">0 εκδηλώσεις</div><div class="progress-bar"><div class="progress-fill" id="fd-planned-inc-bar" style="width:0%"></div></div></div>
+            <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Εξόδων (Events)</div><div class="fin-card-value exp" id="fd-planned-exp">0 €</div><div class="fin-card-sub" id="fd-planned-exp-sub">—</div><div class="progress-bar"><div class="progress-fill" id="fd-planned-exp-bar" style="width:0%;background:var(--red)"></div></div></div>
+            <div class="fin-card"><div class="fin-card-label">Πραγματικά Έσοδα (Events)</div><div class="fin-card-value inc" id="fd-actual-inc">0 €</div><div class="fin-card-sub" id="fd-actual-inc-sub">—</div></div>
+            <div class="fin-card"><div class="fin-card-label">Πραγματικά Έξοδα (Events)</div><div class="fin-card-value exp" id="fd-actual-exp">0 €</div><div class="fin-card-sub" id="fd-actual-exp-sub">—</div></div>
+          </div>
+          <div class="fin-cards" style="margin-top:12px">
+            <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Αποτελέσματος Events</div><div class="fin-card-value net" id="fd-planned-net">0 €</div></div>
+            <div class="fin-card"><div class="fin-card-label">Πραγματικό Αποτέλεσμα Events</div><div class="fin-card-value net" id="fd-actual-net">0 €</div></div>
+          </div>
+          <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Σύνοψη Φορέα (Πρόβλεψη / Πραγματικά)</div>
+          <div class="fin-cards">
+            <div class="fin-card"><div class="fin-card-label">Σύνολο Φορέα (Πρόβλεψη)</div><div class="fin-card-value" id="fd-org-planned">0 €</div></div>
+            <div class="fin-card"><div class="fin-card-label">Σύνολο Φορέα (Πραγματικά)</div><div class="fin-card-value" id="fd-org-actual">0 €</div></div>
+            <div class="fin-card"><div class="fin-card-label">Απόκλιση</div><div class="fin-card-value" id="fd-org-variance">0 €</div></div>
+          </div>
+          <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Σύνοψη ανά Εκδήλωση</div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Εκδήλωση</th><th>Τύπος</th><th>Πρόβλεψη Κ/Ζ</th><th>Πραγματικό Κ/Ζ</th><th>Απόκλιση</th><th>Κατάσταση</th></tr></thead>
+            <tbody id="fd-snapshot-tbody"></tbody>
+          </table></div>
         </div>
-        <div class="table-wrapper">
-          <table class="data-table">
-            <thead><tr><th>Ημερομηνία</th><th>Περιγραφή</th><th>Κατηγορία</th><th>Εκδήλωση</th><th>Τύπος</th><th>Ποσό</th><th></th></tr></thead>
-            <tbody id="finance-tbody"></tbody>
-          </table>
+
+        <!-- TAB: Budget Φορέα (Org_Annual_Budget) -->
+        <div class="fin-panel" id="fin-org-budget">
+          <div class="toolbar">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)">Συνολικός Προϋπολογισμός Φορέα — <span id="org-year">2026</span></div>
+          </div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px">ΕΣΟΔΑ</div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Κατηγορία</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Απόκλιση (€)</th><th>Σημειώσεις</th></tr></thead>
+            <tbody id="org-income-tbody"></tbody>
+            <tfoot><tr style="background:var(--black3)"><td><strong>Σύνολο Εσόδων</strong></td><td id="org-inc-plan-total" style="font-weight:700;color:var(--green)">0 €</td><td id="org-inc-act-total" style="font-weight:700;color:var(--green)">0 €</td><td id="org-inc-var-total">0 €</td><td></td></tr></tfoot>
+          </table></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:20px 0 8px">ΕΞΟΔΑ</div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Κατηγορία</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Απόκλιση (€)</th><th>Σημειώσεις</th></tr></thead>
+            <tbody id="org-expense-tbody"></tbody>
+            <tfoot><tr style="background:var(--black3)"><td><strong>Σύνολο Εξόδων</strong></td><td id="org-exp-plan-total" style="font-weight:700;color:var(--red)">0 €</td><td id="org-exp-act-total" style="font-weight:700;color:var(--red)">0 €</td><td id="org-exp-var-total">0 €</td><td></td></tr></tfoot>
+          </table></div>
+          <div class="section-div"></div>
+          <div class="fin-cards">
+            <div class="fin-card"><div class="fin-card-label">Καθαρό Αποτέλεσμα (Πρόβλεψη)</div><div class="fin-card-value net" id="org-net-planned">0 €</div></div>
+            <div class="fin-card"><div class="fin-card-label">Καθαρό Αποτέλεσμα (Πραγματικά)</div><div class="fin-card-value net" id="org-net-actual">0 €</div></div>
+            <div class="fin-card"><div class="fin-card-label">Αποθεματικό</div><div class="fin-card-value" id="org-reserve" style="color:var(--gold)">0 €</div></div>
+          </div>
+          <div class="toolbar" style="margin-top:16px"><button class="btn-primary" onclick="saveOrgBudget()">Αποθήκευση Αλλαγών</button></div>
         </div>
+
+        <!-- TAB: Εκδηλώσεις (Event Budgets) -->
+        <div class="fin-panel" id="fin-events">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openEventBudgetModal()">+ Νέο Event Budget</button>
+            <select class="filter-select" id="eb-filter-event" onchange="renderEventBudgets()"><option value="">Όλες οι Εκδηλώσεις</option></select>
+          </div>
+          <div id="eb-list"></div>
+        </div>
+
+        <!-- TAB: Εισιτήρια -->
+        <div class="fin-panel" id="fin-tickets">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Κεντρικός Έλεγχος Εισιτηρίων</div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Εκδήλωση</th><th>Τιμή (€)</th><th>Πρόβλεψη Πωλ.</th><th>Πραγματικές Πωλ.</th><th>Πρόβλεψη Εσόδων</th><th>Πραγματικά Έσοδα</th><th>Απόκλιση</th></tr></thead>
+            <tbody id="tickets-tbody"></tbody>
+            <tfoot><tr style="background:var(--black3)"><td colspan="2"><strong>ΣΥΝΟΛΟ</strong></td><td id="tk-plan-sold">0</td><td id="tk-act-sold">0</td><td id="tk-plan-rev" style="color:var(--green);font-weight:700">0 €</td><td id="tk-act-rev" style="color:var(--green);font-weight:700">0 €</td><td id="tk-var">0 €</td></tr></tfoot>
+          </table></div>
+        </div>
+
+        <!-- TAB: Χορηγοί -->
+        <div class="fin-panel" id="fin-sponsors">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openSponsorModal()">+ Νέος Χορηγός</button>
+          </div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Εκδήλωση</th><th>Χορηγός</th><th>Τύπος</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Τιμολόγιο/th><th>Πληρωμή/th><th>Σημειώσεις</th><th></th></tr></thead>
+            <tbody id="sponsors-tbody"></tbody>
+            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="sp-plan-total" style="font-weight:700;color:var(--green)">0 €</td><td id="sp-act-total" style="font-weight:700;color:var(--green)">0 €</td><td colspan="4"></td></tr></tfoot>
+          </table></div>
+        </div>
+
+        <!-- TAB: Καλλιτέχνες & Προμηθευτές -->
+        <div class="fin-panel" id="fin-artists">
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openArtistModal()">+ Νέα Εγγραφή</button>
+          </div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Εκδήλωση</th><th>Αντισυμβαλλόμενος</th><th>Ρόλος</th><th>Πρόβλεψη Αμοιβής</th><th>Πραγματική Αμοιβή</th><th>Προθεσμία</th><th>Πληρωμή</th><th>Σημειώσεις</th><th></th></tr></thead>
+            <tbody id="artists-tbody"></tbody>
+            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="ar-plan-total" style="font-weight:700;color:var(--red)">0 €</td><td id="ar-act-total" style="font-weight:700;color:var(--red)">0 €</td><td colspan="4"></td></tr></tfoot>
+          </table></div>
+        </div>
+
       </div>
 
       <!-- ===== ERP: ΗΜΕΡΟΛΟΓΙΟ ===== -->
@@ -1047,7 +1158,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 </div>
 
 <div class="modal-overlay" id="modal-finance">
-  <div class="modal">
+  <div class="modal" style="width:90%;max-width:800px;">
     <div class="modal-header"><h2 class="modal-title" id="modal-finance-title">Νέα Οικονομική Εγγραφή</h2><button class="modal-close" onclick="closeModal('modal-finance')">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="fin-id">
@@ -1071,6 +1182,193 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('modal-finance')">Ακύρωση</button>
       <button class="btn-primary" onclick="saveFinance()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Budget Modal -->
+<div class="modal-overlay" id="modal-event-budget">
+  <div class="modal" style="width:95%;max-width:1200px;max-height:92vh;">
+    <div class="modal-header"><h2 class="modal-title" id="modal-eb-title">Budget Εκδήλωσης</h2><button class="modal-close" onclick="closeModal('modal-event-budget')">✕</button></div>
+    <div class="modal-body" style="overflow-y:auto;max-height:78vh;font-size:14px;">
+      <input type="hidden" id="eb-id">
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Εκδήλωση (από σύστημα ή νέα)</label>
+          <select class="form-select" id="eb-event"><option value="">— Νέα Εκδήλωση —</option></select></div>
+        <div class="form-group"><label class="form-label">Τίτλος (αν δεν επιλέχθηκε)</label><input type="text" class="form-input" id="eb-title" placeholder="Τίτλος εκδήλωσης"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Τύπος</label>
+          <select class="form-select" id="eb-type"><option>Κινηματογράφος</option><option>Συναυλία</option><option>Θέατρο</option><option>Workshop</option><option>Ομιλία</option><option>Φεστιβάλ</option><option>Έκθεση</option><option>Παιδική δράση</option><option>Άλλο</option></select></div>
+        <div class="form-group"><label class="form-label">Ημερομηνία</label><input type="date" class="form-input" id="eb-date"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Χώρος</label><input type="text" class="form-input" id="eb-venue"></div>
+        <div class="form-group"><label class="form-label">Κατάσταση</label><select class="form-select" id="eb-status"><option>Σχεδιασμός</option><option>Ανοιχτή προπώληση</option><option>Ολοκληρώθηκε</option><option>Ακυρώθηκε</option></select></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Χωρητικότητα</label><input type="number" class="form-input" id="eb-capacity" min="0"></div>
+        <div class="form-group"><label class="form-label">Τιμή εισιτηρίου (€)</label><input type="number" class="form-input" id="eb-ticket-price" step="0.01" min="0"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Πρόβλεψη πωλήσεων εισιτ.</label><input type="number" class="form-input" id="eb-planned-tickets" min="0" oninput="document.getElementById('ebc-tickets').value=this.value;calcTicketPrice()"></div>
+        <div class="form-group"><label class="form-label">Πραγματικές πωλήσεις εισιτ.</label><input type="number" class="form-input" id="eb-actual-tickets" min="0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">ΦΠΑ εξόδων default</label><input type="number" class="form-input" id="eb-vat" value="24" step="1" min="0" max="100" style="width:100px"> %</div>
+      <div class="section-div"></div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">ΕΣΟΔΑ</div>
+      <div class="table-wrapper"><table class="data-table" style="min-width:auto">
+        <thead><tr><th>Κατηγορία</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Σημ.</th></tr></thead>
+        <tbody id="eb-income-rows"></tbody>
+      </table></div>
+      <div class="section-div"></div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">ΕΞΟΔΑ</div>
+      <div class="table-wrapper"><table class="data-table" style="min-width:auto">
+        <thead><tr><th>Κατηγορία</th><th>Πρόβλεψη Καθ. (€)</th><th>ΦΠΑ %</th><th>Πρόβλεψη Μικτό</th><th>Πραγμ. Καθ. (€)</th><th>ΦΠΑ %</th><th>Πραγμ. Μικτό</th><th>Σημ.</th></tr></thead>
+        <tbody id="eb-expense-rows"></tbody>
+      </table></div>
+      <div class="section-div"></div>
+      <!-- Υπολογιστής Τιμής Εισιτηρίου -->
+      <div style="background:var(--black3);border:2px solid var(--gold);padding:20px 24px;margin-top:8px;">
+        <div style="font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Υπολογιστής Τιμής Εισιτηρίου</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px">
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Σύνολο Εξόδων (Πρόβλεψη Μικτό)</div>
+            <div style="font-family:var(--font-serif);font-size:24px;color:var(--red)" id="ebc-total-exp">0 €</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Λοιπά Έσοδα (χωρίς εισιτήρια)</div>
+            <div style="font-family:var(--font-serif);font-size:24px;color:var(--green)" id="ebc-other-inc">0 €</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Ποσό προς κάλυψη από εισιτήρια</div>
+            <div style="font-family:var(--font-serif);font-size:24px;color:var(--gold)" id="ebc-to-cover">0 €</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:end">
+          <div class="form-group" style="margin:0">
+            <label class="form-label" style="font-size:13px">Επιθυμητό κέρδος %</label>
+            <input type="number" class="form-input" id="ebc-margin" value="10" min="0" max="100" step="1" oninput="calcTicketPrice()" style="font-size:18px;text-align:center;padding:12px">
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label" style="font-size:13px">Εκτίμηση εισιτηρίων</label>
+            <input type="number" class="form-input" id="ebc-tickets" min="1" oninput="calcTicketPrice()" style="font-size:18px;text-align:center;padding:12px">
+          </div>
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Προτεινόμενη τιμή εισιτηρίου</div>
+            <div style="font-family:var(--font-serif);font-size:32px;font-weight:700;color:var(--gold)" id="ebc-suggested-price">— €</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Καθαρό κέρδος (πρόβλεψη)</div>
+            <div style="font-family:var(--font-serif);font-size:24px" id="ebc-net-profit">— €</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;text-align:right">
+          <button class="btn-sm" style="border-color:var(--gold);color:var(--gold)" onclick="applyTicketPrice()">Εφαρμογή τιμής στο εισιτήριο ↑</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-event-budget')">Ακύρωση</button>
+      <button class="btn-primary" onclick="saveEventBudget()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sponsor Modal -->
+<div class="modal-overlay" id="modal-sponsor">
+  <div class="modal" style="width:90%;max-width:800px;">
+    <div class="modal-header"><h2 class="modal-title" id="modal-sponsor-title">Νέος Χορηγός</h2><button class="modal-close" onclick="closeModal('modal-sponsor')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="sp-id">
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Εκδήλωση</label><select class="form-select" id="sp-event"><option value="">— Γενικό Φορέα —</option></select></div>
+        <div class="form-group"><label class="form-label">Χορηγός *</label>
+          <div class="contact-picker-wrap">
+            <input type="text" class="form-input" id="sp-name" placeholder="Αναζήτηση επαφής ή ελεύθερο κείμενο…" autocomplete="off" oninput="filterSpContacts()" onfocus="filterSpContacts()">
+            <input type="hidden" id="sp-contact-id">
+            <div class="contact-picker-dropdown" id="sp-contact-dropdown"></div>
+          </div>
+          <div id="sp-contact-info" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Τύπος</label><select class="form-select" id="sp-type"><option>Μετρητά</option><option>Σε είδος</option><option>Χορηγός μέσων</option><option>Άλλο</option></select></div>
+        <div class="form-group"><label class="form-label">Τιμολόγιο / Σύμβαση</label><input type="text" class="form-input" id="sp-invoice"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Πρόβλεψη (€)</label><input type="number" class="form-input" id="sp-planned" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Πραγματικά (€)</label><input type="number" class="form-input" id="sp-actual" step="0.01" min="0"></div>
+      </div>
+      <div class="section-div"></div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Δόσεις / Περιοδική Είσπραξη</div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Τύπος πληρωμής</label><select class="form-select" id="sp-pay-type"><option value="once">Εφάπαξ</option><option value="installments">Δόσεις</option><option value="monthly">Μηνιαία</option></select></div>
+        <div class="form-group"><label class="form-label">Αριθμός δόσεων</label><input type="number" class="form-input" id="sp-installments" min="1" value="1"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Ημ. Έναρξης Δόσεων</label><input type="date" class="form-input" id="sp-installment-start"></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="section-div"></div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Πληρωμή;</label><select class="form-select" id="sp-paid"><option value="no">Όχι</option><option value="yes">Ναι</option><option value="partial">Μερικά</option></select></div>
+        <div class="form-group"><label class="form-label">Σημειώσεις</label><input type="text" class="form-input" id="sp-notes"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-sponsor')">Ακύρωση</button>
+      <button class="btn-primary" onclick="saveSponsor()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- Artist/Vendor Modal -->
+<div class="modal-overlay" id="modal-artist">
+  <div class="modal" style="width:90%;max-width:800px;">
+    <div class="modal-header"><h2 class="modal-title" id="modal-artist-title">Νέα Εγγραφή Καλλιτέχνη / Προμηθευτή</h2><button class="modal-close" onclick="closeModal('modal-artist')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ar-id">
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Εκδήλωση</label><select class="form-select" id="ar-event"><option value="">— Γενικό Φορέα —</option></select></div>
+        <div class="form-group"><label class="form-label">Αντισυμβαλλόμενος *</label>
+          <div class="contact-picker-wrap">
+            <input type="text" class="form-input" id="ar-name" placeholder="Αναζήτηση επαφής ή ελεύθερο κείμενο…" autocomplete="off" oninput="filterArContacts()" onfocus="filterArContacts()">
+            <input type="hidden" id="ar-contact-id">
+            <div class="contact-picker-dropdown" id="ar-contact-dropdown"></div>
+          </div>
+          <div id="ar-contact-info" style="margin-top:6px"></div>
+        </div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Ρόλος / Υπηρεσία</label><input type="text" class="form-input" id="ar-role" placeholder="π.χ. Ηχοληψία, Σκηνογράφος…"></div>
+        <div class="form-group"><label class="form-label">Κατηγορία</label><select class="form-select" id="ar-category"><option>Καλλιτέχνης</option><option>Τεχνικός</option><option>Προμηθευτής</option><option>Σύμβουλος</option><option>Άλλο</option></select></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Πρόβλεψη Αμοιβής (€)</label><input type="number" class="form-input" id="ar-planned" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Πραγματική Αμοιβή (€)</label><input type="number" class="form-input" id="ar-actual" step="0.01" min="0"></div>
+      </div>
+      <div class="section-div"></div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Δόσεις / Περιοδική Πληρωμή</div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Τύπος πληρωμής</label><select class="form-select" id="ar-pay-type" onchange="toggleInstallments()"><option value="once">Εφάπαξ</option><option value="installments">Δόσεις</option><option value="monthly">Μηνιαία</option></select></div>
+        <div class="form-group"><label class="form-label">Αριθμός δόσεων / μηνών</label><input type="number" class="form-input" id="ar-installments" min="1" value="1" oninput="calcInstallmentAmount()"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Ποσό ανά δόση (€)</label><input type="number" class="form-input" id="ar-per-installment" step="0.01" readonly style="color:var(--gold)"></div>
+        <div class="form-group"><label class="form-label">Ημ. Έναρξης Δόσεων</label><input type="date" class="form-input" id="ar-installment-start"></div>
+      </div>
+      <div id="ar-installment-schedule" style="margin-top:8px"></div>
+      <div class="section-div"></div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">Προθεσμία</label><input type="date" class="form-input" id="ar-due"></div>
+        <div class="form-group"><label class="form-label">Πληρωμή;</label><select class="form-select" id="ar-paid"><option value="no">Όχι</option><option value="yes">Ναι</option><option value="partial">Μερικά</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Σημειώσεις</label><input type="text" class="form-input" id="ar-notes"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-artist')">Ακύρωση</button>
+      <button class="btn-primary" onclick="saveArtist()">Αποθήκευση</button>
     </div>
   </div>
 </div>
@@ -1191,6 +1489,10 @@ let _tasks = [];
 let _finance = [];
 let _erpUsers = [];
 let _contacts = [];
+let _eventBudgets = [];
+let _orgBudget = null;
+let _sponsors = [];
+let _artists = [];
 
 function getFb() { return window._firebase; }
 function getDb() { return window._db; }
@@ -1222,12 +1524,52 @@ async function erpDelete(colName, id) {
 }
 
 async function loadErpData() {
-  [_tasks, _finance, _erpUsers, _contacts] = await Promise.all([
+  [_tasks, _finance, _erpUsers, _contacts, _eventBudgets, _sponsors, _artists] = await Promise.all([
     erpLoad('tasks'),
     erpLoad('finance'),
     erpLoad('erp_users'),
     erpLoad('contacts'),
+    erpLoad('event_budgets'),
+    erpLoad('sponsors'),
+    erpLoad('artists_vendors'),
   ]);
+  // Load org budget (single document)
+  try {
+    if(getDb()){
+      const {doc:docRef}=getFb();
+      // org_budget is a single doc in 'settings' collection
+      const {getDoc}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      const snap=await getDoc(docRef(getDb(),'settings','org_budget'));
+      if(snap.exists()) _orgBudget=snap.data();
+      else _orgBudget=defaultOrgBudget();
+    } else { _orgBudget=defaultOrgBudget(); }
+  } catch(e){ _orgBudget=defaultOrgBudget(); }
+}
+
+function defaultOrgBudget(){
+  return {
+    year:2026, vatDefault:0.24, marginTarget:0.10,
+    incomeRows:[
+      {key:'events_auto',label:'Έσοδα εκδηλώσεων (auto)',planned:0,actual:0,notes:'auto',auto:true},
+      {key:'annual_sponsors',label:'Ετήσιες χορηγίες φορέα',planned:0,actual:0,notes:''},
+      {key:'memberships',label:'Συνδρομές μελών',planned:0,actual:0,notes:''},
+      {key:'grants',label:'Επιχορηγήσεις / grants',planned:0,actual:0,notes:''},
+      {key:'donations',label:'Δωρεές',planned:0,actual:0,notes:''},
+      {key:'workshops_ext',label:'Εργαστήρια εκτός event sheets',planned:0,actual:0,notes:''},
+      {key:'other_income',label:'Άλλα έσοδα',planned:0,actual:0,notes:''}
+    ],
+    expenseRows:[
+      {key:'events_auto',label:'Έξοδα εκδηλώσεων (auto)',planned:0,actual:0,notes:'auto',auto:true},
+      {key:'rent',label:'Ενοίκιο / χώρος γραφείου',planned:0,actual:0,notes:''},
+      {key:'utilities',label:'Ρεύμα / internet / λειτουργικά',planned:0,actual:0,notes:''},
+      {key:'payroll',label:'Μισθοδοσία / εξωτερικοί συνεργάτες',planned:0,actual:0,notes:''},
+      {key:'legal',label:'Λογιστής / νομικά / τράπεζες',planned:0,actual:0,notes:''},
+      {key:'website',label:'Website / λογισμικά / subscriptions',planned:0,actual:0,notes:''},
+      {key:'marketing',label:'Γενικό marketing φορέα',planned:0,actual:0,notes:''},
+      {key:'equipment',label:'Εξοπλισμός',planned:0,actual:0,notes:''},
+      {key:'contingency',label:'Απρόβλεπτα',planned:0,actual:0,notes:''}
+    ]
+  };
 }
 
 // ===== AUTH (Firebase) =====
@@ -1339,9 +1681,11 @@ async function loadStats() {
     document.getElementById('statEvents').textContent=DEMO.length;
     document.getElementById('statVotes').textContent=52;
   }
-  // ERP stats from in-memory Firebase data
-  const inc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const exp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  // ERP stats from budget engine + legacy finance
+  let inc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  let exp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  // Add event budgets actual data
+  _eventBudgets.forEach(b=>{inc+=ebIncomeTotal(b,'actual');exp+=ebExpenseGrossTotal(b,'actual');});
   document.getElementById('statIncome').textContent=fmtMoney(inc);
   const net=inc-exp;
   document.getElementById('statBalance').textContent=fmtMoney(net);
@@ -1723,6 +2067,535 @@ function renderTaskCalendar(){
 }
 
 // ===== ERP: FINANCE (Firebase) =====
+// ===== BUDGET ENGINE: Finance Tab System =====
+let _activeFinTab='fin-dashboard';
+function switchFinTab(tabId){
+  document.querySelectorAll('.fin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.fin-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.fin-tab[onclick*="${tabId}"]`)?.classList.add('active');
+  document.getElementById(tabId)?.classList.add('active');
+  _activeFinTab=tabId;
+  if(tabId==='fin-dashboard') renderFinDashboard();
+  if(tabId==='fin-org-budget') renderOrgBudget();
+  if(tabId==='fin-events') renderEventBudgets();
+  if(tabId==='fin-tickets') renderTickets();
+  if(tabId==='fin-sponsors') renderSponsorsTab();
+  if(tabId==='fin-artists') renderArtistsTab();
+}
+
+function renderFinance(){ switchFinTab(_activeFinTab); }
+
+// --- Event Budget helpers ---
+const EB_INCOME_CATS=['Εισιτήρια','Χορηγίες cash','Χορηγίες σε είδος','Επιχορήγηση / grant','Δωρεές','Bar / κυλικείο','Εμπορεύματα','Εργαστήρια','Συμμετοχές','Άλλα έσοδα'];
+const EB_EXPENSE_CATS=['Αμοιβές καλλιτεχνών','Τεχνικά (ήχος/φώτα/προβολή)','Ενοίκιο χώρου','Άδειες / δικαιώματα','Marketing / διαφήμιση','Εκτυπώσεις / υλικά','Προσωπικό / ταξιθέτες','Security / καθαριότητα','Φιλοξενία / catering','Μετακινήσεις','Διαμονή','Ασφάλιση','Πλατφόρμα εισιτηρίων','Απρόβλεπτα','Άλλα έξοδα'];
+
+function ebIncomeTotal(b,mode){return(b.income||[]).reduce((s,r)=>s+Number(r[mode]||0),0);}
+function ebExpenseGrossTotal(b,mode){return(b.expenses||[]).reduce((s,r)=>{const net=Number(r[mode+'Net']||0);const vat=Number(r[mode+'Vat']||b.vatDefault||0.24);return s+net*(1+vat);},0);}
+function ebResult(b,mode){return (mode==='planned'?ebIncomeTotal(b,'planned'):ebIncomeTotal(b,'actual'))-(mode==='planned'?ebExpenseGrossTotal(b,'planned'):ebExpenseGrossTotal(b,'actual'));}
+
+function getEventTitle(b){
+  if(b.eventId){const ev=_events.find(e=>e.id===b.eventId);if(ev)return ev.title;}
+  return b.title||'Χωρίς τίτλο';
+}
+
+// --- Dashboard Tab ---
+function renderFinDashboard(){
+  let pInc=0,pExp=0,aInc=0,aExp=0;
+  _eventBudgets.forEach(b=>{pInc+=ebIncomeTotal(b,'planned');pExp+=ebExpenseGrossTotal(b,'planned');aInc+=ebIncomeTotal(b,'actual');aExp+=ebExpenseGrossTotal(b,'actual');});
+  const pNet=pInc-pExp,aNet=aInc-aExp;
+  const maxV=Math.max(pInc,pExp,aInc,aExp)||1;
+  document.getElementById('fd-planned-inc').textContent=fmtMoney(pInc);
+  document.getElementById('fd-planned-exp').textContent=fmtMoney(pExp);
+  document.getElementById('fd-actual-inc').textContent=fmtMoney(aInc);
+  document.getElementById('fd-actual-exp').textContent=fmtMoney(aExp);
+  document.getElementById('fd-planned-inc-sub').textContent=_eventBudgets.length+' εκδηλώσεις';
+  document.getElementById('fd-planned-inc-bar').style.width=(pInc/maxV*100)+'%';
+  document.getElementById('fd-planned-exp-bar').style.width=(pExp/maxV*100)+'%';
+  const pnEl=document.getElementById('fd-planned-net');pnEl.textContent=fmtMoney(pNet);pnEl.style.color=pNet>=0?'var(--green)':'var(--red)';
+  const anEl=document.getElementById('fd-actual-net');anEl.textContent=fmtMoney(aNet);anEl.style.color=aNet>=0?'var(--green)':'var(--red)';
+  if(_orgBudget){
+    const oip=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.planned||0),0);
+    const oia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0);
+    const oep=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.planned||0),0);
+    const oea=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.actual||0),0);
+    document.getElementById('fd-org-planned').textContent=fmtMoney(oip-oep);
+    document.getElementById('fd-org-actual').textContent=fmtMoney(oia-oea);
+    const v=(oia-oea)-(oip-oep);
+    const vEl=document.getElementById('fd-org-variance');vEl.textContent=fmtMoney(v);vEl.style.color=v>=0?'var(--green)':'var(--red)';
+  }
+  const tbody=document.getElementById('fd-snapshot-tbody');
+  if(!_eventBudgets.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν event budgets</td></tr>';return;}
+  tbody.innerHTML=_eventBudgets.map(b=>{
+    const pR=ebResult(b,'planned'),aR=ebResult(b,'actual'),v=aR-pR;
+    const st=b.status||'Σχεδιασμός';
+    return '<tr><td>'+getEventTitle(b)+'</td><td style="font-size:11px">'+(b.eventType||'—')+'</td><td style="color:'+(pR>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(pR)+'</td><td style="color:'+(aR>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(aR)+'</td><td style="color:'+(v>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(v)+'</td><td><span class="status '+statusClass(st)+'">'+st+'</span></td></tr>';
+  }).join('');
+}
+
+// --- Org Budget Tab ---
+function renderOrgBudget(){
+  if(!_orgBudget)return;
+  let evInc=0,evExp=0,evIncA=0,evExpA=0;
+  _eventBudgets.forEach(b=>{evInc+=ebIncomeTotal(b,'planned');evExp+=ebExpenseGrossTotal(b,'planned');evIncA+=ebIncomeTotal(b,'actual');evExpA+=ebExpenseGrossTotal(b,'actual');});
+  _orgBudget.incomeRows.forEach(r=>{if(r.auto){r.planned=evInc;r.actual=evIncA;}});
+  _orgBudget.expenseRows.forEach(r=>{if(r.auto){r.planned=evExp;r.actual=evExpA;}});
+  document.getElementById('org-year').textContent=_orgBudget.year||2026;
+  const incTb=document.getElementById('org-income-tbody');
+  incTb.innerHTML=_orgBudget.incomeRows.map((r,i)=>{
+    const vr=Number(r.actual||0)-Number(r.planned||0);
+    return '<tr><td>'+r.label+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'income\','+i+',\'planned\',this.value)">')+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'income\','+i+',\'actual\',this.value)">')+'</td><td style="color:'+(vr>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td><td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'income\','+i+',\'notes\',this.value)">')+'</td></tr>';
+  }).join('');
+  const expTb=document.getElementById('org-expense-tbody');
+  expTb.innerHTML=_orgBudget.expenseRows.map((r,i)=>{
+    const vr=Number(r.actual||0)-Number(r.planned||0);
+    return '<tr><td>'+r.label+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'expense\','+i+',\'planned\',this.value)">')+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'expense\','+i+',\'actual\',this.value)">')+'</td><td style="color:'+(vr<=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td><td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'expense\','+i+',\'notes\',this.value)">')+'</td></tr>';
+  }).join('');
+  const tip=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.planned||0),0);
+  const tia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  const tep=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.planned||0),0);
+  const tea=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  document.getElementById('org-inc-plan-total').textContent=fmtMoney(tip);
+  document.getElementById('org-inc-act-total').textContent=fmtMoney(tia);
+  document.getElementById('org-inc-var-total').textContent=fmtMoney(tia-tip);
+  document.getElementById('org-exp-plan-total').textContent=fmtMoney(tep);
+  document.getElementById('org-exp-act-total').textContent=fmtMoney(tea);
+  document.getElementById('org-exp-var-total').textContent=fmtMoney(tea-tep);
+  const npEl=document.getElementById('org-net-planned');npEl.textContent=fmtMoney(tip-tep);npEl.style.color=(tip-tep)>=0?'var(--green)':'var(--red)';
+  const naEl=document.getElementById('org-net-actual');naEl.textContent=fmtMoney(tia-tea);naEl.style.color=(tia-tea)>=0?'var(--green)':'var(--red)';
+  document.getElementById('org-reserve').textContent=fmtMoney(tia-tea);
+}
+function orgRowChange(type,idx,field,val){
+  const rows=type==='income'?_orgBudget.incomeRows:_orgBudget.expenseRows;
+  if(field==='notes')rows[idx][field]=val;
+  else rows[idx][field]=parseFloat(val)||0;
+  renderOrgBudget();
+}
+async function saveOrgBudget(){
+  try{
+    const {doc:docRef}=getFb();
+    const d=docRef(getDb(),'settings','org_budget');
+    const {setDoc}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await setDoc(d,{..._orgBudget,updatedAt:Date.now()});
+    toast('Ο προϋπολογισμός φορέα αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα αποθήκευσης','error');console.error(e);}
+}
+
+// --- Event Budgets Tab ---
+function renderEventBudgets(){
+  const sel=document.getElementById('eb-filter-event');
+  const cv=sel.value;
+  sel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';
+  _eventBudgets.forEach(b=>sel.insertAdjacentHTML('beforeend','<option value="'+b.id+'">'+getEventTitle(b)+'</option>'));
+  sel.value=cv;
+  let list=[..._eventBudgets];
+  if(cv)list=list.filter(b=>b.id===cv);
+  if(!list.length){document.getElementById('eb-list').innerHTML='<div class="empty-msg" style="padding:30px;text-align:center">Δεν υπάρχουν event budgets. Πρόσθεσε ένα!</div>';return;}
+  document.getElementById('eb-list').innerHTML=list.map(b=>{
+    const pI=ebIncomeTotal(b,'planned'),aI=ebIncomeTotal(b,'actual');
+    const pE=ebExpenseGrossTotal(b,'planned'),aE=ebExpenseGrossTotal(b,'actual');
+    const pR=pI-pE,aR=aI-aE;
+    return '<div class="stat-card" style="text-align:left;margin-bottom:12px;cursor:pointer" onclick="editEventBudget(\''+b.id+'\')"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-weight:700;font-size:15px">'+getEventTitle(b)+'</div><div style="display:flex;gap:6px;align-items:center"><span class="status '+statusClass(b.status||'')+'">'+( b.status||'Σχεδιασμός')+'</span><button class="btn-danger" onclick="event.stopPropagation();deleteEventBudget(\''+b.id+'\')" style="padding:3px 7px;font-size:10px">✕</button></div></div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:8px">'+(b.eventType||'')+' '+(b.date?'· '+fmtDate(b.date):'')+' '+(b.venue?'· '+b.venue:'')+'</div><div style="display:flex;gap:16px;font-size:12px;flex-wrap:wrap"><div><span style="color:rgba(255,255,255,0.5)">Πρόβλεψη Κ/Ζ:</span> <span style="color:'+(pR>=0?'var(--green)':'var(--red)')+';font-weight:600">'+fmtMoney(pR)+'</span></div><div><span style="color:rgba(255,255,255,0.5)">Πραγματικό Κ/Ζ:</span> <span style="color:'+(aR>=0?'var(--green)':'var(--red)')+';font-weight:600">'+fmtMoney(aR)+'</span></div><div><span style="color:rgba(255,255,255,0.5)">Εισιτήρια:</span> '+(b.plannedTickets||0)+' πρόβλ. / '+(b.actualTickets||0)+' πραγμ.</div></div></div>';
+  }).join('');
+}
+
+function openEventBudgetModal(id){
+  document.getElementById('eb-id').value='';
+  ['eb-title','eb-date','eb-venue','eb-capacity','eb-ticket-price','eb-planned-tickets','eb-actual-tickets'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('eb-vat').value='24';document.getElementById('eb-status').value='Σχεδιασμός';document.getElementById('eb-type').value='Κινηματογράφος';
+  const evSel=document.getElementById('eb-event');
+  evSel.innerHTML='<option value="">— Νέα Εκδήλωση —</option>';
+  _events.forEach(e=>evSel.insertAdjacentHTML('beforeend','<option value="'+e.id+'">'+e.title+'</option>'));
+  document.getElementById('eb-income-rows').innerHTML=EB_INCOME_CATS.map((c,i)=>'<tr><td style="font-size:14px">'+c+'</td><td><input class="eb-input" type="number" step="0.01" id="ebi-p-'+i+'" value="0" oninput="calcTicketPrice()"></td><td><input class="eb-input" type="number" step="0.01" id="ebi-a-'+i+'" value="0"></td><td><input class="eb-input notes" type="text" id="ebi-n-'+i+'" value=""></td></tr>').join('');
+  document.getElementById('eb-expense-rows').innerHTML=EB_EXPENSE_CATS.map((c,i)=>'<tr><td style="font-size:14px">'+c+'</td><td><input class="eb-input" type="number" step="0.01" id="ebe-pn-'+i+'" value="0"></td><td><input class="eb-input" type="number" step="1" id="ebe-pv-'+i+'" value="24" style="width:70px"></td><td class="eb-computed" id="ebe-pg-'+i+'">0 €</td><td><input class="eb-input" type="number" step="0.01" id="ebe-an-'+i+'" value="0"></td><td><input class="eb-input" type="number" step="1" id="ebe-av-'+i+'" value="24" style="width:70px"></td><td class="eb-computed" id="ebe-ag-'+i+'">0 €</td><td><input class="eb-input notes" type="text" id="ebe-n-'+i+'" value=""></td></tr>').join('');
+  EB_EXPENSE_CATS.forEach((_,i)=>{['pn','pv','an','av'].forEach(f=>{document.getElementById('ebe-'+f+'-'+i)?.addEventListener('input',()=>calcExpGross(i));});});
+  document.getElementById('modal-eb-title').textContent='Νέο Event Budget';
+  if(id) loadEventBudgetIntoModal(id);
+  document.getElementById('modal-event-budget').classList.add('open');
+}
+function calcExpGross(i){
+  const pn=parseFloat(document.getElementById('ebe-pn-'+i).value)||0;
+  const pv=(parseFloat(document.getElementById('ebe-pv-'+i).value)||0)/100;
+  const an=parseFloat(document.getElementById('ebe-an-'+i).value)||0;
+  const av=(parseFloat(document.getElementById('ebe-av-'+i).value)||0)/100;
+  document.getElementById('ebe-pg-'+i).textContent=fmtMoney(pn*(1+pv));
+  document.getElementById('ebe-ag-'+i).textContent=fmtMoney(an*(1+av));
+  calcTicketPrice();
+}
+function calcTicketPrice(){
+  // Σύνολο εξόδων (planned gross)
+  let totalExp=0;
+  EB_EXPENSE_CATS.forEach((_,i)=>{
+    const pn=parseFloat(document.getElementById('ebe-pn-'+i)?.value)||0;
+    const pv=(parseFloat(document.getElementById('ebe-pv-'+i)?.value)||0)/100;
+    totalExp+=pn*(1+pv);
+  });
+  // Λοιπά έσοδα (planned, χωρίς εισιτήρια = index 0)
+  let otherInc=0;
+  EB_INCOME_CATS.forEach((_,i)=>{
+    if(i===0) return; // skip Εισιτήρια
+    otherInc+=parseFloat(document.getElementById('ebi-p-'+i)?.value)||0;
+  });
+  const toCover=totalExp-otherInc;
+  const margin=parseFloat(document.getElementById('ebc-margin')?.value)||0;
+  const tickets=parseInt(document.getElementById('ebc-tickets')?.value)||parseInt(document.getElementById('eb-planned-tickets')?.value)||0;
+  document.getElementById('ebc-total-exp').textContent=fmtMoney(totalExp);
+  document.getElementById('ebc-other-inc').textContent=fmtMoney(otherInc);
+  document.getElementById('ebc-to-cover').textContent=fmtMoney(Math.max(toCover,0));
+  if(tickets>0 && toCover>0){
+    // τιμή = ποσό_κάλυψης / (1 - margin%) / αριθμός_εισιτηρίων
+    const priceNeeded=toCover/(1-margin/100)/tickets;
+    const rounded=Math.ceil(priceNeeded*2)/2; // στρογγυλοποίηση στο 0.50
+    const totalTicketRev=rounded*tickets;
+    const netProfit=totalTicketRev+otherInc-totalExp;
+    document.getElementById('ebc-suggested-price').textContent=fmtMoney(rounded);
+    const npEl=document.getElementById('ebc-net-profit');
+    npEl.textContent=fmtMoney(netProfit);
+    npEl.style.color=netProfit>=0?'var(--green)':'var(--red)';
+  } else {
+    document.getElementById('ebc-suggested-price').textContent='— €';
+    document.getElementById('ebc-net-profit').textContent='— €';
+    document.getElementById('ebc-net-profit').style.color='var(--gold)';
+  }
+}
+function applyTicketPrice(){
+  const priceText=document.getElementById('ebc-suggested-price').textContent;
+  const price=parseFloat(priceText.replace(/[^\d,.]/g,'').replace(',','.'));
+  if(!price||isNaN(price)){toast('Δεν υπάρχει προτεινόμενη τιμή','error');return;}
+  document.getElementById('eb-ticket-price').value=price;
+  // Sync planned tickets from calculator
+  const tickets=parseInt(document.getElementById('ebc-tickets').value)||0;
+  if(tickets>0) document.getElementById('eb-planned-tickets').value=tickets;
+  // Update εισιτήρια income row (index 0)
+  const ticketInc=price*tickets;
+  document.getElementById('ebi-p-0').value=ticketInc;
+  toast('Τιμή εισιτηρίου: '+fmtMoney(price)+' εφαρμόστηκε');
+}
+function loadEventBudgetIntoModal(id){
+  const b=_eventBudgets.find(x=>x.id===id);if(!b)return;
+  document.getElementById('eb-id').value=b.id;
+  document.getElementById('eb-event').value=b.eventId||'';
+  document.getElementById('eb-title').value=b.title||'';
+  document.getElementById('eb-type').value=b.eventType||'Κινηματογράφος';
+  document.getElementById('eb-date').value=b.date||'';
+  document.getElementById('eb-venue').value=b.venue||'';
+  document.getElementById('eb-status').value=b.status||'Σχεδιασμός';
+  document.getElementById('eb-capacity').value=b.capacity||'';
+  document.getElementById('eb-ticket-price').value=b.ticketPrice||'';
+  document.getElementById('eb-planned-tickets').value=b.plannedTickets||'';
+  document.getElementById('eb-actual-tickets').value=b.actualTickets||'';
+  document.getElementById('eb-vat').value=(b.vatDefault||0.24)*100;
+  (b.income||[]).forEach((r,i)=>{
+    const pe=document.getElementById('ebi-p-'+i);if(pe)pe.value=r.planned||0;
+    const ae=document.getElementById('ebi-a-'+i);if(ae)ae.value=r.actual||0;
+    const ne=document.getElementById('ebi-n-'+i);if(ne)ne.value=r.notes||'';
+  });
+  (b.expenses||[]).forEach((r,i)=>{
+    const pne=document.getElementById('ebe-pn-'+i);if(pne)pne.value=r.plannedNet||0;
+    const pve=document.getElementById('ebe-pv-'+i);if(pve)pve.value=(r.plannedVat||0.24)*100;
+    const ane=document.getElementById('ebe-an-'+i);if(ane)ane.value=r.actualNet||0;
+    const ave=document.getElementById('ebe-av-'+i);if(ave)ave.value=(r.actualVat||0.24)*100;
+    const ne=document.getElementById('ebe-n-'+i);if(ne)ne.value=r.notes||'';
+    calcExpGross(i);
+  });
+  document.getElementById('modal-eb-title').textContent='Επεξεργασία Budget';
+  // Sync calculator
+  document.getElementById('ebc-tickets').value=b.plannedTickets||'';
+  calcTicketPrice();
+}
+function editEventBudget(id){openEventBudgetModal(id);}
+
+async function saveEventBudget(){
+  const id=document.getElementById('eb-id').value;
+  const vatDef=(parseFloat(document.getElementById('eb-vat').value)||24)/100;
+  const income=EB_INCOME_CATS.map((_,i)=>({category:EB_INCOME_CATS[i],planned:parseFloat(document.getElementById('ebi-p-'+i).value)||0,actual:parseFloat(document.getElementById('ebi-a-'+i).value)||0,notes:document.getElementById('ebi-n-'+i).value||''}));
+  const expenses=EB_EXPENSE_CATS.map((_,i)=>({category:EB_EXPENSE_CATS[i],plannedNet:parseFloat(document.getElementById('ebe-pn-'+i).value)||0,plannedVat:(parseFloat(document.getElementById('ebe-pv-'+i).value)||24)/100,actualNet:parseFloat(document.getElementById('ebe-an-'+i).value)||0,actualVat:(parseFloat(document.getElementById('ebe-av-'+i).value)||24)/100,notes:document.getElementById('ebe-n-'+i).value||''}));
+  const rec={eventId:document.getElementById('eb-event').value||'',title:document.getElementById('eb-title').value.trim(),eventType:document.getElementById('eb-type').value,date:document.getElementById('eb-date').value,venue:document.getElementById('eb-venue').value.trim(),status:document.getElementById('eb-status').value,capacity:parseInt(document.getElementById('eb-capacity').value)||0,ticketPrice:parseFloat(document.getElementById('eb-ticket-price').value)||0,plannedΕισιτήρια:parseInt(document.getElementById('eb-planned-tickets').value)||0,actualΕισιτήρια:parseInt(document.getElementById('eb-actual-tickets').value)||0,vatDefault:vatDef,income,expenses};
+  try{
+    if(id){await erpUpdate('event_budgets',id,rec);const idx=_eventBudgets.findIndex(x=>x.id===id);if(idx!==-1)_eventBudgets[idx]={id,...rec};}
+    else{const nid=await erpAdd('event_budgets',rec);_eventBudgets.unshift({id:nid,...rec,createdAt:Date.now()});}
+    closeModal('modal-event-budget');renderFinance();loadStats();toast('Event budget αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα αποθήκευσης','error');console.error(e);}
+}
+async function deleteEventBudget(id){
+  if(!confirm('Διαγραφή event budget;'))return;
+  try{await erpDelete('event_budgets',id);_eventBudgets=_eventBudgets.filter(x=>x.id!==id);renderFinance();loadStats();toast('Διαγράφηκε','error');}catch(e){toast('Σφάλμα','error');}
+}
+
+// --- Tickets Tab ---
+function renderTickets(){
+  const tbody=document.getElementById('tickets-tbody');
+  if(!_eventBudgets.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν event budgets</td></tr>';return;}
+  let tPS=0,tAS=0,tPR=0,tAR=0;
+  tbody.innerHTML=_eventBudgets.map(b=>{
+    const price=b.ticketPrice||0,ps=b.plannedTickets||0,as=b.actualTickets||0;
+    const pr=price*ps,ar=price*as;
+    tPS+=ps;tAS+=as;tPR+=pr;tAR+=ar;
+    return '<tr><td>'+getEventTitle(b)+'</td><td style="text-align:right">'+fmtMoney(price)+'</td><td style="text-align:right">'+ps+'</td><td style="text-align:right">'+as+'</td><td style="color:var(--green);text-align:right">'+fmtMoney(pr)+'</td><td style="color:var(--green);text-align:right">'+fmtMoney(ar)+'</td><td style="color:'+(ar-pr>=0?'var(--green)':'var(--red)')+';text-align:right">'+fmtMoney(ar-pr)+'</td></tr>';
+  }).join('');
+  document.getElementById('tk-plan-sold').textContent=tPS;
+  document.getElementById('tk-act-sold').textContent=tAS;
+  document.getElementById('tk-plan-rev').textContent=fmtMoney(tPR);
+  document.getElementById('tk-act-rev').textContent=fmtMoney(tAR);
+  document.getElementById('tk-var').textContent=fmtMoney(tAR-tPR);
+}
+
+// --- Sponsors Tab ---
+function renderSponsorsTab(){
+  const tbody=document.getElementById('sponsors-tbody');
+  if(!_sponsors.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν χορηγοί</td></tr>';return;}
+  let tP=0,tA=0;
+  tbody.innerHTML=_sponsors.map(s=>{
+    const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;
+    tP+=Number(s.planned||0);tA+=Number(s.actual||0);
+    const paidCls=s.paid==='yes'?'paid-yes':s.paid==='partial'?'paid-partial':'paid-no';
+    const paidTxt=s.paid==='yes'?'Ναι':s.paid==='partial'?'Μερικά':'Όχι';
+    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+s.name+'</td><td style="font-size:11px">'+(s.type||'—')+'</td><td style="text-align:right">'+fmtMoney(s.planned||0)+'</td><td style="text-align:right">'+fmtMoney(s.actual||0)+'</td><td style="font-size:11px">'+(s.invoice||'—')+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5)">'+(s.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editSponsor(\''+s.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteSponsor(\''+s.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
+  }).join('');
+  document.getElementById('sp-plan-total').textContent=fmtMoney(tP);
+  document.getElementById('sp-act-total').textContent=fmtMoney(tA);
+}
+function populateEventSelect(selId){
+  const sel=document.getElementById(selId);
+  sel.innerHTML='<option value="">— Γενικό Φορέα —</option>';
+  _events.forEach(e=>sel.insertAdjacentHTML('beforeend','<option value="'+e.id+'">'+e.title+'</option>'));
+  _eventBudgets.filter(b=>!b.eventId&&b.title).forEach(b=>sel.insertAdjacentHTML('beforeend','<option value="eb:'+b.id+'">'+b.title+' (budget)</option>'));
+}
+function openSponsorModal(id){
+  document.getElementById('sp-id').value='';
+  ['sp-name','sp-invoice','sp-planned','sp-actual','sp-notes','sp-installment-start'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('sp-contact-id').value='';document.getElementById('sp-contact-info').innerHTML='';
+  document.getElementById('sp-type').value='Μετρητά';document.getElementById('sp-paid').value='no';
+  document.getElementById('sp-pay-type').value='once';document.getElementById('sp-installments').value='1';
+  populateEventSelect('sp-event');
+  document.getElementById('modal-sponsor-title').textContent='Νέος Χορηγός';
+  if(id){
+    const s=_sponsors.find(x=>x.id===id);if(!s)return;
+    document.getElementById('sp-id').value=s.id;document.getElementById('sp-event').value=s.eventId||'';
+    document.getElementById('sp-name').value=s.name||'';document.getElementById('sp-type').value=s.type||'Μετρητά';
+    document.getElementById('sp-contact-id').value=s.contactId||'';
+    if(s.contactId){const c=_contacts.find(x=>x.id===s.contactId);if(c)showContactInfo('sp-contact-info',c);}
+    document.getElementById('sp-planned').value=s.planned||'';document.getElementById('sp-actual').value=s.actual||'';
+    document.getElementById('sp-invoice').value=s.invoice||'';document.getElementById('sp-paid').value=s.paid||'no';
+    document.getElementById('sp-notes').value=s.notes||'';
+    document.getElementById('sp-pay-type').value=s.payType||'once';
+    document.getElementById('sp-installments').value=s.installments||1;
+    document.getElementById('sp-installment-start').value=s.installmentStart||'';
+    document.getElementById('modal-sponsor-title').textContent='Επεξεργασία Χορηγού';
+  }
+  document.getElementById('modal-sponsor').classList.add('open');
+}
+function editSponsor(id){openSponsorModal(id);}
+async function saveSponsor(){
+  const id=document.getElementById('sp-id').value;
+  const name=document.getElementById('sp-name').value.trim();
+  if(!name){toast('Συμπλήρωσε όνομα χορηγού','error');return;}
+  const rec={eventId:document.getElementById('sp-event').value,name,contactId:document.getElementById('sp-contact-id').value||'',type:document.getElementById('sp-type').value,planned:parseFloat(document.getElementById('sp-planned').value)||0,actual:parseFloat(document.getElementById('sp-actual').value)||0,invoice:document.getElementById('sp-invoice').value.trim(),paid:document.getElementById('sp-paid').value,notes:document.getElementById('sp-notes').value.trim(),payType:document.getElementById('sp-pay-type').value,installments:parseInt(document.getElementById('sp-installments').value)||1,installmentStart:document.getElementById('sp-installment-start').value};
+  try{
+    if(id){await erpUpdate('sponsors',id,rec);const idx=_sponsors.findIndex(x=>x.id===id);if(idx!==-1)_sponsors[idx]={id,...rec};}
+    else{const nid=await erpAdd('sponsors',rec);_sponsors.unshift({id:nid,...rec,createdAt:Date.now()});}
+    closeModal('modal-sponsor');renderSponsorsTab();toast('Χορηγός αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα','error');}
+}
+async function deleteSponsor(id){
+  if(!confirm('Διαγραφή χορηγού;'))return;
+  try{await erpDelete('sponsors',id);_sponsors=_sponsors.filter(x=>x.id!==id);renderSponsorsTab();toast('Διαγράφηκε','error');}catch(e){toast('Σφάλμα','error');}
+}
+
+// --- Artists/Vendors Tab ---
+function renderArtistsTab(){
+  const tbody=document.getElementById('artists-tbody');
+  if(!_artists.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εγγραφές</td></tr>';return;}
+  let tP=0,tA=0;
+  tbody.innerHTML=_artists.map(a=>{
+    const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;
+    tP+=Number(a.planned||0);tA+=Number(a.actual||0);
+    const paidCls=a.paid==='yes'?'paid-yes':a.paid==='partial'?'paid-partial':'paid-no';
+    const paidTxt=a.paid==='yes'?'Ναι':a.paid==='partial'?'Μερικά':'Όχι';
+    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+a.name+'</td><td style="font-size:11px">'+(a.role||'—')+'</td><td style="text-align:right">'+fmtMoney(a.planned||0)+'</td><td style="text-align:right">'+fmtMoney(a.actual||0)+'</td><td>'+fmtDate(a.dueDate)+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5)">'+(a.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editArtist(\''+a.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteArtist(\''+a.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
+  }).join('');
+  document.getElementById('ar-plan-total').textContent=fmtMoney(tP);
+  document.getElementById('ar-act-total').textContent=fmtMoney(tA);
+}
+function openArtistModal(id){
+  document.getElementById('ar-id').value='';
+  ['ar-name','ar-role','ar-planned','ar-actual','ar-due','ar-notes','ar-installment-start','ar-per-installment'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('ar-contact-id').value='';document.getElementById('ar-contact-info').innerHTML='';
+  document.getElementById('ar-category').value='Καλλιτέχνης';document.getElementById('ar-paid').value='no';
+  document.getElementById('ar-pay-type').value='once';document.getElementById('ar-installments').value='1';
+  document.getElementById('ar-installment-schedule').innerHTML='';
+  populateEventSelect('ar-event');
+  document.getElementById('modal-artist-title').textContent='Νέα Εγγραφή';
+  if(id){
+    const a=_artists.find(x=>x.id===id);if(!a)return;
+    document.getElementById('ar-id').value=a.id;document.getElementById('ar-event').value=a.eventId||'';
+    document.getElementById('ar-name').value=a.name||'';document.getElementById('ar-role').value=a.role||'';
+    document.getElementById('ar-contact-id').value=a.contactId||'';
+    if(a.contactId){const c=_contacts.find(x=>x.id===a.contactId);if(c)showContactInfo('ar-contact-info',c);}
+    document.getElementById('ar-category').value=a.category||'Καλλιτέχνης';
+    document.getElementById('ar-planned').value=a.planned||'';document.getElementById('ar-actual').value=a.actual||'';
+    document.getElementById('ar-due').value=a.dueDate||'';document.getElementById('ar-paid').value=a.paid||'no';
+    document.getElementById('ar-notes').value=a.notes||'';
+    document.getElementById('ar-pay-type').value=a.payType||'once';
+    document.getElementById('ar-installments').value=a.installments||1;
+    document.getElementById('ar-installment-start').value=a.installmentStart||'';
+    calcInstallmentAmount();
+    document.getElementById('modal-artist-title').textContent='Επεξεργασία';
+  }
+  toggleInstallments();
+  document.getElementById('modal-artist').classList.add('open');
+}
+function editArtist(id){openArtistModal(id);}
+async function saveArtist(){
+  const id=document.getElementById('ar-id').value;
+  const name=document.getElementById('ar-name').value.trim();
+  if(!name){toast('Συμπλήρωσε όνομα','error');return;}
+  const rec={eventId:document.getElementById('ar-event').value,name,contactId:document.getElementById('ar-contact-id').value||'',role:document.getElementById('ar-role').value.trim(),category:document.getElementById('ar-category').value,planned:parseFloat(document.getElementById('ar-planned').value)||0,actual:parseFloat(document.getElementById('ar-actual').value)||0,dueDate:document.getElementById('ar-due').value,paid:document.getElementById('ar-paid').value,notes:document.getElementById('ar-notes').value.trim(),payType:document.getElementById('ar-pay-type').value,installments:parseInt(document.getElementById('ar-installments').value)||1,installmentStart:document.getElementById('ar-installment-start').value};
+  try{
+    if(id){await erpUpdate('artists_vendors',id,rec);const idx=_artists.findIndex(x=>x.id===id);if(idx!==-1)_artists[idx]={id,...rec};}
+    else{const nid=await erpAdd('artists_vendors',rec);_artists.unshift({id:nid,...rec,createdAt:Date.now()});}
+    closeModal('modal-artist');renderArtistsTab();toast('Αποθηκεύτηκε');
+  }catch(e){toast('Σφάλμα','error');}
+}
+async function deleteArtist(id){
+  if(!confirm('Διαγραφή;'))return;
+  try{await erpDelete('artists_vendors',id);_artists=_artists.filter(x=>x.id!==id);renderArtistsTab();toast('Διαγράφηκε','error');}catch(e){toast('Σφάλμα','error');}
+}
+
+// --- Contact picker for Artists & Sponsors ---
+function filterArContacts(){
+  const q=(document.getElementById('ar-name').value||'').toLowerCase();
+  const dd=document.getElementById('ar-contact-dropdown');
+  if(!q||q.length<1){dd.innerHTML='';dd.style.display='none';return;}
+  const matches=_contacts.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.org||'').toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){dd.innerHTML='';dd.style.display='none';return;}
+  dd.style.display='block';
+  dd.innerHTML=matches.map(c=>'<div class="contact-picker-item" onmousedown="selectArContact(\''+c.id+'\')"><strong>'+c.name+'</strong>'+(c.org?' <span style="color:rgba(255,255,255,0.4)">· '+c.org+'</span>':'')+(c.phone?' <span style="color:rgba(255,255,255,0.3)">'+c.phone+'</span>':'')+'</div>').join('');
+}
+function selectArContact(cid){
+  const c=_contacts.find(x=>x.id===cid);if(!c)return;
+  document.getElementById('ar-name').value=c.name;
+  document.getElementById('ar-contact-id').value=c.id;
+  document.getElementById('ar-contact-dropdown').style.display='none';
+  showContactInfo('ar-contact-info',c);
+}
+function filterSpContacts(){
+  const q=(document.getElementById('sp-name').value||'').toLowerCase();
+  const dd=document.getElementById('sp-contact-dropdown');
+  if(!q||q.length<1){dd.innerHTML='';dd.style.display='none';return;}
+  const matches=_contacts.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.org||'').toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){dd.innerHTML='';dd.style.display='none';return;}
+  dd.style.display='block';
+  dd.innerHTML=matches.map(c=>'<div class="contact-picker-item" onmousedown="selectSpContact(\''+c.id+'\')"><strong>'+c.name+'</strong>'+(c.org?' <span style="color:rgba(255,255,255,0.4)">· '+c.org+'</span>':'')+(c.phone?' <span style="color:rgba(255,255,255,0.3)">'+c.phone+'</span>':'')+'</div>').join('');
+}
+function selectSpContact(cid){
+  const c=_contacts.find(x=>x.id===cid);if(!c)return;
+  document.getElementById('sp-name').value=c.name;
+  document.getElementById('sp-contact-id').value=c.id;
+  document.getElementById('sp-contact-dropdown').style.display='none';
+  showContactInfo('sp-contact-info',c);
+}
+function showContactInfo(elId,c){
+  let info=[];
+  if(c.org)info.push(c.org);
+  if(c.phone)info.push('📞 '+c.phone);
+  if(c.email)info.push('✉ '+c.email);
+  if(c.address)info.push('📍 '+c.address);
+  document.getElementById(elId).innerHTML=info.length?'<div style="background:var(--gold-dim);border:1px solid var(--gold-line);padding:8px 12px;font-size:12px;color:rgba(255,255,255,0.7)">'+info.join(' · ')+'</div>':'';
+}
+// Close dropdowns on blur
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ar-name')&&!e.target.closest('#ar-contact-dropdown')){const d=document.getElementById('ar-contact-dropdown');if(d)d.style.display='none';}
+  if(!e.target.closest('#sp-name')&&!e.target.closest('#sp-contact-dropdown')){const d=document.getElementById('sp-contact-dropdown');if(d)d.style.display='none';}
+});
+
+// --- Installment helpers ---
+function toggleInstallments(){
+  const t=document.getElementById('ar-pay-type').value;
+  const show=t!=='once';
+  document.getElementById('ar-installments').closest('.form-group').style.opacity=show?1:0.3;
+  document.getElementById('ar-installment-start').closest('.form-group').style.opacity=show?1:0.3;
+  document.getElementById('ar-per-installment').closest('.form-group').style.opacity=show?1:0.3;
+  if(show) calcInstallmentAmount(); else document.getElementById('ar-installment-schedule').innerHTML='';
+}
+function calcInstallmentAmount(){
+  const total=parseFloat(document.getElementById('ar-planned').value)||0;
+  const n=parseInt(document.getElementById('ar-installments').value)||1;
+  const perInst=total/n;
+  document.getElementById('ar-per-installment').value=perInst.toFixed(2);
+  // Show schedule preview
+  const start=document.getElementById('ar-installment-start').value;
+  const schedEl=document.getElementById('ar-installment-schedule');
+  if(!start||n<=1){schedEl.innerHTML='';return;}
+  let html='<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Πρόγραμμα δόσεων:</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
+  for(let i=0;i<n;i++){
+    const d=new Date(start);d.setMonth(d.getMonth()+i);
+    const label=d.toLocaleDateString('el-GR',{month:'short',year:'numeric'});
+    html+='<span style="background:var(--gold-dim);border:1px solid var(--gold-line);padding:4px 10px;font-size:12px;font-weight:600">'+label+': '+fmtMoney(perInst)+'</span>';
+  }
+  html+='</div>';
+  schedEl.innerHTML=html;
+}
+// Attach live calc on planned amount change
+document.addEventListener('input',e=>{
+  if(e.target.id==='ar-planned'||e.target.id==='ar-installments'||e.target.id==='ar-installment-start') calcInstallmentAmount();
+});
+
+// --- Monthly breakdown helper (for reports) ---
+function getMonthlyBreakdown(items,year){
+  // Returns array of 12 months {month,income,expense}
+  const months=Array.from({length:12},(_,i)=>({month:i,income:0,expense:0}));
+  // From event budgets
+  _eventBudgets.forEach(b=>{
+    if(!b.date)return;
+    const d=new Date(b.date);
+    if(d.getFullYear()!==year)return;
+    const m=d.getMonth();
+    months[m].income+=ebIncomeTotal(b,'actual')||ebIncomeTotal(b,'planned');
+    months[m].expense+=ebExpenseGrossTotal(b,'actual')||ebExpenseGrossTotal(b,'planned');
+  });
+  // From sponsors (with installments)
+  _sponsors.forEach(s=>{
+    const total=Number(s.actual||s.planned||0);
+    if(!total)return;
+    if(s.payType==='installments'||s.payType==='monthly'){
+      const n=parseInt(s.installments)||1;
+      const perMonth=total/n;
+      const start=s.installmentStart?new Date(s.installmentStart):null;
+      if(start){for(let i=0;i<n;i++){const d=new Date(start);d.setMonth(d.getMonth()+i);if(d.getFullYear()===year)months[d.getMonth()].income+=perMonth;}}
+    } else {
+      // Once - try event date or just January
+      const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;
+      const d=ev&&ev.date?new Date(ev.date):null;
+      if(d&&d.getFullYear()===year)months[d.getMonth()].income+=total;
+    }
+  });
+  // From artists/vendors (with installments) — expenses
+  _artists.forEach(a=>{
+    const total=Number(a.actual||a.planned||0);
+    if(!total)return;
+    if(a.payType==='installments'||a.payType==='monthly'){
+      const n=parseInt(a.installments)||1;
+      const perMonth=total/n;
+      const start=a.installmentStart?new Date(a.installmentStart):null;
+      if(start){for(let i=0;i<n;i++){const d=new Date(start);d.setMonth(d.getMonth()+i);if(d.getFullYear()===year)months[d.getMonth()].expense+=perMonth;}}
+    } else {
+      const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;
+      const d=ev&&ev.date?new Date(ev.date):(a.dueDate?new Date(a.dueDate):null);
+      if(d&&d.getFullYear()===year)months[d.getMonth()].expense+=total;
+    }
+  });
+  // From legacy finance entries
+  _finance.forEach(f=>{
+    if(!f.date)return;
+    const d=new Date(f.date);
+    if(d.getFullYear()!==year)return;
+    if(f.type==='income')months[d.getMonth()].income+=Number(f.amount||0);
+    else months[d.getMonth()].expense+=Number(f.amount||0);
+  });
+  return months;
+}
+
+// Legacy finance functions (backward compat) ---
 async function saveFinance(){
   const id=document.getElementById('fin-id').value;
   const amount=document.getElementById('fin-amount').value;
@@ -1737,60 +2610,14 @@ async function saveFinance(){
 }
 function editFinanceModal(id){
   const r=_finance.find(x=>x.id===id);if(!r)return;
-  document.getElementById('fin-id').value=r.id;
-  document.getElementById('fin-type').value=r.type||'income';
-  document.getElementById('fin-amount').value=r.amount||'';
-  document.getElementById('fin-desc').value=r.description||'';
-  document.getElementById('fin-category').value=r.category||'Λοιπά Έξοδα';
-  document.getElementById('fin-date').value=r.date||'';
+  document.getElementById('fin-id').value=r.id;document.getElementById('fin-type').value=r.type||'income';document.getElementById('fin-amount').value=r.amount||'';document.getElementById('fin-desc').value=r.description||'';document.getElementById('fin-category').value=r.category||'Λοιπά Έξοδα';document.getElementById('fin-date').value=r.date||'';
   document.getElementById('modal-finance-title').textContent='Επεξεργασία Εγγραφής';
-  const sel=document.getElementById('fin-event');
-  sel.innerHTML='<option value="">— Γενικό —</option>';
-  _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
-  sel.value=r.eventId||'';
+  const sel=document.getElementById('fin-event');sel.innerHTML='<option value="">— Γενικό —</option>';_events.forEach(e=>sel.insertAdjacentHTML('beforeend','<option value="'+e.id+'">'+e.title+'</option>'));sel.value=r.eventId||'';
   document.getElementById('modal-finance').classList.add('open');
 }
 async function deleteFinance(id){
   if(!confirm('Διαγραφή εγγραφής;'))return;
   try{ await erpDelete('finance',id); _finance=_finance.filter(r=>r.id!==id); renderFinance();loadStats();toast('Διαγράφηκε','error'); }catch(e){toast('Σφάλμα','error');}
-}
-function renderFinance(){
-  const evFilter=document.getElementById('fin-filter-event')?.value||'';
-  const typeFilter=document.getElementById('fin-filter-type')?.value||'';
-  // Populate event filter
-  const sel=document.getElementById('fin-filter-event');
-  if(sel){const cv=sel.value;sel.innerHTML='<option value="">Όλες οι Εκδηλώσεις</option>';_events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));sel.value=cv;}
-  let recs=[..._finance];
-  if(evFilter)recs=recs.filter(r=>r.eventId===evFilter);
-  if(typeFilter)recs=recs.filter(r=>r.type===typeFilter);
-  recs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
-  const net=totalInc-totalExp;
-  const maxVal=Math.max(totalInc,totalExp)||1;
-  document.getElementById('fin-total-inc').textContent=fmtMoney(totalInc);
-  document.getElementById('fin-total-exp').textContent=fmtMoney(totalExp);
-  document.getElementById('fin-net').textContent=fmtMoney(net);
-  document.getElementById('fin-inc-count').textContent=_finance.filter(r=>r.type==='income').length+' εγγραφές εσόδων';
-  document.getElementById('fin-exp-count').textContent=_finance.filter(r=>r.type==='expense').length+' εγγραφές εξόδων';
-  document.getElementById('fin-net-sub').textContent=net>=0?'Θετικό ισοζύγιο ✓':'Αρνητικό ισοζύγιο ✗';
-  document.getElementById('fin-net').style.color=net>=0?'var(--green)':'var(--red)';
-  document.getElementById('fin-inc-bar').style.width=(totalInc/maxVal*100)+'%';
-  document.getElementById('fin-exp-bar').style.width=(totalExp/maxVal*100)+'%';
-  const tbody=document.getElementById('finance-tbody');
-  if(!recs.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:28px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εγγραφές</td></tr>`;return;}
-  tbody.innerHTML=recs.map(r=>{const ev=_events.find(e=>e.id===r.eventId);return`<tr>
-    <td>${fmtDate(r.date)}</td>
-    <td>${r.description}</td>
-    <td style="font-size:11px;color:rgba(255,255,255,0.6)">${r.category||'—'}</td>
-    <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,18)}</span>`:'—'}</td>
-    <td><span class="status ${r.type==='income'?'done':'cancelled'}">${r.type==='income'?'Έσοδο':'Έξοδο'}</span></td>
-    <td style="font-family:var(--font-serif);font-size:18px;color:${r.type==='income'?'var(--green)':'var(--red)'}">${r.type==='income'?'+':'−'}${fmtMoney(r.amount)}</td>
-    <td style="display:flex;gap:5px">
-      <button class="btn-edit" onclick="editFinanceModal('${r.id}')" style="padding:4px 8px;">✎</button>
-      <button class="btn-danger" onclick="deleteFinance('${r.id}')" style="padding:4px 8px;">✕</button>
-    </td>
-  </tr>`;}).join('');
 }
 
 // ===== ERP: CALENDAR =====
@@ -1871,7 +2698,52 @@ function renderReports(){
         <tr style="background:var(--black3)"><td colspan="3"><strong style="letter-spacing:.15em;font-size:12px">ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;font-size:16px">${fmtMoney(totalInc)}</td><td style="color:var(--red);font-weight:700;font-size:16px">${fmtMoney(totalExp)}</td><td style="font-family:var(--font-serif);font-size:20px;color:${totalInc-totalExp>=0?'var(--green)':'var(--red)'}">${fmtMoney(totalInc-totalExp)}</td></tr>
         </tbody>
       </table>
-    </div>`;
+    </div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Μήνα — ${new Date().getFullYear()}</div>
+    ${renderMonthlyTable(new Date().getFullYear())}
+    <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:28px 0;"></div>
+    <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Ανάλυση ανά Τρίμηνο — ${new Date().getFullYear()}</div>
+    ${renderQuarterlyTable(new Date().getFullYear())}
+    `;
+}
+
+function renderMonthlyTable(year){
+  const months=getMonthlyBreakdown([],year);
+  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
+  let cumInc=0,cumExp=0;
+  let rows=months.map((m,i)=>{
+    cumInc+=m.income;cumExp+=m.expense;
+    const net=m.income-m.expense;
+    const cumNet=cumInc-cumExp;
+    return '<tr><td style="font-weight:700">'+mNames[i]+'</td><td style="color:var(--green);text-align:right">'+fmtMoney(m.income)+'</td><td style="color:var(--red);text-align:right">'+fmtMoney(m.expense)+'</td><td style="color:'+(net>=0?'var(--green)':'var(--red)')+';text-align:right;font-weight:600">'+fmtMoney(net)+'</td><td style="color:'+(cumNet>=0?'var(--green)':'var(--red)')+';text-align:right;font-family:var(--font-serif);font-size:16px">'+fmtMoney(cumNet)+'</td></tr>';
+  }).join('');
+  const tInc=months.reduce((s,m)=>s+m.income,0);
+  const tExp=months.reduce((s,m)=>s+m.expense,0);
+  return '<div class="table-wrapper"><table class="data-table"><thead><tr><th>Μήνας</th><th style="text-align:right">Έσοδα</th><th style="text-align:right">Έξοδα</th><th style="text-align:right">Ισοζύγιο</th><th style="text-align:right">Σωρευτικό</th></tr></thead><tbody>'+rows+'<tr style="background:var(--black3)"><td><strong>ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;text-align:right">'+fmtMoney(tInc)+'</td><td style="color:var(--red);font-weight:700;text-align:right">'+fmtMoney(tExp)+'</td><td style="font-weight:700;text-align:right;color:'+(tInc-tExp>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(tInc-tExp)+'</td><td></td></tr></tbody></table></div>';
+}
+
+function renderQuarterlyTable(year){
+  const months=getMonthlyBreakdown([],year);
+  const qNames=['Α\' Τρίμηνο (Ιαν–Μαρ)','Β\' Τρίμηνο (Απρ–Ιούν)','Γ\' Τρίμηνο (Ιούλ–Σεπ)','Δ\' Τρίμηνο (Οκτ–Δεκ)'];
+  let cumInc=0,cumExp=0;
+  let rows=[0,1,2,3].map(q=>{
+    const qInc=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0);
+    const qExp=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.expense,0);
+    cumInc+=qInc;cumExp+=qExp;
+    const net=qInc-qExp;const cumNet=cumInc-cumExp;
+    return '<tr><td style="font-weight:700">'+qNames[q]+'</td><td style="color:var(--green);text-align:right">'+fmtMoney(qInc)+'</td><td style="color:var(--red);text-align:right">'+fmtMoney(qExp)+'</td><td style="color:'+(net>=0?'var(--green)':'var(--red)')+';text-align:right;font-weight:600">'+fmtMoney(net)+'</td><td style="color:'+(cumNet>=0?'var(--green)':'var(--red)')+';text-align:right;font-family:var(--font-serif);font-size:18px">'+fmtMoney(cumNet)+'</td></tr>';
+  }).join('');
+  const tInc=months.reduce((s,m)=>s+m.income,0);
+  const tExp=months.reduce((s,m)=>s+m.expense,0);
+  const h1Inc=months.slice(0,6).reduce((s,m)=>s+m.income,0);
+  const h1Exp=months.slice(0,6).reduce((s,m)=>s+m.expense,0);
+  const h2Inc=months.slice(6).reduce((s,m)=>s+m.income,0);
+  const h2Exp=months.slice(6).reduce((s,m)=>s+m.expense,0);
+  rows+='<tr style="background:rgba(200,169,110,0.08)"><td style="font-weight:700;color:var(--gold)">Α\' Εξάμηνο</td><td style="color:var(--green);text-align:right;font-weight:700">'+fmtMoney(h1Inc)+'</td><td style="color:var(--red);text-align:right;font-weight:700">'+fmtMoney(h1Exp)+'</td><td style="text-align:right;font-weight:700;color:'+(h1Inc-h1Exp>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(h1Inc-h1Exp)+'</td><td></td></tr>';
+  rows+='<tr style="background:rgba(200,169,110,0.08)"><td style="font-weight:700;color:var(--gold)">Β\' Εξάμηνο</td><td style="color:var(--green);text-align:right;font-weight:700">'+fmtMoney(h2Inc)+'</td><td style="color:var(--red);text-align:right;font-weight:700">'+fmtMoney(h2Exp)+'</td><td style="text-align:right;font-weight:700;color:'+(h2Inc-h2Exp>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(h2Inc-h2Exp)+'</td><td></td></tr>';
+  rows+='<tr style="background:var(--black3)"><td><strong>ΕΤΗΣΙΟ ΣΥΝΟΛΟ</strong></td><td style="color:var(--green);font-weight:700;text-align:right;font-size:16px">'+fmtMoney(tInc)+'</td><td style="color:var(--red);font-weight:700;text-align:right;font-size:16px">'+fmtMoney(tExp)+'</td><td style="font-weight:700;text-align:right;font-size:18px;font-family:var(--font-serif);color:'+(tInc-tExp>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(tInc-tExp)+'</td><td></td></tr>';
+  return '<div class="table-wrapper"><table class="data-table"><thead><tr><th>Περίοδος</th><th style="text-align:right">Έσοδα</th><th style="text-align:right">Έξοδα</th><th style="text-align:right">Ισοζύγιο</th><th style="text-align:right">Σωρευτικό</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 // ===== DASHBOARD =====
