@@ -1075,9 +1075,9 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <button class="btn-primary" onclick="openSponsorModal()">+ Νέος Χορηγός</button>
           </div>
           <div class="table-wrapper"><table class="data-table">
-            <thead><tr><th>Εκδήλωση</th><th>Χορηγός</th><th>Τύπος</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Τιμολόγιο/th><th>Πληρωμή/th><th>Σημειώσεις</th><th></th></tr></thead>
+            <thead><tr><th>Εκδήλωση</th><th>Χορηγός</th><th>Τύπος</th><th>Πρόβλεψη (€)</th><th>Πραγματικά (€)</th><th>Δόσεις</th><th>Έναρξη</th><th>Πληρωμή</th><th>Σημειώσεις</th><th></th></tr></thead>
             <tbody id="sponsors-tbody"></tbody>
-            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="sp-plan-total" style="font-weight:700;color:var(--green)">0 €</td><td id="sp-act-total" style="font-weight:700;color:var(--green)">0 €</td><td colspan="4"></td></tr></tfoot>
+            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="sp-plan-total" style="font-weight:700;color:var(--green)">0 €</td><td id="sp-act-total" style="font-weight:700;color:var(--green)">0 €</td><td colspan="5"></td></tr></tfoot>
           </table></div>
         </div>
 
@@ -1087,9 +1087,9 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <button class="btn-primary" onclick="openArtistModal()">+ Νέα Εγγραφή</button>
           </div>
           <div class="table-wrapper"><table class="data-table">
-            <thead><tr><th>Εκδήλωση</th><th>Αντισυμβαλλόμενος</th><th>Ρόλος</th><th>Πρόβλεψη Αμοιβής</th><th>Πραγματική Αμοιβή</th><th>Προθεσμία</th><th>Πληρωμή</th><th>Σημειώσεις</th><th></th></tr></thead>
+            <thead><tr><th>Εκδήλωση</th><th>Αντισυμβαλλόμενος</th><th>Ρόλος</th><th>Πρόβλεψη</th><th>Πραγματικά</th><th>Δόσεις</th><th>Έναρξη</th><th>Πληρωμή</th><th>Σημειώσεις</th><th></th></tr></thead>
             <tbody id="artists-tbody"></tbody>
-            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="ar-plan-total" style="font-weight:700;color:var(--red)">0 €</td><td id="ar-act-total" style="font-weight:700;color:var(--red)">0 €</td><td colspan="4"></td></tr></tfoot>
+            <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="ar-plan-total" style="font-weight:700;color:var(--red)">0 €</td><td id="ar-act-total" style="font-weight:700;color:var(--red)">0 €</td><td colspan="5"></td></tr></tfoot>
           </table></div>
         </div>
 
@@ -2123,6 +2123,12 @@ function getEventTitle(b){
 function renderFinDashboard(){
   let pInc=0,pExp=0,aInc=0,aExp=0;
   _eventBudgets.forEach(b=>{pInc+=ebIncomeTotal(b,'planned');pExp+=ebExpenseGrossTotal(b,'planned');aInc+=ebIncomeTotal(b,'actual');aExp+=ebExpenseGrossTotal(b,'actual');});
+  // Add sponsors as income
+  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;pInc+=Number(s.planned||0)*(1+v);aInc+=Number(s.actual||0)*(1+v);});
+  // Add artists/vendors as expense
+  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;pExp+=Number(a.planned||0)*(1+v);aExp+=Number(a.actual||0)*(1+v);});
+  // Add legacy finance
+  _finance.forEach(f=>{if(f.type==='income'){pInc+=Number(f.amount||0);aInc+=Number(f.amount||0);}else{pExp+=Number(f.amount||0);aExp+=Number(f.amount||0);}});
   const pNet=pInc-pExp,aNet=aInc-aExp;
   const maxV=Math.max(pInc,pExp,aInc,aExp)||1;
   document.getElementById('fd-planned-inc').textContent=fmtMoney(pInc);
@@ -2363,14 +2369,18 @@ function renderTickets(){
 // --- Sponsors Tab ---
 function renderSponsorsTab(){
   const tbody=document.getElementById('sponsors-tbody');
-  if(!_sponsors.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν χορηγοί</td></tr>';return;}
+  if(!_sponsors.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν χορηγοί</td></tr>';return;}
   let tP=0,tA=0;
   tbody.innerHTML=_sponsors.map(s=>{
     const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;
-    tP+=Number(s.planned||0);tA+=Number(s.actual||0);
+    const vat=(parseInt(s.vat)||0)/100;
+    const pGross=Number(s.planned||0)*(1+vat);
+    const aGross=Number(s.actual||0)*(1+vat);
+    tP+=pGross;tA+=aGross;
     const paidCls=s.paid==='yes'?'paid-yes':s.paid==='partial'?'paid-partial':'paid-no';
     const paidTxt=s.paid==='yes'?'Ναι':s.paid==='partial'?'Μερικά':'Όχι';
-    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+s.name+'</td><td style="font-size:11px">'+(s.type||'—')+'</td><td style="text-align:right">'+fmtMoney(s.planned||0)+'</td><td style="text-align:right">'+fmtMoney(s.actual||0)+'</td><td style="font-size:11px">'+(s.invoice||'—')+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(s.notes||'').replace(/"/g,'&quot;')+'">'+(s.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editSponsor(\''+s.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteSponsor(\''+s.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
+    const dosesTxt=s.payType==='once'?'Εφάπαξ':(s.installments||1)+'x '+fmtMoney(pGross/(s.installments||1));
+    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+s.name+'</td><td style="font-size:11px">'+(s.type||'—')+'</td><td style="text-align:right">'+fmtMoney(pGross)+'</td><td style="text-align:right">'+fmtMoney(aGross)+'</td><td style="font-size:11px">'+dosesTxt+'</td><td>'+fmtDate(s.installmentStart)+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(s.notes||'').replace(/"/g,'&quot;')+'">'+(s.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editSponsor(\''+s.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteSponsor(\''+s.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
   }).join('');
   document.getElementById('sp-plan-total').textContent=fmtMoney(tP);
   document.getElementById('sp-act-total').textContent=fmtMoney(tA);
@@ -2429,14 +2439,18 @@ async function deleteSponsor(id){
 // --- Artists/Vendors Tab ---
 function renderArtistsTab(){
   const tbody=document.getElementById('artists-tbody');
-  if(!_artists.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εγγραφές</td></tr>';return;}
+  if(!_artists.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν εγγραφές</td></tr>';return;}
   let tP=0,tA=0;
   tbody.innerHTML=_artists.map(a=>{
     const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;
-    tP+=Number(a.planned||0);tA+=Number(a.actual||0);
+    const vat=(parseInt(a.vat)||0)/100;
+    const pGross=Number(a.planned||0)*(1+vat);
+    const aGross=Number(a.actual||0)*(1+vat);
+    tP+=pGross;tA+=aGross;
     const paidCls=a.paid==='yes'?'paid-yes':a.paid==='partial'?'paid-partial':'paid-no';
     const paidTxt=a.paid==='yes'?'Ναι':a.paid==='partial'?'Μερικά':'Όχι';
-    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+a.name+'</td><td style="font-size:11px">'+(a.role||'—')+'</td><td style="text-align:right">'+fmtMoney(a.planned||0)+'</td><td style="text-align:right">'+fmtMoney(a.actual||0)+'</td><td>'+fmtDate(a.dueDate)+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(a.notes||'').replace(/"/g,'&quot;')+'">'+(a.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editArtist(\''+a.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteArtist(\''+a.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
+    const dosesTxt=a.payType==='once'?'Εφάπαξ':(a.installments||1)+'x '+fmtMoney(pGross/(a.installments||1));
+    return '<tr><td>'+(ev?ev.title:'Φορέας')+'</td><td style="font-weight:600">'+a.name+'</td><td style="font-size:11px">'+(a.role||'—')+'</td><td style="text-align:right">'+fmtMoney(pGross)+'</td><td style="text-align:right">'+fmtMoney(aGross)+'</td><td style="font-size:11px">'+dosesTxt+'</td><td>'+fmtDate(a.installmentStart||a.dueDate)+'</td><td class="'+paidCls+'">'+paidTxt+'</td><td style="font-size:11px;color:rgba(255,255,255,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(a.notes||'').replace(/"/g,'&quot;')+'">'+(a.notes||'')+'</td><td style="display:flex;gap:4px"><button class="btn-edit" onclick="editArtist(\''+a.id+'\')" style="padding:3px 7px">✎</button><button class="btn-danger" onclick="deleteArtist(\''+a.id+'\')" style="padding:3px 7px">✕</button></td></tr>';
   }).join('');
   document.getElementById('ar-plan-total').textContent=fmtMoney(tP);
   document.getElementById('ar-act-total').textContent=fmtMoney(tA);
