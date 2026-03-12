@@ -1907,6 +1907,7 @@ footer {
     <a href="#" onclick="openPanel('members');return false;">Μέλη</a>
     <a href="#" onclick="openPanel('contact');return false;">Επικοινωνία</a>
     <a href="admin.html">Διαχείριση ↗</a>
+    <a href="#" onclick="ccOpenSettings();return false;">Cookies</a>
     <a href="https://www.instagram.com/logosynthesi/" target="_blank" rel="noopener" style="color:var(--gold);display:flex;align-items:center;gap:5px;">
       <svg width="13" height="13" viewBox="0 0 48 48" fill="none"><rect x="4" y="4" width="40" height="40" rx="12" stroke="#C8A96E" stroke-width="2.5" fill="none"/><circle cx="24" cy="24" r="9.5" stroke="#C8A96E" stroke-width="2.5" fill="none"/><circle cx="35" cy="13" r="2.2" fill="#C8A96E"/></svg>
       @logosynthesi
@@ -2707,6 +2708,157 @@ window.addEventListener('appinstalled', () => {
   <div id="posterFSClose" onclick="closePosterFS()">✕</div>
   <img id="posterFSImg" src="" alt="">
 </div>
+
+<!-- ===== COOKIE CONSENT BANNER (GDPR) ===== -->
+<style>
+.cc-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99998;display:none;backdrop-filter:blur(3px);}
+.cc-overlay.open{display:block;}
+.cc-banner{
+  position:fixed;bottom:0;left:0;right:0;z-index:99999;
+  background:linear-gradient(to top,#0e0d0b 0%,#161410 100%);
+  border-top:2px solid rgba(200,169,110,0.35);
+  transform:translateY(100%);
+  transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,0.6);
+}
+.cc-banner.visible{transform:translateY(0);}
+.cc-inner{max-width:960px;margin:0 auto;padding:28px 28px 24px;}
+.cc-title{font-family:var(--font1);font-size:22px;font-weight:400;color:#ffffff;margin-bottom:12px;letter-spacing:0.03em;}
+.cc-title span{color:var(--gold);}
+.cc-text{font-family:var(--font2);font-size:13px;line-height:1.7;color:rgba(247,243,236,0.7);margin-bottom:20px;}
+.cc-text a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(200,169,110,0.3);transition:border-color 0.2s;}
+.cc-text a:hover{border-color:var(--gold);}
+.cc-buttons{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.cc-btn{font-family:var(--font2);font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;padding:13px 28px;border:1px solid;cursor:pointer;transition:all 0.25s;white-space:nowrap;}
+.cc-btn-accept{background:var(--gold);border-color:var(--gold);color:#0e0d0b;}
+.cc-btn-accept:hover{background:#E2C98A;}
+.cc-btn-reject{background:none;border-color:rgba(200,169,110,0.3);color:#ffffff;}
+.cc-btn-reject:hover{border-color:var(--gold);color:var(--gold);}
+.cc-btn-settings{background:none;border-color:rgba(200,169,110,0.3);color:var(--gold);}
+.cc-btn-settings:hover{background:rgba(200,169,110,0.08);border-color:var(--gold);}
+.cc-settings{display:none;margin-top:22px;border-top:1px solid rgba(200,169,110,0.15);padding-top:20px;}
+.cc-settings.open{display:block;}
+.cc-category{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(200,169,110,0.08);}
+.cc-category:last-child{border-bottom:none;}
+.cc-cat-info{flex:1;min-width:0;padding-right:16px;}
+.cc-cat-name{font-family:var(--font2);font-size:13px;font-weight:600;color:#ffffff;letter-spacing:0.05em;margin-bottom:4px;}
+.cc-cat-desc{font-family:var(--font2);font-size:11px;color:rgba(247,243,236,0.5);line-height:1.5;}
+.cc-cat-always{font-family:var(--font2);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);flex-shrink:0;}
+.cc-toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.cc-toggle input{opacity:0;width:0;height:0;}
+.cc-toggle-track{position:absolute;inset:0;cursor:pointer;background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.25);border-radius:12px;transition:all 0.3s;}
+.cc-toggle-track::after{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:rgba(255,255,255,0.4);border-radius:50%;transition:all 0.3s;}
+.cc-toggle input:checked+.cc-toggle-track{background:rgba(200,169,110,0.3);border-color:var(--gold);}
+.cc-toggle input:checked+.cc-toggle-track::after{transform:translateX(20px);background:var(--gold);}
+.cc-save-wrap{margin-top:18px;text-align:right;}
+.cc-btn-save{font-family:var(--font2);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;background:var(--gold);border:1px solid var(--gold);color:#0e0d0b;padding:11px 24px;cursor:pointer;transition:all 0.25s;}
+.cc-btn-save:hover{background:#E2C98A;}
+@media(max-width:600px){
+  .cc-inner{padding:20px 18px;}
+  .cc-title{font-size:18px;}
+  .cc-text{font-size:12px;}
+  .cc-buttons{flex-direction:column;}
+  .cc-btn{width:100%;text-align:center;padding:12px 20px;}
+}
+</style>
+
+<div class="cc-overlay" id="cc-overlay"></div>
+<div class="cc-banner" id="cc-banner">
+  <div class="cc-inner">
+    <div class="cc-title">Σεβόμαστε την <span>ιδιωτικότητά</span> σου</div>
+    <div class="cc-text">
+      Χρησιμοποιούμε cookies για τη σωστή λειτουργία του logosynthesi.gr και τη βελτίωση της εμπειρίας σου.
+      Μπορείς να επιλέξεις ποιες κατηγορίες αποδέχεσαι.
+      <a href="#" onclick="event.preventDefault();document.getElementById('cc-policy-modal').style.display='flex'">Πολιτική Cookies</a>
+    </div>
+    <div class="cc-buttons">
+      <button class="cc-btn cc-btn-accept" onclick="ccAcceptAll()">Αποδοχή Όλων</button>
+      <button class="cc-btn cc-btn-reject" onclick="ccRejectAll()">Μόνο Απαραίτητα</button>
+      <button class="cc-btn cc-btn-settings" onclick="ccToggleSettings()">Ρυθμίσεις Cookies</button>
+    </div>
+    <div class="cc-settings" id="cc-settings">
+      <div class="cc-category">
+        <div class="cc-cat-info">
+          <div class="cc-cat-name">Απολύτως Απαραίτητα</div>
+          <div class="cc-cat-desc">Βασική λειτουργία ιστοτόπου (γλώσσα, UI state). Δεν μπορούν να απενεργοποιηθούν.</div>
+        </div>
+        <div class="cc-cat-always">Πάντα ενεργά</div>
+      </div>
+      <div class="cc-category">
+        <div class="cc-cat-info">
+          <div class="cc-cat-name">Λειτουργικότητας</div>
+          <div class="cc-cat-desc">Ψηφοφορίες εκδηλώσεων και αποθήκευση προτιμήσεων μέσω Firebase.</div>
+        </div>
+        <label class="cc-toggle"><input type="checkbox" id="cc-functional" checked><span class="cc-toggle-track"></span></label>
+      </div>
+      <div class="cc-category">
+        <div class="cc-cat-info">
+          <div class="cc-cat-name">Επιδόσεων & Ανάλυσης</div>
+          <div class="cc-cat-desc">Ανωνυμοποιημένα στατιστικά χρήσης για τη βελτίωση του ιστοτόπου.</div>
+        </div>
+        <label class="cc-toggle"><input type="checkbox" id="cc-analytics"><span class="cc-toggle-track"></span></label>
+      </div>
+      <div class="cc-category">
+        <div class="cc-cat-info">
+          <div class="cc-cat-name">Τρίτων Μερών</div>
+          <div class="cc-cat-desc">Google Fonts (γραμματοσειρές) και Cloudinary (εικόνες αφισών).</div>
+        </div>
+        <label class="cc-toggle"><input type="checkbox" id="cc-thirdparty" checked><span class="cc-toggle-track"></span></label>
+      </div>
+      <div class="cc-save-wrap">
+        <button class="cc-btn-save" onclick="ccSavePrefs()">Αποθήκευση Προτιμήσεων</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cookie Policy Modal -->
+<div id="cc-policy-modal" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:#161410;border:1px solid rgba(200,169,110,0.3);max-width:640px;width:92%;max-height:80vh;overflow-y:auto;padding:36px 32px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:var(--font1);font-size:24px;color:#fff;">Πολιτική <span style="color:var(--gold);">Cookies</span></div>
+      <button onclick="document.getElementById('cc-policy-modal').style.display='none'" style="background:none;border:1px solid rgba(200,169,110,0.3);color:#fff;width:32px;height:32px;cursor:pointer;font-size:14px;">✕</button>
+    </div>
+    <div style="font-family:var(--font2);font-size:13px;line-height:1.8;color:rgba(247,243,236,0.75);">
+      <p style="margin-bottom:14px;">Ο ιστότοπος <strong style="color:var(--gold);">logosynthesi.gr</strong> του Συνδέσμου Φιλολόγων Λευκάδος χρησιμοποιεί cookies και παρόμοιες τεχνολογίες σύμφωνα με τον Γενικό Κανονισμό Προστασίας Δεδομένων (GDPR) και τον Ν. 4624/2019.</p>
+      <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">1. Τι είναι τα Cookies</p>
+      <p style="margin-bottom:14px;">Τα cookies είναι μικρά αρχεία κειμένου που αποθηκεύονται στη συσκευή σου κατά την πλοήγηση. Χρησιμοποιούνται για τη σωστή λειτουργία, τη βελτίωση της εμπειρίας και την ανάλυση της επισκεψιμότητας.</p>
+      <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">2. Κατηγορίες Cookies</p>
+      <p style="margin-bottom:6px;"><strong style="color:#fff;">Απολύτως Απαραίτητα:</strong> Βασική λειτουργία (γλώσσα, UI). Δεν αποθηκεύουν προσωπικά δεδομένα.</p>
+      <p style="margin-bottom:6px;"><strong style="color:#fff;">Λειτουργικότητας:</strong> Firebase για ψηφοφορίες εκδηλώσεων και αποθήκευση προτιμήσεων.</p>
+      <p style="margin-bottom:6px;"><strong style="color:#fff;">Επιδόσεων:</strong> Στατιστικά χρήσης (αν ενεργοποιηθούν μελλοντικά).</p>
+      <p style="margin-bottom:14px;"><strong style="color:#fff;">Τρίτων Μερών:</strong> Google Fonts (γραμματοσειρές), Cloudinary (εικόνες αφισών).</p>
+      <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">3. Δικαιώματά σου</p>
+      <p style="margin-bottom:14px;">Μπορείς ανά πάσα στιγμή να αλλάξεις τις προτιμήσεις σου μέσω του «Cookies» στο κάτω μέρος της σελίδας. Δικαίωμα πρόσβασης, διόρθωσης και διαγραφής δεδομένων κατά GDPR.</p>
+      <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">4. Επικοινωνία</p>
+      <p>Για θέματα cookies ή προσωπικών δεδομένων: <a href="mailto:logosynthesi2026@gmail.com" style="color:var(--gold);">logosynthesi2026@gmail.com</a></p>
+      <p style="margin-top:16px;font-size:11px;color:rgba(247,243,236,0.35);">Τελευταία ενημέρωση: Μάρτιος 2026</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const CC_KEY='ls_cookie_consent',CC_VER='1';
+  function getCC(){try{const r=localStorage.getItem(CC_KEY);if(!r)return null;const d=JSON.parse(r);return d.version===CC_VER?d:null;}catch(e){return null;}}
+  function saveCC(p){try{localStorage.setItem(CC_KEY,JSON.stringify({version:CC_VER,ts:new Date().toISOString(),necessary:true,functional:!!p.functional,analytics:!!p.analytics,thirdparty:!!p.thirdparty}));}catch(e){}}
+  function applyCC(p){
+    window.dispatchEvent(new CustomEvent('cookie-consent',{detail:p}));
+    if(!p.thirdparty){document.querySelectorAll('link[href*="fonts.googleapis"]').forEach(el=>el.disabled=true);}
+    if(!p.analytics){window['ga-disable-GA_MEASUREMENT_ID']=true;}
+  }
+  function showBanner(){const b=document.getElementById('cc-banner'),o=document.getElementById('cc-overlay');if(b)b.classList.add('visible');if(o)o.classList.add('open');}
+  function hideBanner(){const b=document.getElementById('cc-banner'),o=document.getElementById('cc-overlay');if(b)b.classList.remove('visible');if(o)o.classList.remove('open');}
+  window.ccAcceptAll=function(){const p={functional:true,analytics:true,thirdparty:true};saveCC(p);applyCC(p);hideBanner();};
+  window.ccRejectAll=function(){const p={functional:false,analytics:false,thirdparty:false};saveCC(p);applyCC(p);hideBanner();};
+  window.ccToggleSettings=function(){const s=document.getElementById('cc-settings');if(s)s.classList.toggle('open');};
+  window.ccSavePrefs=function(){const p={functional:document.getElementById('cc-functional')?.checked||false,analytics:document.getElementById('cc-analytics')?.checked||false,thirdparty:document.getElementById('cc-thirdparty')?.checked||false};saveCC(p);applyCC(p);hideBanner();};
+  window.ccOpenSettings=function(){const s=document.getElementById('cc-settings');if(s)s.classList.add('open');showBanner();};
+  const ex=getCC();
+  if(ex){applyCC(ex);}else{setTimeout(showBanner,800);}
+})();
+</script>
 
 </body>
 </html>
