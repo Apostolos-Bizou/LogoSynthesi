@@ -226,6 +226,10 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .eb-computed{color:var(--gold);font-weight:600;font-size:15px;}
 .paid-yes{color:var(--green);font-weight:700;}.paid-no{color:var(--red);opacity:.7;}.paid-partial{color:var(--orange);font-weight:600;}
 .auto-grow{resize:vertical;min-height:50px;overflow-y:hidden;transition:height .15s;}
+.fin-cal-dot{font-size:9px;padding:2px 4px;margin-top:2px;border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;}
+.fin-cal-dot.expense{background:rgba(220,60,60,0.25);color:#ff8888;}
+.fin-cal-dot.income{background:rgba(60,180,100,0.25);color:#88ff88;}
+.fin-cal-dot.event{background:rgba(200,169,110,0.25);color:var(--gold);}
 /* Budget modal: bigger table text */
 #modal-event-budget .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 #modal-event-budget .data-table{min-width:750px;}
@@ -995,6 +999,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <button class="fin-tab" onclick="switchFinTab('fin-tickets')">Εισιτήρια</button>
           <button class="fin-tab" onclick="switchFinTab('fin-sponsors')">Χορηγοί</button>
           <button class="fin-tab" onclick="switchFinTab('fin-artists')">Καλλιτέχνες / Προμηθευτές</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-cal')">Ημερολόγιο</button>
         </div>
 
         <!-- TAB: Dashboard -->
@@ -1090,6 +1095,23 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <thead><tr><th>Εκδήλωση</th><th>Αντισυμβαλλόμενος</th><th>Ρόλος</th><th>Πρόβλεψη</th><th>Πραγματικά</th><th>Δόσεις</th><th>Έναρξη</th><th>Πληρωμή</th><th>Σημειώσεις</th><th></th></tr></thead>
             <tbody id="artists-tbody"></tbody>
             <tfoot><tr style="background:var(--black3)"><td colspan="3"><strong>ΣΥΝΟΛΟ</strong></td><td id="ar-plan-total" style="font-weight:700;color:var(--red)">0 €</td><td id="ar-act-total" style="font-weight:700;color:var(--red)">0 €</td><td colspan="5"></td></tr></tfoot>
+          </table></div>
+        </div>
+
+        <!-- TAB: Ημερολόγιο Υποχρεώσεων -->
+        <div class="fin-panel" id="fin-cal">
+          <div class="cal-nav">
+            <button class="btn-sm" onclick="finCalNav(-1)">← Προηγ.</button>
+            <div class="cal-nav-title" id="fin-cal-month-title"></div>
+            <button class="btn-sm" onclick="finCalNav(1)">Επόμ. →</button>
+          </div>
+          <div class="cal-grid-header" id="fin-cal-headers"></div>
+          <div class="cal-grid-days" id="fin-cal-grid"></div>
+          <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Υποχρεώσεις Μήνα</div>
+          <div class="table-wrapper"><table class="data-table">
+            <thead><tr><th>Ημερομηνία</th><th>Τύπος</th><th>Περιγραφή</th><th>Ποσό</th><th>Κατάσταση</th></tr></thead>
+            <tbody id="fin-cal-list"></tbody>
           </table></div>
         </div>
 
@@ -1702,11 +1724,15 @@ async function loadStats() {
     document.getElementById('statEvents').textContent=DEMO.length;
     document.getElementById('statVotes').textContent=52;
   }
-  // ERP stats from budget engine + legacy finance
+  // ERP stats from budget engine + legacy finance + sponsors + artists
   let inc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   let exp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   // Add event budgets actual data
   _eventBudgets.forEach(b=>{inc+=ebIncomeTotal(b,'actual');exp+=ebExpenseGrossTotal(b,'actual');});
+  // Add sponsors (income) with VAT
+  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;inc+=Number(s.actual||s.planned||0)*(1+v);});
+  // Add artists/vendors (expense) with VAT
+  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;exp+=Number(a.actual||a.planned||0)*(1+v);});
   document.getElementById('statIncome').textContent=fmtMoney(inc);
   const net=inc-exp;
   document.getElementById('statBalance').textContent=fmtMoney(net);
@@ -2102,6 +2128,7 @@ function switchFinTab(tabId){
   if(tabId==='fin-tickets') renderTickets();
   if(tabId==='fin-sponsors') renderSponsorsTab();
   if(tabId==='fin-artists') renderArtistsTab();
+  if(tabId==='fin-cal') renderFinCal();
 }
 
 function renderFinance(){ switchFinTab(_activeFinTab); }
@@ -2607,6 +2634,100 @@ document.addEventListener('change',e=>{
   if(e.target.id==='ar-vat') calcInstallmentAmount();
 });
 
+// --- Financial Calendar ---
+let finCalYear=new Date().getFullYear(),finCalMonth=new Date().getMonth();
+function finCalNav(dir){finCalMonth+=dir;if(finCalMonth>11){finCalMonth=0;finCalYear++;}if(finCalMonth<0){finCalMonth=11;finCalYear--;}renderFinCal();}
+
+function getFinancialObligations(year,month){
+  // Returns array of {date,type,label,amount,paid,cls}
+  const items=[];
+  const ym=String(year)+'-'+String(month+1).padStart(2,'0');
+  // Artists/Vendors installments
+  _artists.forEach(a=>{
+    const total=Number(a.actual||a.planned||0);
+    const vat=(parseInt(a.vat)||0)/100;
+    const gross=total*(1+vat);
+    if(a.payType==='installments'||a.payType==='monthly'){
+      const n=parseInt(a.installments)||1;
+      const perMonth=gross/n;
+      const start=a.installmentStart?new Date(a.installmentStart):null;
+      if(start){for(let i=0;i<n;i++){
+        const d=new Date(start);d.setMonth(d.getMonth()+i);
+        if(d.getFullYear()===year&&d.getMonth()===month){
+          const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          items.push({date:ds,type:'Έξοδο',label:a.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:a.paid,cls:'expense'});
+        }
+      }}
+    } else {
+      const due=a.dueDate||a.installmentStart;
+      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έξοδο',label:a.name,amount:gross,paid:a.paid,cls:'expense'});}
+    }
+  });
+  // Sponsors installments
+  _sponsors.forEach(s=>{
+    const total=Number(s.actual||s.planned||0);
+    const vat=(parseInt(s.vat)||0)/100;
+    const gross=total*(1+vat);
+    if(s.payType==='installments'||s.payType==='monthly'){
+      const n=parseInt(s.installments)||1;
+      const perMonth=gross/n;
+      const start=s.installmentStart?new Date(s.installmentStart):null;
+      if(start){for(let i=0;i<n;i++){
+        const d=new Date(start);d.setMonth(d.getMonth()+i);
+        if(d.getFullYear()===year&&d.getMonth()===month){
+          const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+          items.push({date:ds,type:'Έσοδο',label:s.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:s.paid,cls:'income'});
+        }
+      }}
+    } else {
+      const due=s.installmentStart;
+      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έσοδο',label:s.name,amount:gross,paid:s.paid,cls:'income'});}
+    }
+  });
+  // Event budgets (by date)
+  _eventBudgets.forEach(b=>{
+    if(b.date&&b.date.startsWith(ym)){
+      const pR=ebResult(b,'planned');
+      items.push({date:b.date,type:'Εκδήλωση',label:getEventTitle(b),amount:Math.abs(pR),paid:'',cls:'event'});
+    }
+  });
+  // Legacy finance
+  _finance.forEach(f=>{
+    if(f.date&&f.date.startsWith(ym)){
+      items.push({date:f.date,type:f.type==='income'?'Έσοδο':'Έξοδο',label:f.description,amount:Number(f.amount||0),paid:'',cls:f.type==='income'?'income':'expense'});
+    }
+  });
+  items.sort((a,b)=>a.date.localeCompare(b.date));
+  return items;
+}
+
+function renderFinCal(){
+  const months=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+  document.getElementById('fin-cal-month-title').textContent=months[finCalMonth]+' '+finCalYear;
+  document.getElementById('fin-cal-headers').innerHTML=['ΔΕΥ','ΤΡΙ','ΤΕΤ','ΠΕΜ','ΠΑΡ','ΣΑΒ','ΚΥΡ'].map(d=>'<div class="cal-day-header">'+d+'</div>').join('');
+  const first=new Date(finCalYear,finCalMonth,1),last=new Date(finCalYear,finCalMonth+1,0);
+  let startDow=first.getDay();if(startDow===0)startDow=7;
+  const today=new Date();
+  const obligations=getFinancialObligations(finCalYear,finCalMonth);
+  let cells='';
+  for(let i=1;i<startDow;i++){const pd=new Date(finCalYear,finCalMonth,1-(startDow-i));cells+='<div class="cal-day other-month"><span class="day-num">'+pd.getDate()+'</span></div>';}
+  for(let d=1;d<=last.getDate();d++){
+    const isToday=today.getFullYear()===finCalYear&&today.getMonth()===finCalMonth&&today.getDate()===d;
+    const dateStr=finCalYear+'-'+String(finCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const dayItems=obligations.filter(o=>o.date===dateStr);
+    cells+='<div class="cal-day'+(isToday?' today':'')+'"><span class="day-num">'+d+'</span>'+dayItems.map(o=>'<div class="fin-cal-dot '+o.cls+'" title="'+o.label+': '+fmtMoney(o.amount)+'">'+o.label.substring(0,12)+'</div>').join('')+'</div>';
+  }
+  document.getElementById('fin-cal-grid').innerHTML=cells;
+  // List below
+  const listTbody=document.getElementById('fin-cal-list');
+  if(!obligations.length){listTbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν υποχρεώσεις αυτόν τον μήνα</td></tr>';return;}
+  listTbody.innerHTML=obligations.map(o=>{
+    const paidCls=o.paid==='yes'?'paid-yes':o.paid==='partial'?'paid-partial':o.paid==='no'?'paid-no':'';
+    const paidTxt=o.paid==='yes'?'Πληρώθηκε':o.paid==='partial'?'Μερικά':o.paid==='no'?'Εκκρεμεί':'—';
+    return '<tr><td>'+fmtDate(o.date)+'</td><td><span class="fin-cal-dot '+o.cls+'" style="display:inline-block;padding:3px 10px;font-size:11px">'+o.type+'</span></td><td style="font-weight:600">'+o.label+'</td><td style="text-align:right;font-family:var(--font-serif);font-size:16px;color:'+(o.cls==='income'?'var(--green)':o.cls==='expense'?'var(--red)':'var(--gold)')+'">'+fmtMoney(o.amount)+'</td><td class="'+paidCls+'">'+paidTxt+'</td></tr>';
+  }).join('');
+}
+
 // --- Monthly breakdown helper (for reports) ---
 function getMonthlyBreakdown(items,year){
   // Returns array of 12 months {month,income,expense}
@@ -2821,8 +2942,11 @@ function renderDashboard(){
   document.getElementById('dash-upcoming').innerHTML=ue.length?ue.map(e=>{const d=new Date(e.date);return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="width:36px;text-align:center;flex-shrink:0"><div style="font-family:var(--font-serif);font-size:22px;color:var(--gold);line-height:1">${d.getDate()}</div><div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.5)">${months[d.getMonth()]}</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${e.venue||'—'}</div></div><span class="hub-badge ${hubClass(e.category||'')}">${e.category||''}</span></div>`;}).join(''):'<div class="empty-msg">Δεν υπάρχουν επερχόμενες εκδηλώσεις</div>';
   const pt=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').slice(0,4);
   document.getElementById('dash-tasks').innerHTML=pt.length?pt.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><span class="priority-dot ${priorityClass(t.priority)}"></span><div style="flex:1"><div style="font-size:14px;font-weight:600">${t.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${t.assignee?'@'+t.assignee:'—'} ${t.deadline?'· '+fmtDate(t.deadline):''}</div></div><span class="status ${statusClass(t.status)}">${t.status}</span></div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν εκκρεμείς εργασίες</div>';
-  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
-  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  let totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  let totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  _eventBudgets.forEach(b=>{totalInc+=ebIncomeTotal(b,'actual');totalExp+=ebExpenseGrossTotal(b,'actual');});
+  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;totalInc+=Number(s.actual||s.planned||0)*(1+v);});
+  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;totalExp+=Number(a.actual||a.planned||0)*(1+v);});
   const net=totalInc-totalExp;
   document.getElementById('dash-finance').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έσοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--green)">${fmtMoney(totalInc)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έξοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--red)">${fmtMoney(totalExp)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Ισοζύγιο</div><div style="font-family:var(--font-serif);font-size:26px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</div></div>`;
   updateBadges();
