@@ -1023,13 +1023,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 
         <!-- TAB: Dashboard -->
         <div class="fin-panel active" id="fin-dashboard">
-          <div class="fin-cards">
+          <div class="fin-cards" style="grid-template-columns:1fr 1fr">
             <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Εσόδων (Events)</div><div class="fin-card-value inc" id="fd-planned-inc">0 €</div><div class="fin-card-sub" id="fd-planned-inc-sub">0 εκδηλώσεις</div><div class="progress-bar"><div class="progress-fill" id="fd-planned-inc-bar" style="width:0%"></div></div></div>
             <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Εξόδων (Events)</div><div class="fin-card-value exp" id="fd-planned-exp">0 €</div><div class="fin-card-sub" id="fd-planned-exp-sub">—</div><div class="progress-bar"><div class="progress-fill" id="fd-planned-exp-bar" style="width:0%;background:var(--red)"></div></div></div>
             <div class="fin-card"><div class="fin-card-label">Πραγματικά Έσοδα (Events)</div><div class="fin-card-value inc" id="fd-actual-inc">0 €</div><div class="fin-card-sub" id="fd-actual-inc-sub">—</div></div>
             <div class="fin-card"><div class="fin-card-label">Πραγματικά Έξοδα (Events)</div><div class="fin-card-value exp" id="fd-actual-exp">0 €</div><div class="fin-card-sub" id="fd-actual-exp-sub">—</div></div>
           </div>
-          <div class="fin-cards" style="margin-top:12px">
+          <div class="fin-cards" style="margin-top:12px;grid-template-columns:1fr 1fr">
             <div class="fin-card"><div class="fin-card-label">Πρόβλεψη Αποτελέσματος Events</div><div class="fin-card-value net" id="fd-planned-net">0 €</div></div>
             <div class="fin-card"><div class="fin-card-label">Πραγματικό Αποτέλεσμα Events</div><div class="fin-card-value net" id="fd-actual-net">0 €</div></div>
           </div>
