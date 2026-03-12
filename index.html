@@ -1700,7 +1700,7 @@ footer {
   // 2. Πρόσθεσε Email Service (Gmail με logosynthesi2026@gmail.com)
   // 3. Δημιούργησε Template με variables: {{to_email}}, {{event_title}}, {{rating}}
   // 4. Αντικατέστησε τα IDs παρακάτω
-  (function(){ emailjs.init({ publicKey: 'YOUR_EMAILJS_PUBLIC_KEY' }); })();
+  (function(){ emailjs.init({ publicKey: 'tJvdL_hrCg-Y-Yah8' }); })();
 </script>
 </head>
 <script>
@@ -2302,7 +2302,7 @@ async function subV(id) {
 /* ─── THANK YOU EMAIL ─── */
 function sendThankYouEmail(toEmail, eventTitle, rating) {
   try {
-    emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+    emailjs.send('service_rd1vkie', 'template_ymgm8kc', {
       to_email: toEmail,
       event_title: eventTitle,
       rating: '★'.repeat(rating),
