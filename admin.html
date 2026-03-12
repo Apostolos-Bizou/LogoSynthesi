@@ -373,6 +373,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .task-view-tab{background:none;border:1px solid var(--gold-line);color:#ffffff;padding:8px 16px;font-family:var(--font-sans);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
 .task-view-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
 .task-view-tab:hover{border-color:var(--gold);color:var(--gold);}
+/* Hub filter tabs (reusable) */
+.hub-filter-tabs{display:flex;gap:5px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;flex-wrap:wrap;}
+.hub-filter-tabs::-webkit-scrollbar{display:none;}
+.hub-filter-tab{flex-shrink:0;background:none;border:1px solid var(--gold-line);color:#ffffff;padding:9px 16px;font-family:var(--font-sans);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;white-space:nowrap;position:relative;}
+.hub-filter-tab.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold);}
+.hub-filter-tab:hover{border-color:var(--gold);color:var(--gold);}
+.hub-filter-tab .hub-tab-count{font-family:var(--font-serif);font-size:14px;margin-left:6px;opacity:0.7;}
 
 /* TASK GROUP */
 .task-group{margin-bottom:20px;}
@@ -810,6 +817,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- ===== MANAGE EVENTS ===== -->
       <div class="view" id="view-manage-events">
         <div class="page-title">Διαχείριση <span>Εκδηλώσεων</span></div>
+        <div class="hub-filter-tabs" id="events-hub-tabs"></div>
         <div id="eventList"><div class="empty-msg">Φόρτωση…</div></div>
       </div>
 
@@ -872,6 +880,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- ===== ERP: ΕΡΓΑΣΙΕΣ ===== -->
       <div class="view" id="view-erp-tasks">
         <div class="page-title">Εργασίες <span>& Ανάθεση</span></div>
+        <!-- Hub Filter Tabs -->
+        <div class="hub-filter-tabs" id="task-hub-tabs"></div>
         <!-- View Tabs: Λίστα / Ημερολόγιο -->
         <div class="task-view-tabs">
           <button class="task-view-tab active" onclick="switchTaskView('list')">☰ Λίστα</button>
@@ -893,6 +903,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             </select>
             <select class="filter-select" id="task-group-by" onchange="renderTasks()" style="border-color:var(--gold);color:var(--gold);">
               <option value="">— Χωρίς ομαδοποίηση —</option>
+              <option value="hub">Ομαδοποίηση ανά Hub</option>
               <option value="assignee">Ομαδοποίηση ανά Άτομο</option>
               <option value="deadline">Ομαδοποίηση ανά Deadline</option>
               <option value="status">Ομαδοποίηση ανά Κατάσταση</option>
@@ -904,7 +915,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <div id="tasks-flat-view">
             <div class="table-wrapper">
               <table class="data-table">
-                <thead><tr><th>✓</th><th>Εργασία</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
+                <thead><tr><th>✓</th><th>Εργασία</th><th>Hub</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
                 <tbody id="tasks-tbody"></tbody>
               </table>
             </div>
@@ -1164,6 +1175,17 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Εκδήλωση</label><select class="form-select" id="task-event"><option value="">— Γενική —</option></select></div>
         <div class="form-group"><label class="form-label">Ανατέθηκε σε (ελεύθερο)</label><input type="text" class="form-input" id="task-assignee" placeholder="Όνομα (προαιρετικό)"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Κατηγορία (Hub)</label>
+        <select class="form-select" id="task-hub">
+          <option value="">— ΛογοΣύνθεση (Γενικά) —</option>
+          <option value="cinehub">CineHub — Κινηματογράφος</option>
+          <option value="logohub">LogoHub — Βιβλίο & Διαλέξεις</option>
+          <option value="musichub">MusicHub — Μουσική</option>
+          <option value="arthub">ArtHub — Εικαστικά</option>
+          <option value="stagehub">StageHub — Θέατρο</option>
+        </select>
+        <div class="form-hint">Αν επιλέξεις εκδήλωση, η κατηγορία συμπληρώνεται αυτόματα.</div>
       </div>
       <!-- Contact Picker -->
       <div class="form-group">
@@ -1775,11 +1797,30 @@ function clearForm(){
   document.querySelector('#view-add-event .page-title').innerHTML='<span>+</span> Νέα Εκδήλωση';
 }
 
+let _eventHubFilter='';
+function setEventHubFilter(hub){
+  _eventHubFilter=(_eventHubFilter===hub)?'':hub;
+  renderEventList();
+}
+function renderEventHubTabs(){
+  const hubDefs=[['','ΛογοΣύνθεση'],['cinehub','CineHub'],['logohub','LogoHub'],['musichub','MusicHub'],['arthub','ArtHub'],['stagehub','StageHub']];
+  const counts={};
+  hubDefs.forEach(([k])=>counts[k]=0);
+  _events.forEach(e=>{const h=(e.category||'').toLowerCase();counts[h]=(counts[h]||0)+1;});
+  const total=_events.length;
+  const el=document.getElementById('events-hub-tabs');
+  if(!el)return;
+  el.innerHTML='<button class="hub-filter-tab'+(_eventHubFilter===''?' active':'')+'" onclick="setEventHubFilter(\'\')">Όλες<span class="hub-tab-count">'+total+'</span></button>'+
+    hubDefs.filter(([k])=>k!=='').map(([k,label])=>'<button class="hub-filter-tab'+(_eventHubFilter===k?' active':'')+'" onclick="setEventHubFilter(\''+k+'\')">'+label+'<span class="hub-tab-count">'+(counts[k]||0)+'</span></button>').join('');
+}
+
 function renderEventList(){
+  renderEventHubTabs();
   const el=document.getElementById('eventList');
-  if(!_events.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν εκδηλώσεις ακόμα.</div>';return;}
+  let evs=_eventHubFilter?_events.filter(e=>(e.category||'').toLowerCase()===_eventHubFilter):_events;
+  if(!evs.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν εκδηλώσεις'+ (_eventHubFilter?' σε αυτή την κατηγορία':'') +' ακόμα.</div>';return;}
   const catLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  el.innerHTML='<div class="event-list">'+_events.map(ev=>`<div class="event-row"><div class="event-row-info"><div class="event-row-cat">${catLabels[ev.category]||ev.category}</div><div class="event-row-title">${ev.title}</div><div class="event-row-meta"><span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>${ev.venue?`<span>📍 ${ev.venue}</span>`:''}<span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span>${renderEventContactsBadge(ev.id)}</div></div><div class="event-row-actions"><button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button></div></div>`).join('')+'</div>';
+  el.innerHTML='<div class="event-list">'+evs.map(ev=>`<div class="event-row"><div class="event-row-info"><div class="event-row-cat">${catLabels[ev.category]||ev.category}</div><div class="event-row-title">${ev.title}</div><div class="event-row-meta"><span>📅 ${ev.date||'—'}${ev.time?' · '+ev.time:''}</span>${ev.venue?`<span>📍 ${ev.venue}</span>`:''}<span>⭐ ${calcAvg(ev.votes||{}).toFixed(1)} (${Object.values(ev.votes||{}).reduce((a,b)=>a+b,0)} ψήφοι)</span>${renderEventContactsBadge(ev.id)}</div></div><div class="event-row-actions"><button class="btn-edit" onclick="editEvent('${ev.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteEvent('${ev.id}')">Διαγρ.</button></div></div>`).join('')+'</div>';
 }
 
 function editEvent(id){
@@ -1885,7 +1926,7 @@ function openModal(id){
     sel.innerHTML='<option value="">— Γενική —</option>';
     _events.forEach(e=>sel.insertAdjacentHTML('beforeend',`<option value="${e.id}">${e.title}</option>`));
   }
-  if(id==='modal-task'){document.getElementById('task-id').value='';document.getElementById('task-title').value='';document.getElementById('task-assignee').value='';document.getElementById('task-deadline').value='';document.getElementById('task-notes').value='';document.getElementById('task-priority').value='Μεσαία';document.getElementById('task-status').value='Ανοικτή';document.getElementById('modal-task-title').textContent='Νέα Εργασία';_taskSelectedContactIds=[];renderTaskSelectedContacts();}
+  if(id==='modal-task'){document.getElementById('task-id').value='';document.getElementById('task-title').value='';document.getElementById('task-assignee').value='';document.getElementById('task-deadline').value='';document.getElementById('task-notes').value='';document.getElementById('task-priority').value='Μεσαία';document.getElementById('task-status').value='Ανοικτή';document.getElementById('task-hub').value='';document.getElementById('modal-task-title').textContent='Νέα Εργασία';_taskSelectedContactIds=[];renderTaskSelectedContacts();}
   if(id==='modal-finance'){document.getElementById('fin-id').value='';document.getElementById('fin-amount').value='';document.getElementById('fin-desc').value='';document.getElementById('fin-date').value=new Date().toISOString().split('T')[0];document.getElementById('fin-type').value='income';document.getElementById('modal-finance-title').textContent='Νέα Οικονομική Εγγραφή';}
   if(id==='modal-user'){document.getElementById('usr-id').value='';document.getElementById('usr-name').value='';document.getElementById('usr-username').value='';document.getElementById('usr-pass').value='';document.getElementById('usr-email').value='';document.getElementById('usr-role').value='Μέλος';document.getElementById('modal-user-title').textContent='Νέος Χρήστης ERP';}
   document.getElementById(id).classList.add('open');
@@ -1955,7 +1996,7 @@ async function saveTask(){
   const id=document.getElementById('task-id').value;
   const title=document.getElementById('task-title').value.trim();
   if(!title){toast('Συμπλήρωσε τον τίτλο','error');return;}
-  const rec={title,eventId:document.getElementById('task-event').value,assignee:document.getElementById('task-assignee').value,contactIds:[..._taskSelectedContactIds],deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
+  const rec={title,eventId:document.getElementById('task-event').value,hub:document.getElementById('task-hub').value,assignee:document.getElementById('task-assignee').value,contactIds:[..._taskSelectedContactIds],deadline:document.getElementById('task-deadline').value,priority:document.getElementById('task-priority').value,status:document.getElementById('task-status').value,notes:document.getElementById('task-notes').value};
   try {
     if(id){ await erpUpdate('tasks',id,rec); const idx=_tasks.findIndex(t=>t.id===id); if(idx!==-1)_tasks[idx]={id,...rec}; }
     else { const newId=await erpAdd('tasks',rec); _tasks.unshift({id:newId,...rec,createdAt:Date.now()}); }
@@ -1981,6 +2022,7 @@ function editTaskModal(id){
   document.getElementById('task-priority').value=t.priority||'Μεσαία';
   document.getElementById('task-status').value=t.status||'Ανοικτή';
   document.getElementById('task-notes').value=t.notes||'';
+  document.getElementById('task-hub').value=t.hub||'';
   document.getElementById('modal-task-title').textContent='Επεξεργασία Εργασίας';
   // populate event select
   const sel=document.getElementById('task-event');
@@ -1989,7 +2031,41 @@ function editTaskModal(id){
   sel.value=t.eventId||'';
   document.getElementById('modal-task').classList.add('open');
 }
+
+// Auto-fill hub from event selection
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='task-event'){
+    const evId=e.target.value;
+    if(evId){const ev=_events.find(x=>x.id===evId);if(ev&&ev.category)document.getElementById('task-hub').value=ev.category.toLowerCase();}
+  }
+});
+
+// Hub filter state for tasks
+let _taskHubFilter='__all__';
+function setTaskHubFilter(hub){
+  _taskHubFilter=(_taskHubFilter===hub)?'__all__':hub;
+  renderTaskHubTabs();
+  if(_taskViewMode==='calendar')renderTaskCalendar();else renderTasks();
+}
+function getTaskHub(t){
+  if(t.hub)return t.hub;
+  if(t.eventId){const ev=_events.find(e=>e.id===t.eventId);if(ev&&ev.category)return ev.category.toLowerCase();}
+  return '__general__';
+}
+function renderTaskHubTabs(){
+  const hubDefs=[['__general__','ΛογοΣύνθεση'],['cinehub','CineHub'],['logohub','LogoHub'],['musichub','MusicHub'],['arthub','ArtHub'],['stagehub','StageHub']];
+  const counts={};
+  hubDefs.forEach(([k])=>counts[k]=0);
+  _tasks.forEach(t=>{const h=getTaskHub(t);counts[h]=(counts[h]||0)+1;});
+  const total=_tasks.length;
+  const el=document.getElementById('task-hub-tabs');
+  if(!el)return;
+  el.innerHTML='<button class="hub-filter-tab'+(_taskHubFilter==='__all__'?' active':'')+'" onclick="setTaskHubFilter(\'__all__\')">Όλες<span class="hub-tab-count">'+total+'</span></button>'+
+    hubDefs.map(([k,label])=>'<button class="hub-filter-tab'+(_taskHubFilter===k?' active':'')+'" onclick="setTaskHubFilter(\''+k+'\')">'+label+'<span class="hub-tab-count">'+(counts[k]||0)+'</span></button>').join('');
+}
 function renderTasks(){
+  // Render hub tabs first
+  renderTaskHubTabs();
   // Populate assignee filter dynamically
   const assigneeSet=new Set();
   _tasks.forEach(t=>{
@@ -2006,6 +2082,10 @@ function renderTasks(){
   const groupBy=document.getElementById('task-group-by')?.value||'';
 
   let tasks=[..._tasks];
+  // Apply hub filter
+  if(_taskHubFilter && _taskHubFilter!=='__all__'){
+    tasks=tasks.filter(t=>getTaskHub(t)===_taskHubFilter);
+  }
   if(pf)tasks=tasks.filter(t=>t.priority===pf);
   if(sf)tasks=tasks.filter(t=>t.status===sf);
   if(af)tasks=tasks.filter(t=>t.assignee===af||(t.contactIds||[]).some(cid=>{const c=_contacts.find(x=>x.id===cid);return c&&c.name===af;}));
@@ -2017,13 +2097,17 @@ function renderTasks(){
     document.getElementById('tasks-flat-view').style.display='';
     document.getElementById('tasks-grouped-view').style.display='none';
     const tbody=document.getElementById('tasks-tbody');
-    if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
+    if(!tasks.length){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:32px;color:rgba(255,255,255,0.4);font-style:italic;">Δεν υπάρχουν εργασίες ακόμα</td></tr>`;return;}
     tbody.innerHTML=tasks.map(t=>{
       const ev=_events.find(e=>e.id===t.eventId);
       const done=t.status==='Ολοκληρώθηκε';
+      const thub=getTaskHub(t);
+      const hubLabelsFlat={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+      const hubDisplay=(thub&&thub!=='__general__')?`<span class="hub-badge ${hubClass(thub)}">${hubLabelsFlat[thub]||thub}</span>`:'<span style="color:var(--gold);font-size:9px;letter-spacing:.15em;">ΛΣ</span>';
       return`<tr style="${done?'opacity:0.5':''}">
         <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
         <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
+        <td>${hubDisplay}</td>
         <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
         <td>${renderTaskContactsCell(t)}</td>
         <td>${fmtDate(t.deadline)}</td>
@@ -2058,6 +2142,7 @@ function renderTasks(){
       else if(groupBy==='status') key=t.status||'Ανοικτή';
       else if(groupBy==='priority') key=t.priority||'Μεσαία';
       else if(groupBy==='event'){const ev=_events.find(e=>e.id===t.eventId);key=ev?ev.title:'Γενική';}
+      else if(groupBy==='hub'){const hubLabelsG={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub','__general__':'ΛογοΣύνθεση (Γενικά)'};const h=getTaskHub(t);key=hubLabelsG[h]||h;}
       if(!groups[key])groups[key]=[];
       groups[key].push(t);
     });
@@ -2069,6 +2154,10 @@ function renderTasks(){
     }
     else if(groupBy==='priority'){
       const order=['Υψηλή','Μεσαία','Χαμηλή'];
+      keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
+    }
+    else if(groupBy==='hub'){
+      const order=['ΛογοΣύνθεση (Γενικά)','CineHub','LogoHub','MusicHub','ArtHub','StageHub'];
       keys.sort((a,b)=>order.indexOf(a)-order.indexOf(b));
     }
     else if(groupBy==='status'){
@@ -2089,13 +2178,17 @@ function renderTasks(){
         <div class="task-group-body">
           <div class="table-wrapper" style="border-top:none;">
             <table class="data-table">
-              <thead><tr><th>✓</th><th>Εργασία</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
+              <thead><tr><th>✓</th><th>Εργασία</th><th>Hub</th><th>Εκδήλωση</th><th>Ανατέθηκε σε</th><th>Deadline</th><th>Προτ.</th><th>Κατάσταση</th><th></th></tr></thead>
               <tbody>${grpTasks.map(t=>{
                 const ev=_events.find(e=>e.id===t.eventId);
                 const done=t.status==='Ολοκληρώθηκε';
+                const thub=getTaskHub(t);
+                const hubLabelsGrp={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+                const hubDisplay=(thub&&thub!=='__general__')?'<span class="hub-badge '+hubClass(thub)+'">'+(hubLabelsGrp[thub]||thub)+'</span>':'<span style="color:var(--gold);font-size:9px;letter-spacing:.15em;">ΛΣ</span>';
                 return`<tr style="${done?'opacity:0.5':''}">
                   <td><div class="task-check ${done?'done':''}" onclick="toggleTask('${t.id}')"></div></td>
                   <td style="${done?'text-decoration:line-through':''}">${t.title}</td>
+                  <td>${hubDisplay}</td>
                   <td>${ev?`<span class="hub-badge ${hubClass(ev.category||'')}">${ev.title.slice(0,20)}</span>`:'—'}</td>
                   <td>${renderTaskContactsCell(t)}</td>
                   <td>${fmtDate(t.deadline)}</td>
@@ -2140,18 +2233,20 @@ function switchTaskView(mode){
 let taskCalYear=new Date().getFullYear(),taskCalMonth=new Date().getMonth();
 function taskCalNav(dir){taskCalMonth+=dir;if(taskCalMonth>11){taskCalMonth=0;taskCalYear++;}if(taskCalMonth<0){taskCalMonth=11;taskCalYear--;}renderTaskCalendar();}
 function renderTaskCalendar(){
+  renderTaskHubTabs();
   const months=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
   document.getElementById('task-cal-month-title').textContent=months[taskCalMonth]+' '+taskCalYear;
   document.getElementById('task-cal-headers').innerHTML=['ΔΕΥ','ΤΡΙ','ΤΕΤ','ΠΕΜ','ΠΑΡ','ΣΑΒ','ΚΥΡ'].map(d=>`<div class="task-cal-header">${d}</div>`).join('');
   const first=new Date(taskCalYear,taskCalMonth,1),last=new Date(taskCalYear,taskCalMonth+1,0);
   let startDow=first.getDay();if(startDow===0)startDow=7;
   const today=new Date();
+  let filteredTasks=(_taskHubFilter&&_taskHubFilter!=='__all__')?_tasks.filter(t=>getTaskHub(t)===_taskHubFilter):_tasks;
   let cells='';
   for(let i=1;i<startDow;i++){const pd=new Date(taskCalYear,taskCalMonth,1-(startDow-i));cells+=`<div class="task-cal-day other-month"><span class="day-num">${pd.getDate()}</span></div>`;}
   for(let d=1;d<=last.getDate();d++){
     const isToday=today.getFullYear()===taskCalYear&&today.getMonth()===taskCalMonth&&today.getDate()===d;
     const dateStr=`${taskCalYear}-${String(taskCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayTasks=_tasks.filter(t=>t.deadline===dateStr);
+    const dayTasks=filteredTasks.filter(t=>t.deadline===dateStr);
     cells+=`<div class="task-cal-day${isToday?' today':''}"><span class="day-num">${d}</span>${dayTasks.map(t=>{
       const done=t.status==='Ολοκληρώθηκε';
       const pClass=priorityClass(t.priority);
