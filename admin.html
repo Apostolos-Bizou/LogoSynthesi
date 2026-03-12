@@ -878,7 +878,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
               <option value="">Όλες οι Ιδιότητες</option>
             </select>
           </div>
-          <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;" id="contacts-stats"></div>
+          <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);margin-bottom:20px;" id="contacts-stats"></div>
           <div class="contact-list" id="contacts-list-body"></div>
         </div>
         <!-- BIRTHDAY CALENDAR -->
@@ -2010,13 +2010,19 @@ function renderContacts(){
   if(roleFilter)filtered=filtered.filter(c=>(c.role||'')===roleFilter);
   filtered.sort((a,b)=>(a.name||'').localeCompare(b.name||'','el'));
 
-  // Stats
+  // Hub category cards
   const statsEl=document.getElementById('contacts-stats');
   if(statsEl){
-    const totalC=_contacts.length;
-    const withBday=_contacts.filter(c=>c.birthday).length;
-    const hubCounts=Object.entries(hubLabelsShort).map(([k,v])=>({hub:v,count:_contacts.filter(c=>(c.hubs||[]).includes(k)).length,key:k})).filter(h=>h.count>0);
-    statsEl.innerHTML=`<div class="stat-card"><div class="stat-num">${totalC}</div><div class="stat-label">Σύνολο Επαφών</div></div><div class="stat-card"><div class="stat-num">${withBday}</div><div class="stat-label">Με Γενέθλια</div></div><div class="stat-card"><div class="stat-num">${filtered.length}</div><div class="stat-label">Εμφανίζονται</div></div>`;
+    const hubEntries=[['cinehub','CineHub','cine'],['logohub','LogoHub','logo'],['musichub','MusicHub','music'],['arthub','ArtHub','art'],['stagehub','StageHub','stage']];
+    const activeHub=document.getElementById('contact-filter-hub')?.value||'';
+    statsEl.innerHTML=hubEntries.map(([key,label,cls])=>{
+      const count=_contacts.filter(c=>(c.hubs||[]).includes(key)).length;
+      const isActive=activeHub===key;
+      return`<div class="stat-card" style="cursor:pointer;text-align:center;${isActive?'border-color:var(--gold);background:rgba(200,169,110,0.08);':''}" onclick="toggleHubFilter('${key}')">
+        <div class="stat-num" style="font-size:36px;">${count}</div>
+        <div class="stat-label"><span class="hub-badge ${cls}" style="font-size:9px;letter-spacing:0.18em;">${label}</span></div>
+      </div>`;
+    }).join('');
   }
 
   // List
@@ -2059,6 +2065,14 @@ function renderContacts(){
       </div>
     </div>`;
   }).join('');
+}
+
+// ===== HUB FILTER TOGGLE =====
+function toggleHubFilter(hub){
+  const sel=document.getElementById('contact-filter-hub');
+  if(sel.value===hub)sel.value='';
+  else sel.value=hub;
+  renderContacts();
 }
 
 // ===== CONTACTS VIEW SWITCH =====
