@@ -1687,8 +1687,8 @@ function showAdmin(email) {
   document.getElementById('loginWrap').style.display='none';
   document.getElementById('adminWrap').classList.add('visible');
   document.getElementById('userEmail').textContent=email;
-  loadStats(); loadEvents();
-  loadErpData().then(() => { loadMembers().then(()=>{ renderDashboard(); updateBadges(); }); });
+  loadEvents();
+  loadErpData().then(() => { loadStats(); loadMembers().then(()=>{ renderDashboard(); updateBadges(); }); });
 }
 
 // ===== NAVIGATION =====
