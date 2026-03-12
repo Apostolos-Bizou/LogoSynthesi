@@ -2635,6 +2635,13 @@ document.addEventListener('change',e=>{
 });
 
 // --- Financial Calendar ---
+function openFinCalItem(srcType,srcId){
+  if(srcType==='artist') openArtistModal(srcId);
+  else if(srcType==='sponsor') openSponsorModal(srcId);
+  else if(srcType==='event_budget') openEventBudgetModal(srcId);
+  else if(srcType==='finance') editFinanceModal(srcId);
+}
+
 let finCalYear=new Date().getFullYear(),finCalMonth=new Date().getMonth();
 function finCalNav(dir){finCalMonth+=dir;if(finCalMonth>11){finCalMonth=0;finCalYear++;}if(finCalMonth<0){finCalMonth=11;finCalYear--;}renderFinCal();}
 
@@ -2655,12 +2662,12 @@ function getFinancialObligations(year,month){
         const d=new Date(start);d.setMonth(d.getMonth()+i);
         if(d.getFullYear()===year&&d.getMonth()===month){
           const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-          items.push({date:ds,type:'Έξοδο',label:a.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:a.paid,cls:'expense'});
+          items.push({date:ds,type:'Έξοδο',label:a.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:a.paid,cls:'expense',srcType:'artist',srcId:a.id});
         }
       }}
     } else {
       const due=a.dueDate||a.installmentStart;
-      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έξοδο',label:a.name,amount:gross,paid:a.paid,cls:'expense'});}
+      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έξοδο',label:a.name,amount:gross,paid:a.paid,cls:'expense',srcType:'artist',srcId:a.id});}
     }
   });
   // Sponsors installments
@@ -2676,25 +2683,25 @@ function getFinancialObligations(year,month){
         const d=new Date(start);d.setMonth(d.getMonth()+i);
         if(d.getFullYear()===year&&d.getMonth()===month){
           const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-          items.push({date:ds,type:'Έσοδο',label:s.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:s.paid,cls:'income'});
+          items.push({date:ds,type:'Έσοδο',label:s.name+' (δόση '+(i+1)+'/'+n+')',amount:perMonth,paid:s.paid,cls:'income',srcType:'sponsor',srcId:s.id});
         }
       }}
     } else {
       const due=s.installmentStart;
-      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έσοδο',label:s.name,amount:gross,paid:s.paid,cls:'income'});}
+      if(due&&due.startsWith(ym)){items.push({date:due,type:'Έσοδο',label:s.name,amount:gross,paid:s.paid,cls:'income',srcType:'sponsor',srcId:s.id});}
     }
   });
   // Event budgets (by date)
   _eventBudgets.forEach(b=>{
     if(b.date&&b.date.startsWith(ym)){
       const pR=ebResult(b,'planned');
-      items.push({date:b.date,type:'Εκδήλωση',label:getEventTitle(b),amount:Math.abs(pR),paid:'',cls:'event'});
+      items.push({date:b.date,type:'Εκδήλωση',label:getEventTitle(b),amount:Math.abs(pR),paid:'',cls:'event',srcType:'event_budget',srcId:b.id});
     }
   });
   // Legacy finance
   _finance.forEach(f=>{
     if(f.date&&f.date.startsWith(ym)){
-      items.push({date:f.date,type:f.type==='income'?'Έσοδο':'Έξοδο',label:f.description,amount:Number(f.amount||0),paid:'',cls:f.type==='income'?'income':'expense'});
+      items.push({date:f.date,type:f.type==='income'?'Έσοδο':'Έξοδο',label:f.description,amount:Number(f.amount||0),paid:'',cls:f.type==='income'?'income':'expense',srcType:'finance',srcId:f.id});
     }
   });
   items.sort((a,b)=>a.date.localeCompare(b.date));
@@ -2715,7 +2722,7 @@ function renderFinCal(){
     const isToday=today.getFullYear()===finCalYear&&today.getMonth()===finCalMonth&&today.getDate()===d;
     const dateStr=finCalYear+'-'+String(finCalMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const dayItems=obligations.filter(o=>o.date===dateStr);
-    cells+='<div class="cal-day'+(isToday?' today':'')+'"><span class="day-num">'+d+'</span>'+dayItems.map(o=>'<div class="fin-cal-dot '+o.cls+'" title="'+o.label+': '+fmtMoney(o.amount)+'">'+o.label.substring(0,12)+'</div>').join('')+'</div>';
+    cells+='<div class="cal-day'+(isToday?' today':'')+'"><span class="day-num">'+d+'</span>'+dayItems.map(o=>'<div class="fin-cal-dot '+o.cls+'" title="'+o.label+': '+fmtMoney(o.amount)+'" onclick="openFinCalItem(\''+o.srcType+'\',\''+o.srcId+'\')" style="cursor:pointer">'+o.label.substring(0,12)+'</div>').join('')+'</div>';
   }
   document.getElementById('fin-cal-grid').innerHTML=cells;
   // List below
@@ -2724,7 +2731,7 @@ function renderFinCal(){
   listTbody.innerHTML=obligations.map(o=>{
     const paidCls=o.paid==='yes'?'paid-yes':o.paid==='partial'?'paid-partial':o.paid==='no'?'paid-no':'';
     const paidTxt=o.paid==='yes'?'Πληρώθηκε':o.paid==='partial'?'Μερικά':o.paid==='no'?'Εκκρεμεί':'—';
-    return '<tr><td>'+fmtDate(o.date)+'</td><td><span class="fin-cal-dot '+o.cls+'" style="display:inline-block;padding:3px 10px;font-size:11px">'+o.type+'</span></td><td style="font-weight:600">'+o.label+'</td><td style="text-align:right;font-family:var(--font-serif);font-size:16px;color:'+(o.cls==='income'?'var(--green)':o.cls==='expense'?'var(--red)':'var(--gold)')+'">'+fmtMoney(o.amount)+'</td><td class="'+paidCls+'">'+paidTxt+'</td></tr>';
+    return '<tr style="cursor:pointer" onclick="openFinCalItem(\''+o.srcType+'\',\''+o.srcId+'\')"><td>'+fmtDate(o.date)+'</td><td><span class="fin-cal-dot '+o.cls+'" style="display:inline-block;padding:3px 10px;font-size:11px">'+o.type+'</span></td><td style="font-weight:600">'+o.label+'</td><td style="text-align:right;font-family:var(--font-serif);font-size:16px;color:'+(o.cls==='income'?'var(--green)':o.cls==='expense'?'var(--red)':'var(--gold)')+'">'+fmtMoney(o.amount)+'</td><td class="'+paidCls+'">'+paidTxt+'</td></tr>';
   }).join('');
 }
 
