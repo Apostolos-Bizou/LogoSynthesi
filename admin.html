@@ -994,7 +994,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <button class="fin-tab" onclick="switchFinTab('fin-events')">Εκδηλώσεις</button>
           <button class="fin-tab" onclick="switchFinTab('fin-tickets')">Εισιτήρια</button>
           <button class="fin-tab" onclick="switchFinTab('fin-sponsors')">Χορηγοί</button>
-          <button class="fin-tab" onclick="switchFinTab('fin-artists')">Καλλιτέχνες</button>
+          <button class="fin-tab" onclick="switchFinTab('fin-artists')">Καλλιτέχνες / Προμηθευτές</button>
         </div>
 
         <!-- TAB: Dashboard -->
@@ -2564,15 +2564,19 @@ function toggleInstallments(){
   if(show) calcInstallmentAmount(); else document.getElementById('ar-installment-schedule').innerHTML='';
 }
 function calcInstallmentAmount(){
-  const total=parseFloat(document.getElementById('ar-planned').value)||0;
+  const planned=parseFloat(document.getElementById('ar-planned').value)||0;
+  const actual=parseFloat(document.getElementById('ar-actual').value)||0;
+  const vat=(parseInt(document.getElementById('ar-vat').value)||0)/100;
+  const totalNet=planned||actual; // χρησιμοποίησε πρόβλεψη, αν δεν υπάρχει τότε πραγματικό
+  const totalGross=totalNet*(1+vat);
   const n=parseInt(document.getElementById('ar-installments').value)||1;
-  const perInst=total/n;
+  const perInst=totalGross/n;
   document.getElementById('ar-per-installment').value=perInst.toFixed(2);
   // Show schedule preview
   const start=document.getElementById('ar-installment-start').value;
   const schedEl=document.getElementById('ar-installment-schedule');
-  if(!start||n<=1){schedEl.innerHTML='';return;}
-  let html='<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Πρόγραμμα δόσεων:</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
+  if(!start||n<=1||totalGross<=0){schedEl.innerHTML='';return;}
+  let html='<div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Πρόγραμμα δόσεων (μικτό ανά δόση):</div><div style="display:flex;flex-wrap:wrap;gap:6px">';
   for(let i=0;i<n;i++){
     const d=new Date(start);d.setMonth(d.getMonth()+i);
     const label=d.toLocaleDateString('el-GR',{month:'short',year:'numeric'});
@@ -2581,9 +2585,12 @@ function calcInstallmentAmount(){
   html+='</div>';
   schedEl.innerHTML=html;
 }
-// Attach live calc on planned amount change
+// Attach live calc on amount/installment/vat changes
 document.addEventListener('input',e=>{
-  if(e.target.id==='ar-planned'||e.target.id==='ar-installments'||e.target.id==='ar-installment-start') calcInstallmentAmount();
+  if(['ar-planned','ar-actual','ar-installments','ar-installment-start'].includes(e.target.id)) calcInstallmentAmount();
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='ar-vat') calcInstallmentAmount();
 });
 
 // --- Monthly breakdown helper (for reports) ---
