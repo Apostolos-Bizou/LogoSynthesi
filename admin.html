@@ -225,6 +225,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .eb-input.notes{text-align:left;}
 .eb-computed{color:var(--gold);font-weight:600;font-size:15px;}
 .paid-yes{color:var(--green);font-weight:700;}.paid-no{color:var(--red);opacity:.7;}.paid-partial{color:var(--orange);font-weight:600;}
+.auto-grow{resize:vertical;min-height:50px;overflow-y:hidden;transition:height .15s;}
 /* Budget modal: bigger table text */
 #modal-event-budget .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 #modal-event-budget .data-table{min-width:750px;}
@@ -1297,8 +1298,18 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div class="form-group"><label class="form-label">Τιμολόγιο / Σύμβαση</label><input type="text" class="form-input" id="sp-invoice"></div>
       </div>
       <div class="form-2col">
-        <div class="form-group"><label class="form-label">Πρόβλεψη (€)</label><input type="number" class="form-input" id="sp-planned" step="0.01" min="0"></div>
-        <div class="form-group"><label class="form-label">Πραγματικά (€)</label><input type="number" class="form-input" id="sp-actual" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Πρόβλεψη Καθαρό (€)</label><input type="number" class="form-input" id="sp-planned" step="0.01" min="0" oninput="calcSpGross()"></div>
+        <div class="form-group"><label class="form-label">Πραγματικό Καθαρό (€)</label><input type="number" class="form-input" id="sp-actual" step="0.01" min="0" oninput="calcSpGross()"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">ΦΠΑ %</label><select class="form-select" id="sp-vat" onchange="calcSpGross()"><option value="0">0% (χωρίς ΦΠΑ)</option><option value="6">6%</option><option value="13">13%</option><option value="24" selected>24%</option></select></div>
+        <div class="form-group"><label class="form-label">Μικτό Πρόβλεψη / Πραγματικό</label>
+          <div style="display:flex;gap:12px;align-items:center;padding:10px 0">
+            <span style="font-family:var(--font-serif);font-size:20px;color:var(--gold)" id="sp-gross-planned">0 €</span>
+            <span style="color:rgba(255,255,255,0.3)">/</span>
+            <span style="font-family:var(--font-serif);font-size:20px;color:var(--green)" id="sp-gross-actual">0 €</span>
+          </div>
+        </div>
       </div>
       <div class="section-div"></div>
       <div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Δόσεις / Περιοδική Είσπραξη</div>
@@ -1313,7 +1324,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <div class="section-div"></div>
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Πληρωμή;</label><select class="form-select" id="sp-paid"><option value="no">Όχι</option><option value="yes">Ναι</option><option value="partial">Μερικά</option></select></div>
-        <div class="form-group"><label class="form-label">Σημειώσεις</label><input type="text" class="form-input" id="sp-notes"></div>
+        <div class="form-group"><label class="form-label">Σημειώσεις</label><textarea class="form-textarea auto-grow" id="sp-notes" rows="2" placeholder="Ελεύθερο κείμενο, copy-paste email κλπ…" oninput="autoGrow(this)"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1345,8 +1356,18 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div class="form-group"><label class="form-label">Κατηγορία</label><select class="form-select" id="ar-category"><option>Καλλιτέχνης</option><option>Τεχνικός</option><option>Προμηθευτής</option><option>Σύμβουλος</option><option>Άλλο</option></select></div>
       </div>
       <div class="form-2col">
-        <div class="form-group"><label class="form-label">Πρόβλεψη Αμοιβής (€)</label><input type="number" class="form-input" id="ar-planned" step="0.01" min="0"></div>
-        <div class="form-group"><label class="form-label">Πραγματική Αμοιβή (€)</label><input type="number" class="form-input" id="ar-actual" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Πρόβλεψη Καθαρό (€)</label><input type="number" class="form-input" id="ar-planned" step="0.01" min="0" oninput="calcArGross()"></div>
+        <div class="form-group"><label class="form-label">Πραγματικό Καθαρό (€)</label><input type="number" class="form-input" id="ar-actual" step="0.01" min="0" oninput="calcArGross()"></div>
+      </div>
+      <div class="form-2col">
+        <div class="form-group"><label class="form-label">ΦΠΑ %</label><select class="form-select" id="ar-vat" onchange="calcArGross()"><option value="0">0% (χωρίς ΦΠΑ)</option><option value="6">6%</option><option value="13">13%</option><option value="24" selected>24%</option></select></div>
+        <div class="form-group"><label class="form-label">Μικτό Πρόβλεψη / Πραγματικό</label>
+          <div style="display:flex;gap:12px;align-items:center;padding:10px 0">
+            <span style="font-family:var(--font-serif);font-size:20px;color:var(--gold)" id="ar-gross-planned">0 €</span>
+            <span style="color:rgba(255,255,255,0.3)">/</span>
+            <span style="font-family:var(--font-serif);font-size:20px;color:var(--green)" id="ar-gross-actual">0 €</span>
+          </div>
+        </div>
       </div>
       <div class="section-div"></div>
       <div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Δόσεις / Περιοδική Πληρωμή</div>
@@ -1364,7 +1385,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div class="form-group"><label class="form-label">Προθεσμία</label><input type="date" class="form-input" id="ar-due"></div>
         <div class="form-group"><label class="form-label">Πληρωμή;</label><select class="form-select" id="ar-paid"><option value="no">Όχι</option><option value="yes">Ναι</option><option value="partial">Μερικά</option></select></div>
       </div>
-      <div class="form-group"><label class="form-label">Σημειώσεις</label><input type="text" class="form-input" id="ar-notes"></div>
+      <div class="form-group"><label class="form-label">Σημειώσεις</label><textarea class="form-textarea auto-grow" id="ar-notes" rows="2" placeholder="Ελεύθερο κείμενο, copy-paste email κλπ…" oninput="autoGrow(this)"></textarea></div>
     </div>
     <div class="modal-footer">
       <button class="btn-sm" onclick="closeModal('modal-artist')">Ακύρωση</button>
@@ -2365,6 +2386,7 @@ function openSponsorModal(id){
   ['sp-name','sp-invoice','sp-planned','sp-actual','sp-notes','sp-installment-start'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('sp-contact-id').value='';document.getElementById('sp-contact-info').innerHTML='';
   document.getElementById('sp-type').value='Μετρητά';document.getElementById('sp-paid').value='no';
+  document.getElementById('sp-vat').value='24';document.getElementById('sp-gross-planned').textContent='0 €';document.getElementById('sp-gross-actual').textContent='0 €';
   document.getElementById('sp-pay-type').value='once';document.getElementById('sp-installments').value='1';
   populateEventSelect('sp-event');
   document.getElementById('modal-sponsor-title').textContent='Νέος Χορηγός';
@@ -2375,8 +2397,11 @@ function openSponsorModal(id){
     document.getElementById('sp-contact-id').value=s.contactId||'';
     if(s.contactId){const c=_contacts.find(x=>x.id===s.contactId);if(c)showContactInfo('sp-contact-info',c);}
     document.getElementById('sp-planned').value=s.planned||'';document.getElementById('sp-actual').value=s.actual||'';
+    document.getElementById('sp-vat').value=s.vat||24;
+    calcSpGross();
     document.getElementById('sp-invoice').value=s.invoice||'';document.getElementById('sp-paid').value=s.paid||'no';
     document.getElementById('sp-notes').value=s.notes||'';
+    autoGrow(document.getElementById('sp-notes'));
     document.getElementById('sp-pay-type').value=s.payType||'once';
     document.getElementById('sp-installments').value=s.installments||1;
     document.getElementById('sp-installment-start').value=s.installmentStart||'';
@@ -2389,7 +2414,7 @@ async function saveSponsor(){
   const id=document.getElementById('sp-id').value;
   const name=document.getElementById('sp-name').value.trim();
   if(!name){toast('Συμπλήρωσε όνομα χορηγού','error');return;}
-  const rec={eventId:document.getElementById('sp-event').value,name,contactId:document.getElementById('sp-contact-id').value||'',type:document.getElementById('sp-type').value,planned:parseFloat(document.getElementById('sp-planned').value)||0,actual:parseFloat(document.getElementById('sp-actual').value)||0,invoice:document.getElementById('sp-invoice').value.trim(),paid:document.getElementById('sp-paid').value,notes:document.getElementById('sp-notes').value.trim(),payType:document.getElementById('sp-pay-type').value,installments:parseInt(document.getElementById('sp-installments').value)||1,installmentStart:document.getElementById('sp-installment-start').value};
+  const rec={eventId:document.getElementById('sp-event').value,name,contactId:document.getElementById('sp-contact-id').value||'',type:document.getElementById('sp-type').value,planned:parseFloat(document.getElementById('sp-planned').value)||0,actual:parseFloat(document.getElementById('sp-actual').value)||0,vat:parseInt(document.getElementById('sp-vat').value)||0,invoice:document.getElementById('sp-invoice').value.trim(),paid:document.getElementById('sp-paid').value,notes:document.getElementById('sp-notes').value.trim(),payType:document.getElementById('sp-pay-type').value,installments:parseInt(document.getElementById('sp-installments').value)||1,installmentStart:document.getElementById('sp-installment-start').value};
   try{
     if(id){await erpUpdate('sponsors',id,rec);const idx=_sponsors.findIndex(x=>x.id===id);if(idx!==-1)_sponsors[idx]={id,...rec};}
     else{const nid=await erpAdd('sponsors',rec);_sponsors.unshift({id:nid,...rec,createdAt:Date.now()});}
@@ -2421,6 +2446,7 @@ function openArtistModal(id){
   ['ar-name','ar-role','ar-planned','ar-actual','ar-due','ar-notes','ar-installment-start','ar-per-installment'].forEach(f=>document.getElementById(f).value='');
   document.getElementById('ar-contact-id').value='';document.getElementById('ar-contact-info').innerHTML='';
   document.getElementById('ar-category').value='Καλλιτέχνης';document.getElementById('ar-paid').value='no';
+  document.getElementById('ar-vat').value='24';document.getElementById('ar-gross-planned').textContent='0 €';document.getElementById('ar-gross-actual').textContent='0 €';
   document.getElementById('ar-pay-type').value='once';document.getElementById('ar-installments').value='1';
   document.getElementById('ar-installment-schedule').innerHTML='';
   populateEventSelect('ar-event');
@@ -2433,8 +2459,11 @@ function openArtistModal(id){
     if(a.contactId){const c=_contacts.find(x=>x.id===a.contactId);if(c)showContactInfo('ar-contact-info',c);}
     document.getElementById('ar-category').value=a.category||'Καλλιτέχνης';
     document.getElementById('ar-planned').value=a.planned||'';document.getElementById('ar-actual').value=a.actual||'';
+    document.getElementById('ar-vat').value=a.vat||24;
+    calcArGross();
     document.getElementById('ar-due').value=a.dueDate||'';document.getElementById('ar-paid').value=a.paid||'no';
     document.getElementById('ar-notes').value=a.notes||'';
+    autoGrow(document.getElementById('ar-notes'));
     document.getElementById('ar-pay-type').value=a.payType||'once';
     document.getElementById('ar-installments').value=a.installments||1;
     document.getElementById('ar-installment-start').value=a.installmentStart||'';
@@ -2449,7 +2478,7 @@ async function saveArtist(){
   const id=document.getElementById('ar-id').value;
   const name=document.getElementById('ar-name').value.trim();
   if(!name){toast('Συμπλήρωσε όνομα','error');return;}
-  const rec={eventId:document.getElementById('ar-event').value,name,contactId:document.getElementById('ar-contact-id').value||'',role:document.getElementById('ar-role').value.trim(),category:document.getElementById('ar-category').value,planned:parseFloat(document.getElementById('ar-planned').value)||0,actual:parseFloat(document.getElementById('ar-actual').value)||0,dueDate:document.getElementById('ar-due').value,paid:document.getElementById('ar-paid').value,notes:document.getElementById('ar-notes').value.trim(),payType:document.getElementById('ar-pay-type').value,installments:parseInt(document.getElementById('ar-installments').value)||1,installmentStart:document.getElementById('ar-installment-start').value};
+  const rec={eventId:document.getElementById('ar-event').value,name,contactId:document.getElementById('ar-contact-id').value||'',role:document.getElementById('ar-role').value.trim(),category:document.getElementById('ar-category').value,planned:parseFloat(document.getElementById('ar-planned').value)||0,actual:parseFloat(document.getElementById('ar-actual').value)||0,vat:parseInt(document.getElementById('ar-vat').value)||0,dueDate:document.getElementById('ar-due').value,paid:document.getElementById('ar-paid').value,notes:document.getElementById('ar-notes').value.trim(),payType:document.getElementById('ar-pay-type').value,installments:parseInt(document.getElementById('ar-installments').value)||1,installmentStart:document.getElementById('ar-installment-start').value};
   try{
     if(id){await erpUpdate('artists_vendors',id,rec);const idx=_artists.findIndex(x=>x.id===id);if(idx!==-1)_artists[idx]={id,...rec};}
     else{const nid=await erpAdd('artists_vendors',rec);_artists.unshift({id:nid,...rec,createdAt:Date.now()});}
@@ -2462,6 +2491,23 @@ async function deleteArtist(id){
 }
 
 // --- Contact picker for Artists & Sponsors ---
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+
+function calcArGross(){
+  const p=parseFloat(document.getElementById('ar-planned').value)||0;
+  const a=parseFloat(document.getElementById('ar-actual').value)||0;
+  const vat=(parseFloat(document.getElementById('ar-vat').value)||0)/100;
+  document.getElementById('ar-gross-planned').textContent=fmtMoney(p*(1+vat));
+  document.getElementById('ar-gross-actual').textContent=fmtMoney(a*(1+vat));
+  calcInstallmentAmount();
+}
+function calcSpGross(){
+  const p=parseFloat(document.getElementById('sp-planned').value)||0;
+  const a=parseFloat(document.getElementById('sp-actual').value)||0;
+  const vat=(parseFloat(document.getElementById('sp-vat').value)||0)/100;
+  document.getElementById('sp-gross-planned').textContent=fmtMoney(p*(1+vat));
+  document.getElementById('sp-gross-actual').textContent=fmtMoney(a*(1+vat));
+}
 function filterArContacts(){
   const q=(document.getElementById('ar-name').value||'').toLowerCase();
   const dd=document.getElementById('ar-contact-dropdown');
