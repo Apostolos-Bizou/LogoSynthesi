@@ -2,8 +2,56 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ΛογοΣύνθεση Admin">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e0d0b">
+<meta name="description" content="ΛογοΣύνθεση — Σύστημα Διαχείρισης Admin ERP">
 <title>ΛογοΣύνθεση · Admin</title>
+<link rel="manifest" id="pwa-manifest">
+<script>
+// Generate PWA manifest inline
+const manifest={
+  name:"ΛογοΣύνθεση Admin",
+  short_name:"ΛΣ Admin",
+  description:"Σύστημα Διαχείρισης — Σύνδεσμος Φιλολόγων Λευκάδος",
+  start_url:location.href.split('?')[0],
+  display:"standalone",
+  background_color:"#0e0d0b",
+  theme_color:"#0e0d0b",
+  orientation:"any",
+  icons:[
+    {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0e0d0b"/><rect x="24" y="24" width="464" height="464" fill="none" stroke="#C8A96E" stroke-width="4"/><rect x="36" y="36" width="440" height="440" fill="none" stroke="#C8A96E" stroke-width="1" opacity="0.3"/><circle cx="256" cy="256" r="28" fill="#C8A96E"/><path d="M176 160 Q128 256 176 352" stroke="#F7F3EC" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M120 100 Q48 256 120 412" stroke="#F7F3EC" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.35"/><path d="M336 160 Q384 256 336 352" stroke="#C8A96E" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M392 100 Q464 256 392 412" stroke="#C8A96E" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.5"/><text x="256" y="470" text-anchor="middle" font-family="Georgia,serif" font-size="42" fill="#ffffff" letter-spacing="3">ADMIN</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
+  ]
+};
+const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
+
+// Generate Apple Touch Icon via Canvas
+(function(){
+  const c=document.createElement('canvas');c.width=180;c.height=180;
+  const ctx=c.getContext('2d');
+  // Background
+  ctx.fillStyle='#0e0d0b';ctx.fillRect(0,0,180,180);
+  // Border
+  ctx.strokeStyle='#C8A96E';ctx.lineWidth=2;ctx.strokeRect(8,8,164,164);
+  // Center dot
+  ctx.beginPath();ctx.arc(90,80,6,0,Math.PI*2);ctx.fillStyle='#C8A96E';ctx.fill();
+  // Left arc
+  ctx.beginPath();ctx.moveTo(60,50);ctx.quadraticCurveTo(42,80,60,110);ctx.strokeStyle='#F7F3EC';ctx.lineWidth=3;ctx.stroke();
+  // Right arc
+  ctx.beginPath();ctx.moveTo(120,50);ctx.quadraticCurveTo(138,80,120,110);ctx.strokeStyle='#C8A96E';ctx.lineWidth=3;ctx.stroke();
+  // Text
+  ctx.fillStyle='#ffffff';ctx.font='bold 22px Georgia,serif';ctx.textAlign='center';ctx.fillText('ADMIN',90,150);
+  // Set as apple-touch-icon
+  const link=document.createElement('link');link.rel='apple-touch-icon';link.href=c.toDataURL('image/png');
+  document.head.appendChild(link);
+})();
+</script>
+<!-- Apple Touch Icon (inline SVG as PNG fallback via canvas) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230e0d0b'/%3E%3Crect x='3' y='3' width='58' height='58' fill='none' stroke='%23C8A96E' stroke-width='1'/%3E%3Ccircle cx='32' cy='32' r='3.5' fill='%23C8A96E'/%3E%3Cpath d='M22 20 Q17 32 22 44' stroke='%23F7F3EC' stroke-width='1.4' fill='none'/%3E%3Cpath d='M42 20 Q47 32 42 44' stroke='%23C8A96E' stroke-width='1.4' fill='none'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Raleway:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
@@ -2203,6 +2251,91 @@ const CLOUDINARY_CLOUD='dxodgbx3o',CLOUDINARY_PRESET='logosynthesi';
 function uploadToCloudinary(fieldId,previewId){const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=async()=>{const file=input.files[0];if(!file)return;const statusMap={'evPoster':'evPosterStatus','memPhoto':'memPhotoStatus','ct-bcard':'ct-bcardStatus'};const statusId=statusMap[fieldId]||fieldId+'Status';const statusEl=document.getElementById(statusId);if(statusEl)statusEl.textContent='Ανέβασμα...';const fd=new FormData();fd.append('file',file);fd.append('upload_preset',CLOUDINARY_PRESET);try{const res=await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});const data=await res.json();if(data.secure_url){document.getElementById(fieldId).value=data.secure_url;if(statusEl)statusEl.textContent='✓ Ανέβηκε';showImagePreview(previewId,data.secure_url,fieldId==='evPoster');}else{if(statusEl)statusEl.textContent='✗ Σφάλμα';}}catch(e){if(statusEl)statusEl.textContent='✗ Σφάλμα σύνδεσης';}};input.click();}
 function showImagePreview(previewId,url,isPoster){const el=document.getElementById(previewId);if(!el||!url)return;const maxH=isPoster?'180px':'70px';const radius=isPoster?'2px':'50%';const statusId=isPoster?'evPosterStatus':'memPhotoStatus';el.innerHTML=`<div style="position:relative;display:inline-block;"><img src="${url}" style="max-height:${maxH};border-radius:${radius};border:1px solid var(--gold-line);display:block;"><button type="button" onclick="clearImage('${previewId}','${isPoster?'evPoster':'memPhoto'}','${statusId}')" style="position:absolute;top:-6px;right:-6px;background:#c0392b;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:18px;text-align:center;">x</button></div>`;}
 function clearImage(previewId,fieldId,statusId){document.getElementById(fieldId).value='';document.getElementById(previewId).innerHTML='';document.getElementById(statusId).textContent='';}
+
+// ===== PWA INSTALL PROMPT =====
+let _deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _deferredPrompt=e;
+  showInstallBanner();
+});
+
+function showInstallBanner(){
+  if(document.getElementById('pwa-install-banner'))return;
+  const banner=document.createElement('div');
+  banner.id='pwa-install-banner';
+  banner.innerHTML=`
+    <div style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(to right,#0e0d0b,#1e1b16);border-top:2px solid rgba(200,169,110,0.4);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 -4px 20px rgba(0,0,0,0.5);">
+      <div style="width:44px;height:44px;border:1.5px solid #C8A96E;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#0e0d0b;">
+        <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="3.5" fill="#C8A96E"/><path d="M22 20 Q17 32 22 44" stroke="#F7F3EC" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M42 20 Q47 32 42 44" stroke="#C8A96E" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:#ffffff;">Εγκατάσταση <span style="color:#C8A96E;">ΛογοΣύνθεση</span> Admin</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px;">Πρόσθεσέ το στην αρχική οθόνη σου</div>
+      </div>
+      <button onclick="doPWAInstall()" style="background:#C8A96E;color:#0e0d0b;border:none;padding:10px 20px;font-family:'Raleway',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;flex-shrink:0;">ΕΓΚΑΤΑΣΤΑΣΗ</button>
+      <button onclick="dismissInstallBanner()" style="background:none;border:1px solid rgba(200,169,110,0.3);color:rgba(255,255,255,0.5);width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function doPWAInstall(){
+  if(_deferredPrompt){
+    _deferredPrompt.prompt();
+    const result=await _deferredPrompt.userChoice;
+    _deferredPrompt=null;
+  }
+  dismissInstallBanner();
+}
+
+function dismissInstallBanner(){
+  const b=document.getElementById('pwa-install-banner');
+  if(b)b.remove();
+  try{localStorage.setItem('pwa-dismissed','1');}catch(e){}
+}
+
+// Show iOS Safari install instructions
+function showIOSInstall(){
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  if(isIOS&&!isStandalone){
+    try{if(localStorage.getItem('pwa-ios-dismissed'))return;}catch(e){}
+    setTimeout(()=>{
+      const banner=document.createElement('div');
+      banner.id='pwa-install-banner';
+      banner.innerHTML=`
+        <div style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:linear-gradient(to right,#0e0d0b,#1e1b16);border-top:2px solid rgba(200,169,110,0.4);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 -4px 20px rgba(0,0,0,0.5);">
+          <div style="width:44px;height:44px;border:1.5px solid #C8A96E;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#0e0d0b;">
+            <svg width="28" height="28" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="3.5" fill="#C8A96E"/><path d="M22 20 Q17 32 22 44" stroke="#F7F3EC" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M42 20 Q47 32 42 44" stroke="#C8A96E" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#ffffff;">Πρόσθεσε το <span style="color:#C8A96E;">Admin</span> στην οθόνη</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:3px;line-height:1.4;">Πάτα <span style="font-size:15px;">⎋</span> (Share) → <strong>Προσθήκη στην αρχική οθόνη</strong></div>
+          </div>
+          <button onclick="this.closest('#pwa-install-banner').remove();try{localStorage.setItem('pwa-ios-dismissed','1');}catch(e){}" style="background:none;border:1px solid rgba(200,169,110,0.3);color:rgba(255,255,255,0.5);width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+        </div>
+      `;
+      document.body.appendChild(banner);
+    },2000);
+  }
+}
+
+// Register minimal service worker for PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    // Create a minimal SW inline
+    const swCode=`self.addEventListener('fetch',e=>e.respondWith(fetch(e.request)));`;
+    const swBlob=new Blob([swCode],{type:'application/javascript'});
+    const swUrl=URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl,{scope:'/'}).catch(()=>{});
+    // Check if already installed
+    if(!window.matchMedia('(display-mode: standalone)').matches){
+      try{if(!localStorage.getItem('pwa-dismissed'))showIOSInstall();}catch(e){showIOSInstall();}
+    }
+  });
+}
 </script>
 </body>
 </html>
