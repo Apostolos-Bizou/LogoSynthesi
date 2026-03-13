@@ -1195,8 +1195,8 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             </div>
           </div>
 
-          <!-- Row 3: Tasks + Votes avg -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <!-- Row 3: Tasks half-width -->
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px">
             <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
               <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εργασίες ανά Κατάσταση</div>
               <div style="position:relative;height:200px"><canvas id="rpt-tasks-chart"></canvas></div>
@@ -1932,7 +1932,9 @@ async function renderVotes(){
   filtered.forEach(v=>{
     if(!summaryMap[v.eventId])summaryMap[v.eventId]={total:0,sum:0,stars:{1:0,2:0,3:0,4:0,5:0},emails:new Set()};
     const s=summaryMap[v.eventId];
-    s.total++;s.sum+=Number(v.rating||0);s.stars[v.rating]=(s.stars[v.rating]||0)+1;
+    const r=parseInt(v.rating)||0;
+    s.total++;s.sum+=r;
+    if(r>=1&&r<=5)s.stars[r]=(s.stars[r]||0)+1;
     if(v.email)s.emails.add(v.email);
   });
   // Cache for charts
