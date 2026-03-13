@@ -1935,6 +1935,9 @@ async function renderVotes(){
     s.total++;s.sum+=Number(v.rating||0);s.stars[v.rating]=(s.stars[v.rating]||0)+1;
     if(v.email)s.emails.add(v.email);
   });
+  // Cache for charts
+  window._votesSummaryMap = summaryMap;
+  window._votesAllVotes = allVotes;
   const summaryEl=document.getElementById('votesSummary');
   if(!Object.keys(summaryMap).length){summaryEl.innerHTML='<div class="empty-msg">Δεν υπάρχουν ψήφοι ακόμα.</div>';document.getElementById('votesDetailTbody').innerHTML='';return;}
   summaryEl.innerHTML=Object.entries(summaryMap).map(([evId,s])=>{
@@ -3829,9 +3832,15 @@ function renderReportsCharts(){
   const totalEv=_events.length;
   const upcomingEv=_events.filter(e=>e.date>=new Date().toISOString().split('T')[0]).length;
   const openTasks=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
-  // avg rating across all events
+  // avg rating - use cached Firestore votes if available, else fallback
   let allRatings=[];
-  _events.forEach(ev=>{if(ev.votes){Object.entries(ev.votes).forEach(([s,c])=>{for(let i=0;i<c;i++)allRatings.push(parseInt(s));});}});
+  if(window._votesSummaryMap && Object.keys(window._votesSummaryMap).length){
+    Object.values(window._votesSummaryMap).forEach(s=>{
+      Object.entries(s.stars).forEach(([star,cnt])=>{for(let i=0;i<cnt;i++)allRatings.push(parseInt(star));});
+    });
+  } else {
+    _events.forEach(ev=>{if(ev.votes){Object.entries(ev.votes).forEach(([s,c])=>{for(let i=0;i<c;i++)allRatings.push(parseInt(s));});}});
+  }
   const avgRating=allRatings.length?(allRatings.reduce((a,b)=>a+b,0)/allRatings.length).toFixed(1):'-';
 
   const kpis=[
@@ -3931,23 +3940,42 @@ function renderReportsCharts(){
   destroyChart(_chartRptVotes);
   const vCtx=document.getElementById('rpt-votes-chart');
   if(vCtx){
-    const evWithVotes=_events.filter(e=>e.votes&&Object.values(e.votes).some(c=>c>0));
-    const vLabels=evWithVotes.map(e=>e.title.substring(0,18)+(e.title.length>18?'…':''));
-    const vData=evWithVotes.map(e=>{
-      const total=Object.values(e.votes).reduce((a,b)=>a+b,0);
-      if(!total)return 0;
-      return parseFloat((Object.entries(e.votes).reduce((a,[s,c])=>a+parseInt(s)*c,0)/total).toFixed(2));
-    });
-    const vColors=vData.map(v=>v>=4?'rgba(76,175,80,0.8)':v>=3?'rgba(200,169,110,0.8)':'rgba(229,115,115,0.8)');
+    // Build from Firestore-cached summaryMap (set by renderVotes) or fall back to _events.votes
+    let vLabels=[],vData=[];
+    const sm=window._votesSummaryMap;
+    if(sm && Object.keys(sm).length){
+      Object.entries(sm).forEach(([evId,s])=>{
+        if(!s.total)return;
+        const ev=_events.find(e=>e.id===evId);
+        vLabels.push((ev?ev.title:evId).substring(0,18)+((ev&&ev.title.length>18)?'…':''));
+        vData.push(parseFloat((s.sum/s.total).toFixed(2)));
+      });
+    } else {
+      _events.filter(e=>e.votes&&Object.values(e.votes).some(c=>c>0)).forEach(e=>{
+        const total=Object.values(e.votes).reduce((a,b)=>a+b,0);
+        if(!total)return;
+        vLabels.push(e.title.substring(0,18)+(e.title.length>18?'…':''));
+        vData.push(parseFloat((Object.entries(e.votes).reduce((a,[s,c])=>a+parseInt(s)*c,0)/total).toFixed(2)));
+      });
+    }
+    const vColors=vData.map(v=>v>=4.5?'rgba(76,175,80,0.9)':v>=4?'rgba(100,200,80,0.8)':v>=3?'rgba(200,169,110,0.8)':v>=2?'rgba(229,150,60,0.8)':'rgba(229,115,115,0.8)');
+    destroyChart(_chartRptVotes);
     _chartRptVotes=new Chart(vCtx,{
       type:'bar',
-      data:{labels:vLabels,datasets:[{data:vData,backgroundColor:vColors,borderRadius:4}]},
+      data:{labels:vLabels,datasets:[{data:vData,backgroundColor:vColors,borderRadius:4,borderSkipped:false}]},
       options:{
         responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Μ.Ο.: ${ctx.raw} ★`}}},
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:ctx=>{
+            const c=vColors[ctx.dataIndex];
+            const star=ctx.raw>=4.5?'★★★★★':ctx.raw>=4?'★★★★☆':ctx.raw>=3?'★★★☆☆':ctx.raw>=2?'★★☆☆☆':'★☆☆☆☆';
+            return ` ${star}  Μ.Ο.: ${ctx.raw}`;
+          }}}
+        },
         scales:{
-          x:{ticks:{color:tickColor,font:{size:10},maxRotation:35,autoSkip:true},grid:{display:false}},
-          y:{min:0,max:5,ticks:{color:tickColor,font:{size:11},stepSize:1},grid:{color:gridColor}}
+          x:{ticks:{color:tickColor,font:{size:10},maxRotation:40,autoSkip:false},grid:{display:false}},
+          y:{min:0,max:5,ticks:{color:tickColor,font:{size:11},stepSize:1,callback:v=>v+' ★'},grid:{color:gridColor}}
         }
       }
     });
@@ -3990,7 +4018,12 @@ function renderReportsCharts(){
 const _origRenderReports=renderReports;
 renderReports=function(){
   _origRenderReports.apply(this,arguments);
-  setTimeout(()=>renderReportsCharts(),50);
+  // Ensure votes are loaded from Firestore before rendering charts
+  if(!window._votesSummaryMap){
+    renderVotes().then(()=>setTimeout(()=>renderReportsCharts(),80));
+  } else {
+    setTimeout(()=>renderReportsCharts(),50);
+  }
 };
 
 const _origRenderDashboard=renderDashboard;
@@ -4005,28 +4038,14 @@ renderDashboard=function(){
   setTimeout(()=>renderDashFinanceChart(tInc,tExp),50);
 };
 
-// Patch renderVotes to call chart after building summaryMap
+// Patch renderVotes to call chart using cached summaryMap
 const _origRenderVotes=renderVotes;
 renderVotes=async function(){
   await _origRenderVotes.apply(this,arguments);
-  // Re-compute summaryMap for chart (mirrors logic in renderVotes)
-  let allVotes=[];
-  try{
-    if(!window._db)throw new Error('demo');
-    const{collection,getDocs}=window._firebase;
-    const snap=await getDocs(collection(window._db,'votes'));
-    allVotes=snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){
-    _events.forEach(ev=>{if(ev.votes){Object.entries(ev.votes).forEach(([star,count])=>{for(let i=0;i<count;i++)allVotes.push({eventId:ev.id,rating:parseInt(star)});});}});
-  }
-  const cv=document.getElementById('votes-filter-event').value;
-  let filtered=cv?allVotes.filter(v=>v.eventId===cv):allVotes;
-  const summaryMap={};
-  filtered.forEach(v=>{
-    if(!summaryMap[v.eventId])summaryMap[v.eventId]={total:0,sum:0,stars:{1:0,2:0,3:0,4:0,5:0}};
-    const s=summaryMap[v.eventId];s.total++;s.sum+=Number(v.rating||0);s.stars[v.rating]=(s.stars[v.rating]||0)+1;
-  });
-  setTimeout(()=>renderVotesChart(summaryMap),50);
+  // Use summaryMap cached by renderVotes itself (window._votesSummaryMap)
+  setTimeout(()=>{
+    if(window._votesSummaryMap) renderVotesChart(window._votesSummaryMap);
+  },50);
 };
 
 // Patch renderFinDashboard to append charts
