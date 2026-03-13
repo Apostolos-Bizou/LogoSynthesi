@@ -2428,12 +2428,20 @@ function renderOrgBudget(){
   const incTb=document.getElementById('org-income-tbody');
   incTb.innerHTML=_orgBudget.incomeRows.map((r,i)=>{
     const vr=Number(r.actual||0)-Number(r.planned||0);
-    return '<tr><td>'+r.label+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'income\','+i+',\'planned\',this.value)">')+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'income\','+i+',\'actual\',this.value)">')+'</td><td style="color:'+(vr>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td><td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'income\','+i+',\'notes\',this.value)">')+'</td></tr>';
+    return '<tr><td>'+r.label+'</td>'
+      +'<td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'income\','+i+',\'planned\',this.value)" oninput="orgRowChange(\'income\','+i+',\'planned\',this.value)">')+'</td>'
+      +'<td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'income\','+i+',\'actual\',this.value)" oninput="orgRowChange(\'income\','+i+',\'actual\',this.value)">')+'</td>'
+      +'<td style="color:'+(vr>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td>'
+      +'<td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'income\','+i+',\'notes\',this.value)">')+'</td></tr>';
   }).join('');
   const expTb=document.getElementById('org-expense-tbody');
   expTb.innerHTML=_orgBudget.expenseRows.map((r,i)=>{
     const vr=Number(r.actual||0)-Number(r.planned||0);
-    return '<tr><td>'+r.label+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'expense\','+i+',\'planned\',this.value)">')+'</td><td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'expense\','+i+',\'actual\',this.value)">')+'</td><td style="color:'+(vr<=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td><td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'expense\','+i+',\'notes\',this.value)">')+'</td></tr>';
+    return '<tr><td>'+r.label+'</td>'
+      +'<td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.planned)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.planned||0)+'" onchange="orgRowChange(\'expense\','+i+',\'planned\',this.value)" oninput="orgRowChange(\'expense\','+i+',\'planned\',this.value)">')+'</td>'
+      +'<td>'+(r.auto?'<span class="eb-computed">'+fmtMoney(r.actual)+'</span>':'<input class="eb-input" type="number" step="0.01" value="'+(r.actual||0)+'" onchange="orgRowChange(\'expense\','+i+',\'actual\',this.value)" oninput="orgRowChange(\'expense\','+i+',\'actual\',this.value)">')+'</td>'
+      +'<td style="color:'+(vr<=0?'var(--green)':'var(--red)')+'">'+fmtMoney(vr)+'</td>'
+      +'<td>'+(r.auto?'<span style="font-size:10px;color:rgba(255,255,255,0.4)">auto</span>':'<input class="eb-input notes" type="text" value="'+(r.notes||'')+'" onchange="orgRowChange(\'expense\','+i+',\'notes\',this.value)">')+'</td></tr>';
   }).join('');
   const tip=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.planned||0),0);
   const tia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0);
@@ -2451,9 +2459,38 @@ function renderOrgBudget(){
 }
 function orgRowChange(type,idx,field,val){
   const rows=type==='income'?_orgBudget.incomeRows:_orgBudget.expenseRows;
-  if(field==='notes')rows[idx][field]=val;
+  if(field==='notes') rows[idx][field]=val;
   else rows[idx][field]=parseFloat(val)||0;
-  renderOrgBudget();
+  // Recalculate totals only — don't re-render inputs (would lose focus)
+  orgRecalcTotals();
+}
+function orgRecalcTotals(){
+  const tip=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.planned||0),0);
+  const tia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  const tep=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.planned||0),0);
+  const tea=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  document.getElementById('org-inc-plan-total').textContent=fmtMoney(tip);
+  document.getElementById('org-inc-act-total').textContent=fmtMoney(tia);
+  document.getElementById('org-inc-var-total').textContent=fmtMoney(tia-tip);
+  document.getElementById('org-exp-plan-total').textContent=fmtMoney(tep);
+  document.getElementById('org-exp-act-total').textContent=fmtMoney(tea);
+  document.getElementById('org-exp-var-total').textContent=fmtMoney(tea-tep);
+  const npEl=document.getElementById('org-net-planned');npEl.textContent=fmtMoney(tip-tep);npEl.style.color=(tip-tep)>=0?'var(--green)':'var(--red)';
+  const naEl=document.getElementById('org-net-actual');naEl.textContent=fmtMoney(tia-tea);naEl.style.color=(tia-tea)>=0?'var(--green)':'var(--red)';
+  document.getElementById('org-reserve').textContent=fmtMoney(tia-tea);
+  // Also update variance cells inline without full re-render
+  document.querySelectorAll('#org-income-tbody tr').forEach((tr,i)=>{
+    if(!_orgBudget.incomeRows[i])return;
+    const r=_orgBudget.incomeRows[i];
+    const vr=Number(r.actual||0)-Number(r.planned||0);
+    const vCell=tr.cells[3];if(vCell){vCell.textContent=fmtMoney(vr);vCell.style.color=vr>=0?'var(--green)':'var(--red)';}
+  });
+  document.querySelectorAll('#org-expense-tbody tr').forEach((tr,i)=>{
+    if(!_orgBudget.expenseRows[i])return;
+    const r=_orgBudget.expenseRows[i];
+    const vr=Number(r.actual||0)-Number(r.planned||0);
+    const vCell=tr.cells[3];if(vCell){vCell.textContent=fmtMoney(vr);vCell.style.color=vr<=0?'var(--green)':'var(--red)';}
+  });
 }
 async function saveOrgBudget(){
   try{
