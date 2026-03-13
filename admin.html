@@ -1851,10 +1851,10 @@ async function loadStats() {
   let exp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   // Add event budgets actual data
   _eventBudgets.forEach(b=>{inc+=ebIncomeTotal(b,'actual');exp+=ebExpenseGrossTotal(b,'actual');});
-  // Add sponsors (income) with VAT
-  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;inc+=Number(s.actual||s.planned||0)*(1+v);});
-  // Add artists/vendors (expense) with VAT
-  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;exp+=Number(a.actual||a.planned||0)*(1+v);});
+  // Add sponsors (income) with VAT — only event-linked, not Φορέας
+  _sponsors.forEach(s=>{if(!s.eventId||s.eventId==='')return;const v=(parseInt(s.vat)||0)/100;inc+=Number(s.actual||s.planned||0)*(1+v);});
+  // Add artists/vendors (expense) with VAT — only event-linked, not Φορέας
+  _artists.forEach(a=>{if(!a.eventId||a.eventId==='')return;const v=(parseInt(a.vat)||0)/100;exp+=Number(a.actual||a.planned||0)*(1+v);});
   document.getElementById('statIncome').textContent=fmtMoney(inc);
   const net=inc-exp;
   document.getElementById('statBalance').textContent=fmtMoney(net);
@@ -2453,6 +2453,13 @@ function renderOrgBudget(){
   _eventBudgets.forEach(b=>{evInc+=ebIncomeTotal(b,'planned');evExp+=ebExpenseGrossTotal(b,'planned');evIncA+=ebIncomeTotal(b,'actual');evExpA+=ebExpenseGrossTotal(b,'actual');});
   _orgBudget.incomeRows.forEach(r=>{if(r.auto){r.planned=evInc;r.actual=evIncA;}});
   _orgBudget.expenseRows.forEach(r=>{if(r.auto){r.planned=evExp;r.actual=evExpA;}});
+  // Inject Φορέας artists actual totals into org budget actuals display (read-only overlay)
+  let orgArtistsActual=0, orgArtistsPlanned=0, orgSponsorsActual=0, orgSponsorsPlanned=0;
+  _artists.forEach(a=>{if(a.eventId&&a.eventId!=='')return;const v=(parseInt(a.vat)||0)/100;orgArtistsActual+=Number(a.actual||0)*(1+v);orgArtistsPlanned+=Number(a.planned||0)*(1+v);});
+  _sponsors.forEach(s=>{if(s.eventId&&s.eventId!=='')return;const v=(parseInt(s.vat)||0)/100;orgSponsorsActual+=Number(s.actual||0)*(1+v);orgSponsorsPlanned+=Number(s.planned||0)*(1+v);});
+  // Store on window for use in recalcTotals
+  window._orgArtistsActual=orgArtistsActual; window._orgArtistsPlanned=orgArtistsPlanned;
+  window._orgSponsorsActual=orgSponsorsActual; window._orgSponsorsPlanned=orgSponsorsPlanned;
   document.getElementById('org-year').textContent=_orgBudget.year||2026;
   const incTb=document.getElementById('org-income-tbody');
   incTb.innerHTML=_orgBudget.incomeRows.map((r,i)=>{
@@ -2495,9 +2502,11 @@ function orgRowChange(type,idx,field,val){
 }
 function orgRecalcTotals(){
   const tip=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.planned||0),0);
-  const tia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  // Add Φορέας sponsors to actual income
+  const tia=_orgBudget.incomeRows.reduce((s,r)=>s+Number(r.actual||0),0)+(window._orgSponsorsActual||0);
   const tep=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.planned||0),0);
-  const tea=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.actual||0),0);
+  // Add Φορέας artists to actual expense
+  const tea=_orgBudget.expenseRows.reduce((s,r)=>s+Number(r.actual||0),0)+(window._orgArtistsActual||0);
   document.getElementById('org-inc-plan-total').textContent=fmtMoney(tip);
   document.getElementById('org-inc-act-total').textContent=fmtMoney(tia);
   document.getElementById('org-inc-var-total').textContent=fmtMoney(tia-tip);
@@ -3256,8 +3265,8 @@ function renderDashboard(){
   let totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   let totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   _eventBudgets.forEach(b=>{totalInc+=ebIncomeTotal(b,'actual');totalExp+=ebExpenseGrossTotal(b,'actual');});
-  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;totalInc+=Number(s.actual||s.planned||0)*(1+v);});
-  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;totalExp+=Number(a.actual||a.planned||0)*(1+v);});
+  _sponsors.forEach(s=>{if(!s.eventId||s.eventId==='')return;const v=(parseInt(s.vat)||0)/100;totalInc+=Number(s.actual||s.planned||0)*(1+v);});
+  _artists.forEach(a=>{if(!a.eventId||a.eventId==='')return;const v=(parseInt(a.vat)||0)/100;totalExp+=Number(a.actual||a.planned||0)*(1+v);});
   const net=totalInc-totalExp;
   document.getElementById('dash-finance').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έσοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--green)">${fmtMoney(totalInc)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έξοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--red)">${fmtMoney(totalExp)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Ισοζύγιο</div><div style="font-family:var(--font-serif);font-size:26px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</div></div>`;
   updateBadges();
@@ -4129,8 +4138,8 @@ renderDashboard=function(){
   let tInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   let tExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   _eventBudgets.forEach(b=>{tInc+=ebIncomeTotal(b,'actual');tExp+=ebExpenseGrossTotal(b,'actual');});
-  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;tInc+=Number(s.actual||s.planned||0)*(1+v);});
-  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;tExp+=Number(a.actual||a.planned||0)*(1+v);});
+  _sponsors.forEach(s=>{if(!s.eventId||s.eventId==='')return;const v=(parseInt(s.vat)||0)/100;tInc+=Number(s.actual||s.planned||0)*(1+v);});
+  _artists.forEach(a=>{if(!a.eventId||a.eventId==='')return;const v=(parseInt(a.vat)||0)/100;tExp+=Number(a.actual||a.planned||0)*(1+v);});
   setTimeout(()=>renderDashFinanceChart(tInc,tExp),50);
 };
 
