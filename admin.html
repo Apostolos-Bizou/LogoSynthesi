@@ -1195,15 +1195,22 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             </div>
           </div>
 
-          <!-- Row 3: Tasks half-width -->
+          <!-- Row 3a: Tasks -->
           <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-bottom:16px">
             <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
               <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εργασίες ανά Κατάσταση</div>
               <div style="position:relative;height:200px"><canvas id="rpt-tasks-chart"></canvas></div>
             </div>
             <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Μέση Βαθμολογία ανά Εκδήλωση</div>
-              <div style="position:relative;height:200px"><canvas id="rpt-votes-chart"></canvas></div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Μέση Βαθμολογία ανά Εκδήλωση</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.35);margin-bottom:10px">
+                <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(76,175,80,0.9);display:inline-block"></span>≥4.5★</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(100,200,80,0.8);display:inline-block"></span>≥4★</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(200,169,110,0.8);display:inline-block"></span>≥3★</span>
+                <span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(229,150,60,0.8);display:inline-block"></span>≥2★</span>
+                <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:rgba(229,115,115,0.8);display:inline-block"></span>&lt;2★</span>
+              </div>
+              <div style="position:relative;height:175px"><canvas id="rpt-votes-chart"></canvas></div>
             </div>
           </div>
 
@@ -1754,6 +1761,10 @@ function showAdmin(email) {
   loadEvents();
   loadErpData().then(() => {
     loadStats(); loadMembers().then(()=>{ renderDashboard(); updateBadges(); });
+    // If finance view is already active, re-render its chart now that data is loaded
+    if(document.getElementById('view-erp-finance')?.classList.contains('active')){
+      setTimeout(()=>renderFinEventsChart(),100);
+    }
   });
 }
 
@@ -3713,7 +3724,16 @@ function renderVotesChart(summaryMap){
 function renderFinEventsChart(){
   destroyChart(_chartFinEvents);
   const canvas=document.getElementById('fin-events-chart');
-  if(!canvas||!_eventBudgets.length)return;
+  if(!canvas)return;
+  // If data not loaded yet, retry up to 10 times
+  if(!_eventBudgets.length){
+    if((renderFinEventsChart._retries||0)<10){
+      renderFinEventsChart._retries=(renderFinEventsChart._retries||0)+1;
+      setTimeout(()=>renderFinEventsChart(),300);
+    }
+    return;
+  }
+  renderFinEventsChart._retries=0;
   // If canvas has no dimensions yet, panel is still hidden - retry
   if(canvas.offsetWidth===0){setTimeout(()=>renderFinEventsChart(),150);return;}
   const labels=_eventBudgets.map(b=>getEventTitle(b).substring(0,22));
