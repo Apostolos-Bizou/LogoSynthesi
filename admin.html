@@ -1644,11 +1644,17 @@ function getDb() { return window._db; }
 async function erpLoad(colName) {
   if (!getDb()) return [];
   const { collection, getDocs, query, orderBy } = getFb();
+  // Try with orderBy first; if index missing or field absent, fallback to unordered fetch
   try {
     const q = query(collection(getDb(), colName), orderBy('createdAt', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch(e) { return []; }
+  } catch(e) {
+    try {
+      const snap = await getDocs(collection(getDb(), colName));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e2) { return []; }
+  }
 }
 
 async function erpAdd(colName, data) {
