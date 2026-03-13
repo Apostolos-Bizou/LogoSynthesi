@@ -608,6 +608,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 
 .empty-msg{color:rgba(255,255,255,0.5);font-size:13px;font-style:italic;font-weight:500;padding:14px 0;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 </head>
 <body>
 
@@ -760,6 +761,9 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <div class="dash-panel">
             <div class="dash-panel-header"><div class="dash-panel-title">Οικονομική Εικόνα</div><div class="dash-panel-link" onclick="switchView('erp-finance')">Λεπτομέρειες →</div></div>
             <div class="dash-panel-body" id="dash-finance"></div>
+            <div class="dash-panel-body" style="padding-top:0">
+              <div style="position:relative;height:200px;"><canvas id="dash-finance-chart"></canvas></div>
+            </div>
           </div>
           <div class="dash-panel">
             <div class="dash-panel-header"><div class="dash-panel-title">Πληροφορίες</div></div>
@@ -826,6 +830,10 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div class="page-title">Ψηφοφορίες &amp; <span>Αποτελέσματα</span></div>
         <div class="toolbar">
           <select class="filter-select" id="votes-filter-event" onchange="renderVotes()"><option value="">Όλες οι Εκδηλώσεις</option></select>
+        </div>
+        <div id="votes-chart-wrap" style="display:none;margin-bottom:24px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Γράφημα Ψήφων</div>
+          <div style="position:relative;height:260px;"><canvas id="votes-bar-chart"></canvas></div>
         </div>
         <div id="votesSummary"></div>
         <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin:20px 0 8px">Αναλυτικές Ψήφοι</div>
@@ -1039,6 +1047,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <div class="fin-card"><div class="fin-card-label">Απόκλιση</div><div class="fin-card-value" id="fd-org-variance">0 €</div></div>
           </div>
           <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Γράφημα Σύνοψης ανά Εκδήλωση</div>
+          <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.5)">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#4CAF50;display:inline-block"></span>Πρόβλεψη</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#C8A96E;display:inline-block"></span>Πραγματικά</span>
+          </div>
+          <div style="position:relative;height:320px;"><canvas id="fin-events-chart"></canvas></div>
+          <div class="section-div"></div>
           <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Σύνοψη ανά Εκδήλωση</div>
           <div class="table-wrapper"><table class="data-table">
             <thead><tr><th>Εκδήλωση</th><th>Τύπος</th><th>Πρόβλεψη Κ/Ζ</th><th>Πραγματικό Κ/Ζ</th><th>Απόκλιση</th><th>Κατάσταση</th></tr></thead>
@@ -1089,6 +1104,13 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <tbody id="tickets-tbody"></tbody>
             <tfoot><tr style="background:var(--black3)"><td colspan="2"><strong>ΣΥΝΟΛΟ</strong></td><td id="tk-plan-sold">0</td><td id="tk-act-sold">0</td><td id="tk-plan-rev" style="color:var(--green);font-weight:700">0 €</td><td id="tk-act-rev" style="color:var(--green);font-weight:700">0 €</td><td id="tk-var">0 €</td></tr></tfoot>
           </table></div>
+          <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Γράφημα Εισιτηρίων</div>
+          <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.5)">
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(76,175,80,0.7);display:inline-block"></span>Πρόβλεψη Πωλ.</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:#C8A96E;display:inline-block"></span>Πραγματικές Πωλ.</span>
+          </div>
+          <div style="position:relative;height:240px;"><canvas id="tickets-chart"></canvas></div>
         </div>
 
         <!-- TAB: Χορηγοί -->
@@ -1156,6 +1178,50 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- ===== ERP: ΑΝΑΦΟΡΕΣ ===== -->
       <div class="view" id="view-erp-reports">
         <div class="page-title">Αναφορές <span>& Στατιστικά</span></div>
+        <div id="reports-kpi-charts" style="display:none">
+
+          <!-- Row 1: KPI Cards -->
+          <div id="reports-kpi-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px"></div>
+
+          <!-- Row 2: Monthly line + Hub donut -->
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
+            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Μηνιαία Εξέλιξη Εσόδων / Εξόδων</div>
+              <div style="position:relative;height:220px"><canvas id="rpt-monthly-chart"></canvas></div>
+            </div>
+            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εκδηλώσεις ανά Hub</div>
+              <div style="position:relative;height:220px"><canvas id="rpt-hub-chart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Row 3: Tasks + Votes avg -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εργασίες ανά Κατάσταση</div>
+              <div style="position:relative;height:200px"><canvas id="rpt-tasks-chart"></canvas></div>
+            </div>
+            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Μέση Βαθμολογία ανά Εκδήλωση</div>
+              <div style="position:relative;height:200px"><canvas id="rpt-votes-chart"></canvas></div>
+            </div>
+          </div>
+
+          <!-- Row 4: Quarterly full width -->
+          <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px;margin-bottom:28px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Ανάλυση ανά Τρίμηνο</div>
+            <div style="display:flex;gap:16px;margin-bottom:10px;font-size:11px;color:rgba(255,255,255,0.45)">
+              <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(76,175,80,0.7);display:inline-block"></span>Έσοδα</span>
+              <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(200,169,110,0.6);display:inline-block"></span>Έξοδα</span>
+              <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(229,115,115,0.7);display:inline-block"></span>Ισοζύγιο</span>
+            </div>
+            <div style="position:relative;height:260px"><canvas id="rpt-quarterly-detail-chart"></canvas></div>
+          </div>
+
+          <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin-bottom:28px"></div>
+        </div>
+
+        <!-- Αναλύσεις (πίνακες) παρακάτω -->
         <div id="reports-body"></div>
       </div>
 
@@ -1686,7 +1752,9 @@ function showAdmin(email) {
   document.getElementById('adminWrap').classList.add('visible');
   document.getElementById('userEmail').textContent=email;
   loadEvents();
-  loadErpData().then(() => { loadStats(); loadMembers().then(()=>{ renderDashboard(); updateBadges(); }); });
+  loadErpData().then(() => {
+    loadStats(); loadMembers().then(()=>{ renderDashboard(); updateBadges(); });
+  });
 }
 
 // ===== NAVIGATION =====
@@ -3068,6 +3136,7 @@ function renderMonthlyTable(year){
 function renderQuarterlyTable(year){
   const months=getMonthlyBreakdown([],year);
   const qNames=['Α\' Τρίμηνο (Ιαν–Μαρ)','Β\' Τρίμηνο (Απρ–Ιούν)','Γ\' Τρίμηνο (Ιούλ–Σεπ)','Δ\' Τρίμηνο (Οκτ–Δεκ)'];
+  const qShort=['Α\' Τρίμ.','Β\' Τρίμ.','Γ\' Τρίμ.','Δ\' Τρίμ.'];
   let cumInc=0,cumExp=0;
   let rows=[0,1,2,3].map(q=>{
     const qInc=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0);
@@ -3553,6 +3622,426 @@ if('serviceWorker' in navigator){
     }
   });
 }
+</script>
+
+<script>
+// ===== LOGOSYNTHESI CHARTS =====
+// Shared chart instances (destroy before re-creating to avoid duplicates)
+let _chartDashFinance=null, _chartVotes=null, _chartFinEvents=null, _chartTickets=null;
+
+const GREEN='#4CAF50', CHART_RED='#E57373', GOLD_DIM='rgba(200,169,110,0.18)';
+const gridColor='rgba(200,169,110,0.1)', tickColor='rgba(255,255,255,0.45)';
+
+function destroyChart(ref){ if(ref){try{ref.destroy();}catch(e){}} }
+
+// ---- 1. DASHBOARD: Donut chart ----
+function renderDashFinanceChart(inc, exp){
+  destroyChart(_chartDashFinance);
+  const canvas=document.getElementById('dash-finance-chart');
+  if(!canvas)return;
+  const net=Math.max(inc-exp,0);
+  _chartDashFinance=new Chart(canvas,{
+    type:'doughnut',
+    data:{
+      labels:['Έσοδα','Έξοδα'],
+      datasets:[{
+        data:[Math.round(inc),Math.round(exp)],
+        backgroundColor:[GREEN, CHART_RED],
+        borderColor:'#0e0c09',
+        borderWidth:3,
+        hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>' '+fmtMoney(ctx.raw)}}
+      }
+    }
+  });
+}
+
+// ---- 2. VOTES: Bar chart (stars per event) ----
+function renderVotesChart(summaryMap){
+  destroyChart(_chartVotes);
+  const wrap=document.getElementById('votes-chart-wrap');
+  const canvas=document.getElementById('votes-bar-chart');
+  if(!canvas||!wrap)return;
+  const evIds=Object.keys(summaryMap);
+  if(!evIds.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+
+  const labels=evIds.map(id=>{const ev=_events.find(e=>e.id===id);return ev?ev.title.substring(0,22)+(ev.title.length>22?'…':''):id;});
+  const stars=[5,4,3,2,1];
+  const starColors=['#4CAF50','#8BC34A','#C8A96E','#FF9800','#E57373'];
+  const datasets=stars.map((s,i)=>({
+    label:'★'.repeat(s),
+    data:evIds.map(id=>summaryMap[id].stars[s]||0),
+    backgroundColor:starColors[i],
+    borderColor:'transparent',
+    borderWidth:0,
+    stack:'s'
+  }));
+
+  _chartVotes=new Chart(canvas,{
+    type:'bar',
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          display:true,
+          labels:{color:tickColor,font:{size:11},boxWidth:10,padding:12}
+        },
+        tooltip:{mode:'index',callbacks:{label:ctx=>ctx.raw>0?` ${ctx.dataset.label}: ${ctx.raw} ψήφοι`:null}}
+      },
+      scales:{
+        x:{stacked:true,ticks:{color:tickColor,font:{size:11}},grid:{color:gridColor}},
+        y:{stacked:true,ticks:{color:tickColor,font:{size:11},stepSize:1,callback:v=>Number.isInteger(v)?v:null},grid:{color:gridColor}}
+      }
+    }
+  });
+}
+
+// ---- 3. FINANCE DASHBOARD: Grouped bar (Planned vs Actual per event) ----
+function renderFinEventsChart(){
+  destroyChart(_chartFinEvents);
+  const canvas=document.getElementById('fin-events-chart');
+  if(!canvas||!_eventBudgets.length)return;
+  const labels=_eventBudgets.map(b=>getEventTitle(b).substring(0,22));
+  const planned=_eventBudgets.map(b=>Math.round(ebResult(b,'planned')));
+  const actual=_eventBudgets.map(b=>Math.round(ebResult(b,'actual')));
+  // Height scales with number of events, min 300px
+  const chartH=Math.max(_eventBudgets.length*90+80,300);
+  canvas.parentElement.style.height=chartH+'px';
+
+  _chartFinEvents=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Πρόβλεψη',data:planned,backgroundColor:'rgba(76,175,80,0.8)',borderColor:GREEN,borderWidth:1,borderRadius:4},
+        {label:'Πραγματικά',data:actual,backgroundColor:'rgba(200,169,110,0.8)',borderColor:GOLD,borderWidth:1,borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:ctx=>ctx[0].label,
+            label:ctx=>` ${ctx.dataset.label}: ${fmtMoney(ctx.raw)}`,
+            afterBody:ctx=>{
+              const i=ctx[0].dataIndex;
+              const p=planned[i],a=actual[i];
+              if(a===0)return '';
+              const diff=a-p;
+              const sign=diff>=0?'+':'';
+              return `Απόκλιση: ${sign}${fmtMoney(diff)}`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{
+            color:tickColor,font:{size:11},
+            maxRotation:35, minRotation:20,
+            autoSkip:false
+          },
+          grid:{color:gridColor}
+        },
+        y:{
+          ticks:{
+            color:tickColor,font:{size:11},
+            callback:v=>{
+              const abs=Math.abs(v);
+              const sign=v<0?'−':'';
+              if(abs>=1000)return sign+'€'+Math.round(abs/1000)+'k';
+              return sign+'€'+abs;
+            }
+          },
+          grid:{color:gridColor},
+          // Zero line in gold
+          border:{color:'rgba(200,169,110,0.4)'}
+        }
+      }
+    }
+  });
+}
+
+// ---- 4. TICKETS: Grouped bar (planned vs actual sales per event) ----
+function renderTicketsChart(){
+  destroyChart(_chartTickets);
+  const canvas=document.getElementById('tickets-chart');
+  if(!canvas||!_eventBudgets.length)return;
+  const withTix=_eventBudgets.filter(b=>(b.plannedTickets||b.actualTickets));
+  if(!withTix.length)return;
+  const labels=withTix.map(b=>getEventTitle(b).substring(0,22));
+  const planned=withTix.map(b=>b.plannedTickets||0);
+  const actual=withTix.map(b=>b.actualTickets||0);
+
+  _chartTickets=new Chart(canvas,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Πρόβλεψη',data:planned,backgroundColor:'rgba(76,175,80,0.7)',borderColor:GREEN,borderWidth:1,borderRadius:3},
+        {label:'Πραγματικές',data:actual,backgroundColor:'rgba(200,169,110,0.75)',borderColor:GOLD,borderWidth:1,borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw} εισιτήρια`}}
+      },
+      scales:{
+        x:{ticks:{color:tickColor,font:{size:11},autoSkip:false,maxRotation:30},grid:{display:false}},
+        y:{ticks:{color:tickColor,font:{size:11},stepSize:10},grid:{color:gridColor}}
+      }
+    }
+  });
+}
+
+// ===== PATCH EXISTING RENDER FUNCTIONS =====
+
+// Patch renderDashboard to call chart after updating numbers
+
+// ===== REPORTS KPI CHARTS =====
+let _chartRptMonthly=null,_chartRptHub=null,_chartRptTasks=null,_chartRptVotes=null;
+
+function renderReportsCharts(){
+  const wrap=document.getElementById('reports-kpi-charts');
+  if(!wrap)return;
+  wrap.style.display='block';
+
+  const year=new Date().getFullYear();
+  const months=getMonthlyBreakdown([],year);
+  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
+
+  // ---- KPI Cards ----
+  const totalInc=months.reduce((s,m)=>s+m.income,0);
+  const totalExp=months.reduce((s,m)=>s+m.expense,0);
+  const totalNet=totalInc-totalExp;
+  const totalEv=_events.length;
+  const upcomingEv=_events.filter(e=>e.date>=new Date().toISOString().split('T')[0]).length;
+  const openTasks=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
+  // avg rating across all events
+  let allRatings=[];
+  _events.forEach(ev=>{if(ev.votes){Object.entries(ev.votes).forEach(([s,c])=>{for(let i=0;i<c;i++)allRatings.push(parseInt(s));});}});
+  const avgRating=allRatings.length?(allRatings.reduce((a,b)=>a+b,0)/allRatings.length).toFixed(1):'-';
+
+  const kpis=[
+    {label:'Ισοζύγιο Έτους',value:fmtMoney(totalNet),color:totalNet>=0?'var(--green)':'var(--red)',sub:'Έσοδα: '+fmtMoney(totalInc)},
+    {label:'Σύνολο Εκδηλώσεων',value:totalEv,color:'var(--gold)',sub:upcomingEv+' επερχόμενες'},
+    {label:'Εκκρεμείς Εργασίες',value:openTasks,color:openTasks>5?'var(--red)':'var(--green)',sub:'από '+_tasks.length+' συνολικά'},
+    {label:'Μέση Βαθμολογία',value:avgRating+' ★',color:'var(--gold)',sub:allRatings.length+' ψήφοι'},
+  ];
+  document.getElementById('reports-kpi-cards').innerHTML=kpis.map(k=>
+    '<div style="background:var(--black2);border:1px solid var(--gold-line);padding:16px 20px">' +
+    '<div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px">'+k.label+'</div>' +
+    '<div style="font-family:var(--font-serif);font-size:26px;color:'+k.color+';margin-bottom:4px">'+k.value+'</div>' +
+    '<div style="font-size:11px;color:rgba(255,255,255,0.4)">'+k.sub+'</div></div>'
+  ).join('');
+
+  // ---- 1. Monthly line chart ----
+  destroyChart(_chartRptMonthly);
+  const mCtx=document.getElementById('rpt-monthly-chart');
+  if(mCtx){
+    // cumulative net line
+    let cumNet=0;
+    const cumData=months.map(m=>{cumNet+=m.income-m.expense;return Math.round(cumNet);});
+    _chartRptMonthly=new Chart(mCtx,{
+      type:'bar',
+      data:{
+        labels:mNames,
+        datasets:[
+          {type:'bar',label:'Έσοδα',data:months.map(m=>Math.round(m.income)),backgroundColor:'rgba(76,175,80,0.6)',borderColor:GREEN,borderWidth:1,borderRadius:3,order:2},
+          {type:'bar',label:'Έξοδα',data:months.map(m=>Math.round(m.expense)),backgroundColor:'rgba(200,169,110,0.45)',borderColor:GOLD,borderWidth:1,borderRadius:3,order:2},
+          {type:'line',label:'Σωρευτικό',data:cumData,borderColor:'#fff',borderWidth:2,pointBackgroundColor:'#fff',pointRadius:3,tension:0.3,fill:false,order:1,yAxisID:'y2'}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{display:true,labels:{color:tickColor,font:{size:10},boxWidth:10,padding:10}},
+          tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtMoney(ctx.raw)}`}}
+        },
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:10}},grid:{color:gridColor}},
+          y:{ticks:{color:tickColor,font:{size:10},callback:v=>'€'+Math.round(v/1000)+'k'},grid:{color:gridColor}},
+          y2:{position:'right',ticks:{color:'rgba(255,255,255,0.3)',font:{size:10},callback:v=>'€'+Math.round(v/1000)+'k'},grid:{display:false}}
+        }
+      }
+    });
+  }
+
+  // ---- 2. Hub donut chart ----
+  destroyChart(_chartRptHub);
+  const hCtx=document.getElementById('rpt-hub-chart');
+  if(hCtx){
+    const hubs=['cinehub','logohub','musichub','arthub','stagehub'];
+    const hubNames=['CineHub','LogoHub','MusicHub','ArtHub','StageHub'];
+    const hubColors=['#378ADD','#639922','#C8A96E','#D85A30','#7F77DD'];
+    const hubCounts=hubs.map(h=>_events.filter(e=>(e.category||'').toLowerCase()===h).length);
+    _chartRptHub=new Chart(hCtx,{
+      type:'doughnut',
+      data:{
+        labels:hubNames,
+        datasets:[{data:hubCounts,backgroundColor:hubColors,borderColor:'#161410',borderWidth:3,hoverOffset:6}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'60%',
+        plugins:{
+          legend:{position:'bottom',labels:{color:tickColor,font:{size:10},boxWidth:10,padding:8}},
+          tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} εκδηλώσεις`}}
+        }
+      }
+    });
+  }
+
+  // ---- 3. Tasks by status bar ----
+  destroyChart(_chartRptTasks);
+  const tCtx=document.getElementById('rpt-tasks-chart');
+  if(tCtx){
+    const statuses=['Ανοικτή','Σε εξέλιξη','Ολοκληρώθηκε'];
+    const statusColors=['rgba(229,115,115,0.8)','rgba(200,169,110,0.8)','rgba(76,175,80,0.8)'];
+    const counts=statuses.map(s=>_tasks.filter(t=>t.status===s).length);
+    _chartRptTasks=new Chart(tCtx,{
+      type:'bar',
+      data:{
+        labels:statuses,
+        datasets:[{data:counts,backgroundColor:statusColors,borderColor:'transparent',borderWidth:0,borderRadius:4}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} εργασίες`}}},
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:11}},grid:{display:false}},
+          y:{ticks:{color:tickColor,font:{size:11},stepSize:1,callback:v=>Number.isInteger(v)?v:null},grid:{color:gridColor}}
+        }
+      }
+    });
+  }
+
+  // ---- 4. Avg rating per event bar ----
+  destroyChart(_chartRptVotes);
+  const vCtx=document.getElementById('rpt-votes-chart');
+  if(vCtx){
+    const evWithVotes=_events.filter(e=>e.votes&&Object.values(e.votes).some(c=>c>0));
+    const vLabels=evWithVotes.map(e=>e.title.substring(0,18)+(e.title.length>18?'…':''));
+    const vData=evWithVotes.map(e=>{
+      const total=Object.values(e.votes).reduce((a,b)=>a+b,0);
+      if(!total)return 0;
+      return parseFloat((Object.entries(e.votes).reduce((a,[s,c])=>a+parseInt(s)*c,0)/total).toFixed(2));
+    });
+    const vColors=vData.map(v=>v>=4?'rgba(76,175,80,0.8)':v>=3?'rgba(200,169,110,0.8)':'rgba(229,115,115,0.8)');
+    _chartRptVotes=new Chart(vCtx,{
+      type:'bar',
+      data:{labels:vLabels,datasets:[{data:vData,backgroundColor:vColors,borderRadius:4}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` Μ.Ο.: ${ctx.raw} ★`}}},
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:10},maxRotation:35,autoSkip:true},grid:{display:false}},
+          y:{min:0,max:5,ticks:{color:tickColor,font:{size:11},stepSize:1},grid:{color:gridColor}}
+        }
+      }
+    });
+  }
+
+  // ---- 6. Quarterly detail chart (grouped bars per quarter + net line) ----
+  destroyChart(window._chartRptQuarterlyDetail);
+  const qdCtx=document.getElementById('rpt-quarterly-detail-chart');
+  if(qdCtx){
+    const mData=getMonthlyBreakdown([],year);
+    const qLabels=['Α\' Τρίμ.','Β\' Τρίμ.','Γ\' Τρίμ.','Δ\' Τρίμ.'];
+    const qInc=[0,1,2,3].map(q=>Math.round(mData.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0)));
+    const qExp=[0,1,2,3].map(q=>Math.round(mData.slice(q*3,q*3+3).reduce((s,m)=>s+m.expense,0)));
+    const qNet=qInc.map((v,i)=>v-qExp[i]);
+    const netColors=qNet.map(v=>v>=0?'rgba(76,175,80,0.9)':'rgba(229,115,115,0.9)');
+    window._chartRptQuarterlyDetail=new Chart(qdCtx,{
+      type:'bar',
+      data:{
+        labels:qLabels,
+        datasets:[
+          {label:'Έσοδα',data:qInc,backgroundColor:'rgba(76,175,80,0.65)',borderColor:GREEN,borderWidth:1,borderRadius:3},
+          {label:'Έξοδα',data:qExp,backgroundColor:'rgba(200,169,110,0.55)',borderColor:GOLD,borderWidth:1,borderRadius:3},
+          {label:'Ισοζύγιο',data:qNet,backgroundColor:netColors,borderColor:'transparent',borderWidth:0,borderRadius:4}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtMoney(ctx.raw)}`}}
+        },
+        scales:{
+          x:{ticks:{color:tickColor,font:{size:13},fontWeight:'bold'},grid:{display:false}},
+          y:{ticks:{color:tickColor,font:{size:10},callback:v=>{const a=Math.abs(v);return(v<0?'−':'')+'€'+(a>=1000?Math.round(a/1000)+'k':a);}},grid:{color:gridColor}}
+        }
+      }
+    });
+  }
+}
+const _origRenderReports=renderReports;
+renderReports=function(){
+  _origRenderReports.apply(this,arguments);
+  setTimeout(()=>renderReportsCharts(),50);
+};
+
+const _origRenderDashboard=renderDashboard;
+renderDashboard=function(){
+  _origRenderDashboard.apply(this,arguments);
+  // Re-compute totals for chart (mirrors logic in renderDashboard)
+  let tInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  let tExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  _eventBudgets.forEach(b=>{tInc+=ebIncomeTotal(b,'actual');tExp+=ebExpenseGrossTotal(b,'actual');});
+  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;tInc+=Number(s.actual||s.planned||0)*(1+v);});
+  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;tExp+=Number(a.actual||a.planned||0)*(1+v);});
+  setTimeout(()=>renderDashFinanceChart(tInc,tExp),50);
+};
+
+// Patch renderVotes to call chart after building summaryMap
+const _origRenderVotes=renderVotes;
+renderVotes=async function(){
+  await _origRenderVotes.apply(this,arguments);
+  // Re-compute summaryMap for chart (mirrors logic in renderVotes)
+  let allVotes=[];
+  try{
+    if(!window._db)throw new Error('demo');
+    const{collection,getDocs}=window._firebase;
+    const snap=await getDocs(collection(window._db,'votes'));
+    allVotes=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    _events.forEach(ev=>{if(ev.votes){Object.entries(ev.votes).forEach(([star,count])=>{for(let i=0;i<count;i++)allVotes.push({eventId:ev.id,rating:parseInt(star)});});}});
+  }
+  const cv=document.getElementById('votes-filter-event').value;
+  let filtered=cv?allVotes.filter(v=>v.eventId===cv):allVotes;
+  const summaryMap={};
+  filtered.forEach(v=>{
+    if(!summaryMap[v.eventId])summaryMap[v.eventId]={total:0,sum:0,stars:{1:0,2:0,3:0,4:0,5:0}};
+    const s=summaryMap[v.eventId];s.total++;s.sum+=Number(v.rating||0);s.stars[v.rating]=(s.stars[v.rating]||0)+1;
+  });
+  setTimeout(()=>renderVotesChart(summaryMap),50);
+};
+
+// Patch renderFinDashboard to append charts
+const _origRenderFinDashboard=renderFinDashboard;
+renderFinDashboard=function(){
+  _origRenderFinDashboard.apply(this,arguments);
+  setTimeout(()=>renderFinEventsChart(),50);
+};
+
+// Patch renderTickets to append chart
+const _origRenderTickets=renderTickets;
+renderTickets=function(){
+  _origRenderTickets.apply(this,arguments);
+  setTimeout(()=>renderTicketsChart(),50);
+};
 </script>
 </body>
 </html>
