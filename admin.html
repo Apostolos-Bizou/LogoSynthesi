@@ -1183,22 +1183,22 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           <!-- Row 1: KPI Cards -->
           <div id="reports-kpi-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px"></div>
 
-          <!-- Row 2: Monthly line + Hub donut -->
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px">
-            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
-              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Μηνιαία Εξέλιξη Εσόδων / Εξόδων</div>
-              <div style="position:relative;height:220px"><canvas id="rpt-monthly-chart"></canvas></div>
-            </div>
+          <!-- Row 2: Monthly full width -->
+          <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px;margin-bottom:16px">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Μηνιαία Εξέλιξη Εσόδων / Εξόδων</div>
+            <div style="position:relative;height:260px"><canvas id="rpt-monthly-chart"></canvas></div>
+          </div>
+
+          <!-- Row 3a: Hub donut + Tasks side by side -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
             <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
               <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εκδηλώσεις ανά Hub</div>
               <div style="position:relative;height:220px"><canvas id="rpt-hub-chart"></canvas></div>
             </div>
-          </div>
-
-          <!-- Row 3a: Tasks (standalone) -->
-          <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px;margin-bottom:16px;max-width:380px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εργασίες ανά Κατάσταση</div>
-            <div style="position:relative;height:200px"><canvas id="rpt-tasks-chart"></canvas></div>
+            <div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px">
+              <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Εργασίες ανά Κατάσταση</div>
+              <div style="position:relative;height:220px"><canvas id="rpt-tasks-chart"></canvas></div>
+            </div>
           </div>
 
           <!-- Row 3b: Votes full width -->
