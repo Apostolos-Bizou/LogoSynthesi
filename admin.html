@@ -2398,9 +2398,20 @@ function renderFinDashboard(){
   let pInc=0,pExp=0,aInc=0,aExp=0;
   _eventBudgets.forEach(b=>{pInc+=ebIncomeTotal(b,'planned');pExp+=ebExpenseGrossTotal(b,'planned');aInc+=ebIncomeTotal(b,'actual');aExp+=ebExpenseGrossTotal(b,'actual');});
   // Add sponsors as income
-  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;pInc+=Number(s.planned||0)*(1+v);aInc+=Number(s.actual||0)*(1+v);});
+  _sponsors.forEach(s=>{
+    if(!s.eventId || s.eventId==='' || s.eventId==='foreas' || s.eventId==='Φορέας') return;
+    const v=(parseInt(s.vat)||0)/100;
+    pInc+=Number(s.planned||0)*(1+v);
+    aInc+=Number(s.actual||0)*(1+v);
+  });
   // Add artists/vendors as expense
-  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;pExp+=Number(a.planned||0)*(1+v);aExp+=Number(a.actual||0)*(1+v);});
+  _artists.forEach(a=>{
+    // Skip artists assigned to Φορέας (org-level) — they belong in org budget, not events dashboard
+    if(!a.eventId || a.eventId==='' || a.eventId==='foreas' || a.eventId==='Φορέας') return;
+    const v=(parseInt(a.vat)||0)/100;
+    pExp+=Number(a.planned||0)*(1+v);
+    aExp+=Number(a.actual||0)*(1+v);
+  });
   // Add legacy finance
   _finance.forEach(f=>{if(f.type==='income'){pInc+=Number(f.amount||0);aInc+=Number(f.amount||0);}else{pExp+=Number(f.amount||0);aExp+=Number(f.amount||0);}});
   const pNet=pInc-pExp,aNet=aInc-aExp;
