@@ -3714,11 +3714,13 @@ function renderFinEventsChart(){
   destroyChart(_chartFinEvents);
   const canvas=document.getElementById('fin-events-chart');
   if(!canvas||!_eventBudgets.length)return;
+  // If canvas has no dimensions yet, panel is still hidden - retry
+  if(canvas.offsetWidth===0){setTimeout(()=>renderFinEventsChart(),150);return;}
   const labels=_eventBudgets.map(b=>getEventTitle(b).substring(0,22));
   const planned=_eventBudgets.map(b=>Math.round(ebResult(b,'planned')));
   const actual=_eventBudgets.map(b=>Math.round(ebResult(b,'actual')));
   // Height scales with number of events, min 300px
-  const chartH=Math.max(_eventBudgets.length*90+80,300);
+  const chartH=Math.max(_eventBudgets.length*60+80,300);
   canvas.parentElement.style.height=chartH+'px';
 
   _chartFinEvents=new Chart(canvas,{
@@ -4054,14 +4056,15 @@ renderVotes=async function(){
 const _origRenderFinDashboard=renderFinDashboard;
 renderFinDashboard=function(){
   _origRenderFinDashboard.apply(this,arguments);
-  setTimeout(()=>renderFinEventsChart(),50);
+  // Use rAF to ensure panel is visible (display:block) before Chart.js measures canvas
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>renderFinEventsChart(),80)));
 };
 
 // Patch renderTickets to append chart
 const _origRenderTickets=renderTickets;
 renderTickets=function(){
   _origRenderTickets.apply(this,arguments);
-  setTimeout(()=>renderTicketsChart(),50);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>renderTicketsChart(),80)));
 };
 </script>
 </body>
