@@ -2405,7 +2405,6 @@ function renderMembers(mem) {
 async function loadMembers() {
   const grid = document.getElementById('membersGrid');
   if (!grid) return;
-  // Show loading dots while waiting
   grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   try {
     if (!window._db || !window._firebase) throw 0;
@@ -2824,13 +2823,13 @@ window.addEventListener('appinstalled', () => {
       <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">3. Δικαιώματά σου</p>
       <p style="margin-bottom:14px;">Μπορείς ανά πάσα στιγμή να αλλάξεις τις προτιμήσεις σου μέσω του «Cookies» στο κάτω μέρος της σελίδας. Δικαίωμα πρόσβασης, διόρθωσης και διαγραφής δεδομένων κατά GDPR.</p>
       <p style="margin-bottom:10px;color:var(--gold);font-weight:600;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;">4. Επικοινωνία</p>
-      <p>Για θέματα cookies ή προσωπικών δεδομένων: <a href="/cdn-cgi/l/email-protection#c5a9aaa2aab6bcabb1ada0b6acf7f5f7f385a2a8a4aca9eba6aaa8" style="color:var(--gold);"><span class="__cf_email__" data-cfemail="8be7e4ece4f8f2e5ffe3eef8e2b9bbb9bdcbece6eae2e7a5e8e4e6">[email&#160;protected]</span></a></p>
+      <p>Για θέματα cookies ή προσωπικών δεδομένων: <a href="mailto:logosynthesi2026@gmail.com" style="color:var(--gold);">logosynthesi2026@gmail.com</a></p>
       <p style="margin-top:16px;font-size:11px;color:rgba(247,243,236,0.35);">Τελευταία ενημέρωση: Μάρτιος 2026</p>
     </div>
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 (function(){
   'use strict';
   const CC_KEY='ls_cookie_consent',CC_VER='1';
@@ -2846,4 +2845,12 @@ window.addEventListener('appinstalled', () => {
   window.ccAcceptAll=function(){const p={functional:true,analytics:true,thirdparty:true};saveCC(p);applyCC(p);hideBanner();};
   window.ccRejectAll=function(){const p={functional:false,analytics:false,thirdparty:false};saveCC(p);applyCC(p);hideBanner();};
   window.ccToggleSettings=function(){const s=document.getElementById('cc-settings');if(s)s.classList.toggle('open');};
-  window.ccSavePrefs=function(){const p={functional:document.getElementById('cc-functional')?.checked||false,analytics:document.getElementById('cc-analytics')?.checked||false,thirdparty:document.getElementById('cc-thirdparty')?.checked||false};saveCC(p);applyC
+  window.ccSavePrefs=function(){const p={functional:document.getElementById('cc-functional')?.checked||false,analytics:document.getElementById('cc-analytics')?.checked||false,thirdparty:document.getElementById('cc-thirdparty')?.checked||false};saveCC(p);applyCC(p);hideBanner();};
+  window.ccOpenSettings=function(){const s=document.getElementById('cc-settings');if(s)s.classList.add('open');showBanner();};
+  const ex=getCC();
+  if(ex){applyCC(ex);}else{setTimeout(showBanner,800);}
+})();
+</script>
+
+</body>
+</html>
