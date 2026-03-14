@@ -3681,7 +3681,7 @@ function showIOSInstall(){
 // Register minimal service worker for PWA
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/sw-admin.js',{scope:'/'}).catch(()=>{});
+    navigator.serviceWorker.register('/sw-admin.js',{scope:'/admin.html'}).catch(()=>{});
     // Check if already installed
     if(!window.matchMedia('(display-mode: standalone)').matches){
       try{if(!localStorage.getItem('pwa-dismissed'))showIOSInstall();}catch(e){showIOSInstall();}
