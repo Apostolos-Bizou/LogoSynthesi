@@ -10,25 +10,7 @@
 <meta name="theme-color" content="#0e0d0b">
 <meta name="description" content="ΛογοΣύνθεση — Σύστημα Διαχείρισης Admin ERP">
 <title>ΛογοΣύνθεση · Admin</title>
-<link rel="manifest" id="pwa-manifest">
-<script>
-// Generate PWA manifest inline
-const manifest={
-  name:"ΛογοΣύνθεση Admin",
-  short_name:"ΛΣ Admin",
-  description:"Σύστημα Διαχείρισης — Σύνδεσμος Φιλολόγων Λευκάδος",
-  start_url:location.href.split('?')[0],
-  display:"standalone",
-  background_color:"#0e0d0b",
-  theme_color:"#0e0d0b",
-  orientation:"any",
-  icons:[
-    {src:"data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0e0d0b"/><rect x="24" y="24" width="464" height="464" fill="none" stroke="#C8A96E" stroke-width="4"/><rect x="36" y="36" width="440" height="440" fill="none" stroke="#C8A96E" stroke-width="1" opacity="0.3"/><circle cx="256" cy="256" r="28" fill="#C8A96E"/><path d="M176 160 Q128 256 176 352" stroke="#F7F3EC" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M120 100 Q48 256 120 412" stroke="#F7F3EC" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.35"/><path d="M336 160 Q384 256 336 352" stroke="#C8A96E" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M392 100 Q464 256 392 412" stroke="#C8A96E" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.5"/><text x="256" y="470" text-anchor="middle" font-family="Georgia,serif" font-size="42" fill="#ffffff" letter-spacing="3">ADMIN</text></svg>'),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
-  ]
-};
-const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-document.getElementById('pwa-manifest').href=URL.createObjectURL(blob);
-
+<link rel="manifest" href="/manifest-admin.json">
 // Generate Apple Touch Icon via Canvas
 (function(){
   const c=document.createElement('canvas');c.width=180;c.height=180;
@@ -3720,11 +3702,7 @@ function showIOSInstall(){
 // Register minimal service worker for PWA
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    // Create a minimal SW inline
-    const swCode=`self.addEventListener('fetch',e=>e.respondWith(fetch(e.request)));`;
-    const swBlob=new Blob([swCode],{type:'application/javascript'});
-    const swUrl=URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl,{scope:'/'}).catch(()=>{});
+    navigator.serviceWorker.register('/sw-admin.js',{scope:'/'}).catch(()=>{});
     // Check if already installed
     if(!window.matchMedia('(display-mode: standalone)').matches){
       try{if(!localStorage.getItem('pwa-dismissed'))showIOSInstall();}catch(e){showIOSInstall();}
