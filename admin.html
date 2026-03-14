@@ -3358,8 +3358,8 @@ function showContactDetail(id){
   }
   if(c.address)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Διεύθυνση</div><div class="contact-detail-value">${c.address}</div></div>`;
   if(c.birthday)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Γενέθλια</div><div class="contact-detail-value">🎂 ${fmtDate(c.birthday)}</div></div>`;
-  if(c.website)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Website</div><div class="contact-detail-value"><a href="${c.website}" target="_blank" style="color:var(--gold)">${c.website}</a></div></div>`;
-  if(c.social)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Social Media</div><div class="contact-detail-value">${c.social}</div></div>`;
+  if(c.website){const wUrl=c.website.match(/^https?:\/\//)?c.website:'https://'+c.website;html+=`<div class="contact-detail-section"><div class="contact-detail-label">Website</div><div class="contact-detail-value"><a href="${wUrl}" target="_blank" style="color:var(--gold)">${c.website}</a></div></div>`;}
+  if(c.social){const sHtml=c.social.replace(/(https?:\/\/[^\s,]+|(?:www\.)[^\s,]+|[a-zA-Z0-9-]+\.[a-z]{2,}[^\s,]*)/g,(u)=>{const href=u.match(/^https?:\/\//)?u:'https://'+u;return`<a href="${href}" target="_blank" style="color:var(--gold)">${u}</a>`;});html+=`<div class="contact-detail-section"><div class="contact-detail-label">Social Media</div><div class="contact-detail-value">${sHtml}</div></div>`;}
   if(c.referrer)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Σύσταση από</div><div class="contact-detail-value">${c.referrer}</div></div>`;
   const assignedMem=c.memberId?_members.find(m=>m.id===c.memberId):null;
   if(assignedMem)html+=`<div class="contact-detail-section"><div class="contact-detail-label">Υπεύθυνο Μέλος</div><div class="contact-detail-value" style="color:var(--gold);font-weight:600;">👤 ${assignedMem.name}<span style="color:rgba(255,255,255,0.5);font-weight:400;margin-left:8px;">${assignedMem.role||''}</span></div></div>`;
