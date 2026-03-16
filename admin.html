@@ -2617,16 +2617,14 @@ function calcTicketPrice(){
     npEl.textContent=fmtMoney(netProfit);
     npEl.style.color='var(--green)';
   } else if(tickets>0 && toCover>0){
-    // Η νέα τιμή πρέπει να καλύψει: υπόλοιπο + τα ήδη υπολογισμένα έσοδα εισιτηρίων
-    // δηλαδή (totalExp - otherInc) / tickets = πλήρης τιμή αντικατάστασης
-    const fullCover=totalExp-otherInc;
-    const priceNeeded=fullCover/(1-margin/100)/tickets;
+    // Προτεινόμενη τιμή βασισμένη στο υπόλοιπο προς κάλυψη
+    const priceNeeded=toCover/(1-margin/100)/tickets;
     const rounded=Math.ceil(priceNeeded*2)/2;
-    const totalTicketRev=rounded*tickets;
-    const totalInc=totalTicketRev+otherInc;
+    const newTicketRev=rounded*tickets;
+    const totalInc=curTicketInc+newTicketRev+otherInc;
     const netProfit=totalInc-totalExp;
     document.getElementById('ebc-suggested-price').textContent=fmtMoney(rounded);
-    document.getElementById('ebc-ticket-revenue').textContent=fmtMoney(totalTicketRev);
+    document.getElementById('ebc-ticket-revenue').textContent=fmtMoney(curTicketInc+newTicketRev);
     document.getElementById('ebc-total-inc').textContent=fmtMoney(totalInc);
     const npEl=document.getElementById('ebc-net-profit');
     npEl.textContent=fmtMoney(netProfit);
@@ -2641,17 +2639,15 @@ function calcTicketPrice(){
 }
 function applyTicketPrice(){
   const priceText=document.getElementById('ebc-suggested-price').textContent;
-  const price=parseFloat(priceText.replace(/[^\d,.]/g,'').replace(',','.'));
-  if(!price||isNaN(price)){toast('Δεν υπάρχει προτεινόμενη τιμή','error');return;}
-  document.getElementById('eb-ticket-price').value=price;
-  // Sync planned tickets from calculator
+  const suggestedPrice=parseFloat(priceText.replace(/[^\d,.]/g,'').replace(',','.'));
+  if(!suggestedPrice||isNaN(suggestedPrice)){toast('Δεν υπάρχει προτεινόμενη τιμή','error');return;}
+  const curPrice=parseFloat(document.getElementById('eb-ticket-price').value)||0;
+  const newPrice=curPrice+suggestedPrice;
+  document.getElementById('eb-ticket-price').value=newPrice;
   const tickets=parseInt(document.getElementById('ebc-tickets').value)||0;
   if(tickets>0) document.getElementById('eb-planned-tickets').value=tickets;
-  // Update εισιτήρια income row (index 0)
-  const ticketInc=price*tickets;
-  document.getElementById('ebi-p-0').value=ticketInc;
   syncTicketIncome();
-  toast('Τιμή εισιτηρίου: '+fmtMoney(price)+' εφαρμόστηκε');
+  toast('Τιμή εισιτηρίου: '+fmtMoney(newPrice)+' εφαρμόστηκε ('+fmtMoney(curPrice)+' + '+fmtMoney(suggestedPrice)+')');
 }
 function syncTicketIncome(){
   const price=parseFloat(document.getElementById('eb-ticket-price').value)||0;
