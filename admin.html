@@ -1374,6 +1374,27 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
         <div style="margin-top:10px;text-align:right">
           <button class="btn-sm" style="border-color:var(--gold);color:var(--gold)" onclick="applyTicketPrice()">Εφαρμογή τιμής στο εισιτήριο ↑</button>
         </div>
+        <div style="margin-top:14px;padding:12px 16px;border:1px solid rgba(200,169,110,0.3);border-radius:6px;background:rgba(200,169,110,0.06)">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Υπολογισμός Χορηγίας</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:end">
+            <div class="form-group" style="margin:0">
+              <label class="form-label" style="font-size:13px">Πραγματική τιμή εισιτηρίου (€)</label>
+              <input type="number" class="form-input" id="ebc-real-price" step="0.50" min="0" oninput="calcSponsorNeed()" style="font-size:18px;text-align:center;padding:12px">
+            </div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Διαφορά ανά εισιτήριο</div>
+              <div style="font-family:var(--font-serif);font-size:24px;color:var(--red)" id="ebc-price-diff">— €</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Έσοδα εισιτηρίων (πραγμ. τιμή)</div>
+              <div style="font-family:var(--font-serif);font-size:24px;color:var(--green)" id="ebc-real-ticket-rev">— €</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;font-weight:700">Προτεινόμενη χορηγία</div>
+              <div style="font-family:var(--font-serif);font-size:32px;font-weight:700;color:var(--gold)" id="ebc-sponsor-need">— €</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2659,6 +2680,34 @@ function syncTicketIncome(){
   if(aEl) aEl.value=price*actual;
   calcTicketPrice();
 }
+function calcSponsorNeed(){
+  const sugText=document.getElementById('ebc-suggested-price').textContent;
+  const suggested=parseFloat(sugText.replace(/[^\d,.]/g,'').replace(',','.'))||0;
+  const curPrice=parseFloat(document.getElementById('eb-ticket-price').value)||0;
+  const fullSuggested=curPrice+suggested;
+  const realPrice=parseFloat(document.getElementById('ebc-real-price').value)||0;
+  const tickets=parseInt(document.getElementById('ebc-tickets')?.value)||parseInt(document.getElementById('eb-planned-tickets')?.value)||0;
+  if(!realPrice||!tickets){
+    document.getElementById('ebc-price-diff').textContent='— €';
+    document.getElementById('ebc-real-ticket-rev').textContent='— €';
+    document.getElementById('ebc-sponsor-need').textContent='— €';
+    return;
+  }
+  const diff=fullSuggested-realPrice;
+  const realRev=realPrice*tickets;
+  const sponsorNeed=Math.max(diff*tickets,0);
+  document.getElementById('ebc-price-diff').textContent=fmtMoney(diff);
+  document.getElementById('ebc-price-diff').style.color=diff>0?'var(--red)':'var(--green)';
+  document.getElementById('ebc-real-ticket-rev').textContent=fmtMoney(realRev);
+  const snEl=document.getElementById('ebc-sponsor-need');
+  if(sponsorNeed>0){
+    snEl.textContent=fmtMoney(sponsorNeed);
+    snEl.style.color='var(--gold)';
+  } else {
+    snEl.textContent='✓ 0 €';
+    snEl.style.color='var(--green)';
+  }
+}
 function loadEventBudgetIntoModal(id){
   const b=_eventBudgets.find(x=>x.id===id);if(!b)return;
   document.getElementById('eb-id').value=b.id;
@@ -3850,13 +3899,18 @@ function renderFinEventsChart(){
   const chartH=Math.max(_eventBudgets.length*60+80,300);
   canvas.parentElement.style.height=chartH+'px';
 
+  const plannedColors=planned.map(v=>v>=0?'rgba(76,175,80,0.8)':'rgba(229,115,115,0.8)');
+  const plannedBorders=planned.map(v=>v>=0?GREEN:CHART_RED);
+  const actualColors=actual.map(v=>v>=0?'rgba(200,169,110,0.8)':'rgba(229,115,115,0.8)');
+  const actualBorders=actual.map(v=>v>=0?GOLD:CHART_RED);
+
   _chartFinEvents=new Chart(canvas,{
     type:'bar',
     data:{
       labels,
       datasets:[
-        {label:'Πρόβλεψη',data:planned,backgroundColor:'rgba(76,175,80,0.8)',borderColor:GREEN,borderWidth:1,borderRadius:4},
-        {label:'Πραγματικά',data:actual,backgroundColor:'rgba(200,169,110,0.8)',borderColor:GOLD,borderWidth:1,borderRadius:4}
+        {label:'Πρόβλεψη',data:planned,backgroundColor:plannedColors,borderColor:plannedBorders,borderWidth:1,borderRadius:4},
+        {label:'Πραγματικά',data:actual,backgroundColor:actualColors,borderColor:actualBorders,borderWidth:1,borderRadius:4}
       ]
     },
     options:{
