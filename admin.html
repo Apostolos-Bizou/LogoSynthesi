@@ -483,7 +483,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .contact-avatar{width:50px;height:50px;background:var(--gold-dim);border:1px solid var(--gold-line);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:22px;color:var(--gold);flex-shrink:0;border-radius:50%;}
 .contact-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .contact-info{flex:1;min-width:0;}
-.contact-name{font-family:var(--font-serif);font-size:18px;font-weight:400;color:#ffffff;margin-bottom:2px;}
+.contact-name{font-family:var(--font-serif);font-size:20px;font-weight:600;color:#ffffff;margin-bottom:2px;letter-spacing:0.02em;}
 .contact-role-org{font-size:11px;color:rgba(255,255,255,0.5);font-weight:500;}
 .contact-details-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:11px;color:rgba(255,255,255,0.7);}
 .contact-detail-row{display:flex;align-items:center;gap:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
@@ -494,7 +494,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .contact-tag{font-size:8px;letter-spacing:0.15em;text-transform:uppercase;padding:2px 7px;background:rgba(200,169,110,0.08);border:1px solid var(--gold-line);color:var(--cream-dim);}
 .contact-actions{display:flex;gap:6px;flex-shrink:0;align-self:center;}
 .contact-card-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid rgba(200,169,110,0.1);}
-.contact-list{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.contact-list{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;}
 .contact-detail-section{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(200,169,110,0.1);}
 .contact-detail-section:last-child{border-bottom:none;}
 .contact-detail-label{font-size:9px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
@@ -839,6 +839,10 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
 
 /* === CONTACT CARDS === */
 .contact-avatar{width:58px!important;height:58px!important;font-size:26px!important;}
+.contact-name{font-size:22px!important;font-weight:600!important;}
+.contact-role-org{font-size:13px!important;font-weight:600!important;}
+.contact-details-grid{font-size:13px!important;}
+.contact-detail-row{font-size:13px!important;font-weight:500!important;}
 .contact-card [style*="font-weight:700"]{font-size:18px!important;}
 
 /* === REPORT STAT CARDS (Αναφορές) === */
@@ -4997,13 +5001,15 @@ function rbBuildKPI(doc,y){
   const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   const net=totalInc-totalExp;
-  doc.setFontSize(9);doc.setTextColor(247,243,236);
-  doc.text('Εκδηλώσεις: '+_events.length+'   |   Εκκρεμείς Εργασίες: '+_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length+'   |   Επαφές: '+_contacts.length+'   |   Μέλη: '+_members.length,14,y);y+=6;
+  doc.setFont('DejaVuSans','bold');doc.setFontSize(10);doc.setTextColor(200,169,110);
+  doc.text('Εκδηλώσεις: '+_events.length+'   |   Εκκρεμείς Εργασίες: '+_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length+'   |   Επαφές: '+_contacts.length+'   |   Μέλη: '+_members.length,14,y);y+=8;
+  doc.setFontSize(11);
   doc.setTextColor(76,175,80);doc.text('Σύνολο Εσόδων: '+fmtMoney(totalInc),14,y);
   doc.setTextColor(229,115,115);doc.text('Σύνολο Εξόδων: '+fmtMoney(totalExp),80,y);
   doc.setTextColor(net>=0?76:229,net>=0?175:115,net>=0?80:115);
   doc.text('Ισοζύγιο: '+fmtMoney(net),145,y);
-  return y+10;
+  doc.setFont('DejaVuSans','normal');
+  return y+12;
 }
 function rbBuildKPIxl(wb){
   const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
@@ -5142,12 +5148,12 @@ function rbBuildTasksXL(wb){
 
 function rbBuildContacts(doc,y){
   y=rbSectionTitle(doc,y,'Επαφές');
-  const rows=_contacts.map(c=>[c.name||'',c.role||'—',c.email||'—',c.phone||'—',(c.hubs||[]).join(', ')||'—']);
-  y=rbAutoTable(doc,y,['Ονοματεπώνυμο','Ιδιότητα','Email','Τηλέφωνο','Hubs'],rows.length?rows:[['Δεν υπάρχουν','','','','']]);
+  const rows=_contacts.map(c=>[c.name||'',c.role||'—',(c.hubs||[]).join(', ')||'—',c.phone||'—',c.email||'—']);
+  y=rbAutoTable(doc,y,['Ονοματεπώνυμο','Ιδιότητα','Hubs','Τηλέφωνο','Email'],rows.length?rows:[['Δεν υπάρχουν','','','','']]);
   return y+8;
 }
 function rbBuildContactsXL(wb){
-  const d=[['Ονοματεπώνυμο','Ιδιότητα','Email','Τηλέφωνο','Hubs','Εταιρεία','Σημειώσεις']];_contacts.forEach(c=>d.push([c.name||'',c.role||'',c.email||'',c.phone||'',(c.hubs||[]).join(', '),c.company||'',c.notes||'']));rbAddSheet(wb,d,'Επαφές');
+  const d=[['Ονοματεπώνυμο','Ιδιότητα','Hubs','Τηλέφωνο','Email','Εταιρεία','Σημειώσεις']];_contacts.forEach(c=>d.push([c.name||'',c.role||'',(c.hubs||[]).join(', '),c.phone||'',c.email||'',c.company||'',c.notes||'']));rbAddSheet(wb,d,'Επαφές');
 }
 
 function rbBuildHubs(doc,y){
