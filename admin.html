@@ -863,9 +863,16 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// Fallback check for libraries
+window.addEventListener('DOMContentLoaded',function(){
+  if(!window.jspdf) console.warn('jsPDF not loaded');
+  if(typeof XLSX==='undefined') console.warn('XLSX not loaded');
+});
+</script>
 </head>
 <body>
 
@@ -4939,6 +4946,12 @@ function rbPdfFooter(doc){
 }
 
 function rbAutoTable(doc,startY,head,body,opts){
+  if(typeof doc.autoTable!=='function'){
+    // Fallback: just skip table if autoTable not loaded
+    doc.setFontSize(8);doc.setTextColor(200,169,110);
+    doc.text('[Table: autoTable plugin not loaded]',14,startY);
+    return startY+10;
+  }
   doc.autoTable(Object.assign({
     startY:startY,head:[head],body:body,theme:'grid',
     styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2,font:'helvetica',cellPadding:3},
@@ -5162,6 +5175,14 @@ async function rbGenerate(){
   const secs=rbGetSelectedSections();
   if(!secs.length){toast('Επιλέξτε τουλάχιστον μία ενότητα','error');return;}
 
+  // Check libraries loaded
+  if((_rbFormat==='pdf'||_rbFormat==='both') && (!window.jspdf || !window.jspdf.jsPDF)){
+    toast('Η βιβλιοθήκη PDF δεν φορτώθηκε. Ελέγξτε τη σύνδεση internet.','error');return;
+  }
+  if((_rbFormat==='excel'||_rbFormat==='both') && typeof XLSX==='undefined'){
+    toast('Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση internet.','error');return;
+  }
+
   closeReportBuilder();
   rbShowProgress();
   const total=secs.length;
@@ -5202,7 +5223,7 @@ async function rbGenerate(){
     toast('Αναφορά δημιουργήθηκε επιτυχώς!');
   }catch(e){
     console.error('Report generation error:',e);
-    toast('Σφάλμα δημιουργίας αναφοράς','error');
+    toast('Σφάλμα: '+e.message,'error');
   }
 
   rbHideProgress();
