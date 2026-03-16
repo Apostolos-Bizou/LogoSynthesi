@@ -63,10 +63,10 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
   linear-gradient(90deg,rgba(200,169,110,0.03) 1px,transparent 1px) 0 0/60px 60px, var(--black);}
 .login-box{width:100%;max-width:380px;border:1px solid var(--gold-line);padding:44px 36px;background:var(--black2);}
 .login-logo{text-align:center;margin-bottom:32px;}
-.login-logo-frame{display:inline-block;border:1.5px solid var(--gold);padding:20px 32px 16px;position:relative;width:180px;margin-bottom:16px;}
+.login-logo-frame{display:inline-flex;flex-direction:column;align-items:center;border:1.5px solid var(--gold);padding:20px 32px 16px;position:relative;min-width:180px;margin-bottom:16px;box-sizing:border-box;}
 .login-logo-frame::before{content:'';position:absolute;inset:6px;border:0.5px solid var(--gold-line);}
 .login-logo-frame svg{display:block;margin:0 auto 8px;}
-.login-logo-wordmark{font-family:var(--font-serif);font-size:16px;font-weight:300;letter-spacing:0.2em;text-align:center;}
+.login-logo-wordmark{font-family:var(--font-serif);font-size:16px;font-weight:300;letter-spacing:0.12em;text-align:center;white-space:nowrap;}
 .login-logo-wordmark span{color:var(--gold);}
 .login-sub{font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(200,169,110,0.6);text-align:center;margin-top:6px;}
 .field{margin-bottom:14px;}
@@ -576,7 +576,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 
   /* Login */
   .login-box{padding:30px 20px;}
-  .login-logo-frame{width:140px;padding:14px 22px 10px;}
+  .login-logo-frame{min-width:140px;padding:14px 22px 10px;}
   .login-logo-frame svg{width:80px;height:80px;}
 }
 
@@ -730,7 +730,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .section-div{margin:26px 0;}
 
 /* === LOGIN === */
-.login-logo-wordmark{font-size:22px;}
+.login-logo-wordmark{font-size:14px;letter-spacing:0.08em;}
 .login-sub{font-size:12px;letter-spacing:0.28em;}
 .field label{font-size:12px;letter-spacing:0.2em;}
 .field input{font-size:16px;padding:14px 16px;}
