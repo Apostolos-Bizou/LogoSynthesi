@@ -720,6 +720,19 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 /* === CHECKBOX SCALING === */
 input[type="checkbox"]{width:18px!important;height:18px!important;}
 
+/* === HUB FILTER TABS (events, tasks) === */
+.hub-filter-tab{font-size:14px!important;padding:12px 22px!important;letter-spacing:0.12em!important;}
+.hub-filter-tab .hub-tab-count{font-size:16px!important;margin-left:8px!important;}
+
+/* === CONTACT CARDS === */
+.contact-avatar{width:58px!important;height:58px!important;font-size:26px!important;}
+.contact-card [style*="font-weight:700"]{font-size:18px!important;}
+
+/* === REPORT STAT CARDS (Αναφορές) === */
+.stats-grid .stat-card .stat-num{font-size:48px!important;}
+.stats-grid .stat-card .stat-label{font-size:14px!important;}
+.stats-grid .stat-card .fin-card-sub,.stats-grid .stat-card [style*="margin-top"]{font-size:14px!important;}
+
 /* === GENERIC SMALL TEXT RESCUE === */
 /* Catch any remaining tiny text in the admin panel */
 .main-content span:not(.stat-num):not(.fin-card-value):not(.topbar-logo){min-font-size:13px;}
@@ -1197,8 +1210,8 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
               <tbody id="fd-sponsor-tbody"></tbody>
               <tfoot>
                 <tr style="border-top:2px solid var(--gold)">
-                  <td colspan="6" style="text-align:right;font-weight:700;font-size:13px;padding:12px 8px">Σύνολο Χορηγιών Επιλεγμένων:</td>
-                  <td style="font-family:var(--font-serif);font-size:24px;font-weight:700;color:var(--gold);padding:12px 8px" id="fd-sponsor-total">0 €</td>
+                  <td colspan="6" style="text-align:right;font-weight:700;font-size:17px;padding:16px 12px">Σύνολο Χορηγιών Επιλεγμένων:</td>
+                  <td style="font-family:var(--font-serif);font-size:30px;font-weight:700;color:var(--gold);padding:16px 12px" id="fd-sponsor-total">0 €</td>
                 </tr>
               </tfoot>
             </table></div>
@@ -2205,7 +2218,7 @@ async function saveMember(){
 function cancelMemberEdit(){['memName','memRole','memBio','memPhoto'].forEach(id=>document.getElementById(id).value='');document.getElementById('memOrder').value='99';document.getElementById('memEditId').value='';document.getElementById('memCancelEdit').style.display='none';document.querySelector('#view-members .page-title').innerHTML='<span>+</span> Νέο Μέλος';}
 function editMember(id){const m=_members.find(m=>m.id===id);if(!m)return;document.getElementById('memName').value=m.name||'';document.getElementById('memRole').value=m.role||'';document.getElementById('memBio').value=m.bio||'';document.getElementById('memPhoto').value=m.photo||'';showImagePreview('memPhotoPreview',m.photo||'',false);document.getElementById('memOrder').value=m.order||99;document.getElementById('memEditId').value=id;document.getElementById('memCancelEdit').style.display='inline-block';document.querySelector('#view-members .page-title').innerHTML='✎ Επεξεργασία <span>Μέλους</span>';switchView('members');window.scrollTo({top:0,behavior:'smooth'});}
 async function deleteMember(id){if(!confirm('Διαγραφή μέλους;'))return;try{if(!window._db)throw new Error('demo');const{doc,deleteDoc}=window._firebase;await deleteDoc(doc(window._db,'members',id));}catch(e){}_members=_members.filter(m=>m.id!==id);renderMemberList();toast('Μέλος διαγράφηκε','error');}
-function renderMemberList(){const el=document.getElementById('memberList');if(!_members.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν μέλη ακόμα.</div>';return;}let html='';_members.forEach(m=>{const photo=m.photo?`<img src="${m.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);vertical-align:middle;" onerror="this.style.display='none'">`:`<div style="width:40px;height:40px;border-radius:50%;border:1px solid var(--gold-line);background:var(--black3);display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;vertical-align:middle;">👤</div>`;html+=`<div style="background:var(--black2);border:1px solid var(--gold-line);padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;"><div>${photo}</div><div style="flex:1;"><div style="font-family:var(--font-serif);font-size:16px;">${m.name}</div><div style="font-size:9px;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-top:2px;">${m.role}</div></div><div style="display:flex;gap:6px;"><button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button></div></div>`;});el.innerHTML=html;}
+function renderMemberList(){const el=document.getElementById('memberList');if(!_members.length){el.innerHTML='<div class="empty-msg">Δεν υπάρχουν μέλη ακόμα.</div>';return;}let html='';_members.forEach(m=>{const photo=m.photo?`<img src="${m.photo}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;border:1px solid var(--gold-line);vertical-align:middle;" onerror="this.style.display='none'">`:`<div style="width:64px;height:64px;border-radius:50%;border:1px solid var(--gold-line);background:var(--black3);display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:22px;vertical-align:middle;">👤</div>`;html+=`<div style="background:var(--black2);border:1px solid var(--gold-line);padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:18px;"><div>${photo}</div><div style="flex:1;"><div style="font-family:var(--font-serif);font-size:22px;">${m.name}</div><div style="font-size:13px;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-top:4px;">${m.role}</div></div><div style="display:flex;gap:8px;"><button class="btn-edit" onclick="editMember('${m.id}')">Επεξ.</button><button class="btn-danger" onclick="deleteMember('${m.id}')">Διαγρ.</button></div></div>`;});el.innerHTML=html;}
 
 // ===== ERP: MODALS =====
 function openModal(id){
@@ -3578,7 +3591,7 @@ function renderDashboard(){
   const months=['ΙΑΝ','ΦΕΒ','ΜΑΡ','ΑΠΡ','ΜΑΙ','ΙΟΥΝ','ΙΟΥΛ','ΑΥΓ','ΣΕΠ','ΟΚΤ','ΝΟΕ','ΔΕΚ'];
   document.getElementById('dash-upcoming').innerHTML=ue.length?ue.map(e=>{const d=new Date(e.date);return`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="width:36px;text-align:center;flex-shrink:0"><div style="font-family:var(--font-serif);font-size:22px;color:var(--gold);line-height:1">${d.getDate()}</div><div style="font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,0.5)">${months[d.getMonth()]}</div></div><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${e.venue||'—'}</div></div><span class="hub-badge ${hubClass(e.category||'')}">${e.category||''}</span></div>`;}).join(''):'<div class="empty-msg">Δεν υπάρχουν επερχόμενες εκδηλώσεις</div>';
   const pt=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').slice(0,4);
-  document.getElementById('dash-tasks').innerHTML=pt.length?pt.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><span class="priority-dot ${priorityClass(t.priority)}"></span><div style="flex:1"><div style="font-size:14px;font-weight:600">${t.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:2px">${t.assignee?'@'+t.assignee:'—'} ${t.deadline?'· '+fmtDate(t.deadline):''}</div></div><span class="status ${statusClass(t.status)}">${t.status}</span></div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν εκκρεμείς εργασίες</div>';
+  document.getElementById('dash-tasks').innerHTML=pt.length?pt.map(t=>`<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><span class="priority-dot ${priorityClass(t.priority)}"></span><div style="flex:1"><div style="font-size:16px;font-weight:600">${t.title}</div><div style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:3px">${t.assignee?'@'+t.assignee:'—'} ${t.deadline?'· '+fmtDate(t.deadline):''}</div></div><span class="status ${statusClass(t.status)}">${t.status}</span></div>`).join(''):'<div class="empty-msg">Δεν υπάρχουν εκκρεμείς εργασίες</div>';
   let totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   let totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   _eventBudgets.forEach(b=>{totalInc+=ebIncomeTotal(b,'actual');totalExp+=ebExpenseGrossTotal(b,'actual');});
@@ -4273,10 +4286,10 @@ function renderReportsCharts(){
     {label:'Μέση Βαθμολογία',value:avgRating+' ★',color:'var(--gold)',sub:allRatings.length+' ψήφοι'},
   ];
   document.getElementById('reports-kpi-cards').innerHTML=kpis.map(k=>
-    '<div style="background:var(--black2);border:1px solid var(--gold-line);padding:16px 20px">' +
-    '<div style="font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:8px">'+k.label+'</div>' +
-    '<div style="font-family:var(--font-serif);font-size:26px;color:'+k.color+';margin-bottom:4px">'+k.value+'</div>' +
-    '<div style="font-size:11px;color:rgba(255,255,255,0.4)">'+k.sub+'</div></div>'
+    '<div style="background:var(--black2);border:1px solid var(--gold-line);padding:22px 24px">' +
+    '<div style="font-size:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:10px">'+k.label+'</div>' +
+    '<div style="font-family:var(--font-serif);font-size:36px;color:'+k.color+';margin-bottom:6px">'+k.value+'</div>' +
+    '<div style="font-size:15px;color:rgba(255,255,255,0.4)">'+k.sub+'</div></div>'
   ).join('');
 
   // ---- 1. Monthly line chart ----
