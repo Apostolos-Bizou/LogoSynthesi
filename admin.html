@@ -1295,11 +1295,11 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       </div>
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Χωρητικότητα</label><input type="number" class="form-input" id="eb-capacity" min="0"></div>
-        <div class="form-group"><label class="form-label">Τιμή εισιτηρίου (€)</label><input type="number" class="form-input" id="eb-ticket-price" step="0.01" min="0"></div>
+        <div class="form-group"><label class="form-label">Τιμή εισιτηρίου (€)</label><input type="number" class="form-input" id="eb-ticket-price" step="0.01" min="0" oninput="syncTicketIncome()"></div>
       </div>
       <div class="form-2col">
-        <div class="form-group"><label class="form-label">Πρόβλεψη πωλήσεων εισιτ.</label><input type="number" class="form-input" id="eb-planned-tickets" min="0" oninput="document.getElementById('ebc-tickets').value=this.value;calcTicketPrice()"></div>
-        <div class="form-group"><label class="form-label">Πραγματικές πωλήσεις εισιτ.</label><input type="number" class="form-input" id="eb-actual-tickets" min="0"></div>
+        <div class="form-group"><label class="form-label">Πρόβλεψη πωλήσεων εισιτ.</label><input type="number" class="form-input" id="eb-planned-tickets" min="0" oninput="document.getElementById('ebc-tickets').value=this.value;calcTicketPrice();syncTicketIncome()"></div>
+        <div class="form-group"><label class="form-label">Πραγματικές πωλήσεις εισιτ.</label><input type="number" class="form-input" id="eb-actual-tickets" min="0" oninput="syncTicketIncome()"></div>
       </div>
       <div class="form-group"><label class="form-label">ΦΠΑ εξόδων default</label><input type="number" class="form-input" id="eb-vat" value="24" step="1" min="0" max="100" style="width:100px"> %</div>
       <div class="section-div"></div>
@@ -2538,7 +2538,7 @@ function openEventBudgetModal(id){
   const evSel=document.getElementById('eb-event');
   evSel.innerHTML='<option value="">— Νέα Εκδήλωση —</option>';
   _events.forEach(e=>evSel.insertAdjacentHTML('beforeend','<option value="'+e.id+'">'+e.title+'</option>'));
-  document.getElementById('eb-income-rows').innerHTML=EB_INCOME_CATS.map((c,i)=>'<tr><td style="font-size:14px">'+c+'</td><td><input class="eb-input" type="number" step="0.01" id="ebi-p-'+i+'" value="0" oninput="calcTicketPrice()"></td><td><input class="eb-input" type="number" step="0.01" id="ebi-a-'+i+'" value="0"></td><td><input class="eb-input notes" type="text" id="ebi-n-'+i+'" value=""></td></tr>').join('');
+  document.getElementById('eb-income-rows').innerHTML=EB_INCOME_CATS.map((c,i)=>'<tr><td style="font-size:14px">'+c+(i===0?' <span style="font-size:9px;color:var(--gold);opacity:0.6">(auto)</span>':'')+'</td><td><input class="eb-input" type="number" step="0.01" id="ebi-p-'+i+'" value="0" oninput="calcTicketPrice()"'+(i===0?' readonly style="opacity:0.6;cursor:not-allowed"':'')+'></td><td><input class="eb-input" type="number" step="0.01" id="ebi-a-'+i+'" value="0"'+(i===0?' readonly style="opacity:0.6;cursor:not-allowed"':'')+'></td><td><input class="eb-input notes" type="text" id="ebi-n-'+i+'" value=""></td></tr>').join('');
   document.getElementById('eb-expense-rows').innerHTML=EB_EXPENSE_CATS.map((c,i)=>'<tr><td style="font-size:14px">'+c+'</td><td><input class="eb-input" type="number" step="0.01" id="ebe-pn-'+i+'" value="0"></td><td><input class="eb-input" type="number" step="1" id="ebe-pv-'+i+'" value="24" style="width:70px"></td><td class="eb-computed" id="ebe-pg-'+i+'">0 €</td><td><input class="eb-input" type="number" step="0.01" id="ebe-an-'+i+'" value="0"></td><td><input class="eb-input" type="number" step="1" id="ebe-av-'+i+'" value="24" style="width:70px"></td><td class="eb-computed" id="ebe-ag-'+i+'">0 €</td><td><input class="eb-input notes" type="text" id="ebe-n-'+i+'" value=""></td></tr>').join('');
   EB_EXPENSE_CATS.forEach((_,i)=>{['pn','pv','an','av'].forEach(f=>{document.getElementById('ebe-'+f+'-'+i)?.addEventListener('input',()=>calcExpGross(i));});});
   document.getElementById('modal-eb-title').textContent='Νέο Event Budget';
@@ -2601,7 +2601,18 @@ function applyTicketPrice(){
   // Update εισιτήρια income row (index 0)
   const ticketInc=price*tickets;
   document.getElementById('ebi-p-0').value=ticketInc;
+  syncTicketIncome();
   toast('Τιμή εισιτηρίου: '+fmtMoney(price)+' εφαρμόστηκε');
+}
+function syncTicketIncome(){
+  const price=parseFloat(document.getElementById('eb-ticket-price').value)||0;
+  const planned=parseInt(document.getElementById('eb-planned-tickets').value)||0;
+  const actual=parseInt(document.getElementById('eb-actual-tickets').value)||0;
+  const pEl=document.getElementById('ebi-p-0');
+  const aEl=document.getElementById('ebi-a-0');
+  if(pEl) pEl.value=price*planned;
+  if(aEl) aEl.value=price*actual;
+  calcTicketPrice();
 }
 function loadEventBudgetIntoModal(id){
   const b=_eventBudgets.find(x=>x.id===id);if(!b)return;
@@ -2634,6 +2645,7 @@ function loadEventBudgetIntoModal(id){
   // Sync calculator
   document.getElementById('ebc-tickets').value=b.plannedTickets||'';
   calcTicketPrice();
+  syncTicketIncome();
 }
 function editEventBudget(id){openEventBudgetModal(id);}
 
