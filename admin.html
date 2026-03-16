@@ -79,19 +79,92 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .error-msg{font-size:11px;color:var(--red);margin-top:10px;text-align:center;}
 .login-footer{text-align:center;margin-top:28px;font-size:9px;letter-spacing:0.25em;color:rgba(247,243,236,0.2);text-transform:uppercase;}
 
-/* ===== EXPORT CARDS ===== */
-.export-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.export-card{display:flex;align-items:center;gap:16px;background:var(--black2);border:1px solid var(--gold-line);padding:18px 20px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;}
-.export-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,169,110,0.06) 0%,transparent 60%);opacity:0;transition:opacity .25s;}
-.export-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
-.export-card:hover::before{opacity:1;}
-.export-card:active{transform:translateY(0);box-shadow:none;}
-.export-icon{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:11px;font-weight:800;letter-spacing:0.08em;flex-shrink:0;position:relative;z-index:1;}
-.export-icon.pdf{background:linear-gradient(135deg,rgba(229,115,115,0.2),rgba(229,115,115,0.08));color:#e57373;border:1px solid rgba(229,115,115,0.3);}
-.export-icon.xlsx{background:linear-gradient(135deg,rgba(76,175,80,0.2),rgba(76,175,80,0.08));color:#4CAF50;border:1px solid rgba(76,175,80,0.3);}
-.export-info{flex:1;position:relative;z-index:1;}
-.export-title{font-family:var(--font-serif);font-size:15px;font-weight:400;color:var(--cream);margin-bottom:4px;}
-.export-desc{font-size:11px;color:rgba(247,243,236,0.4);line-height:1.5;}
+/* ===== REPORT BUILDER MODAL ===== */
+.rb-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(6px);opacity:0;transition:opacity .3s;}
+.rb-overlay.open{opacity:1;}
+.rb-overlay:not(.open){pointer-events:none;}
+.rb-box{background:#0e0c09;border:1.5px solid var(--gold-line);width:100%;max-width:560px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;transform:translateY(20px) scale(0.97);transition:transform .35s cubic-bezier(.4,0,.2,1);box-shadow:0 24px 80px rgba(0,0,0,0.7);}
+.rb-overlay.open .rb-box{transform:translateY(0) scale(1);}
+.rb-head{background:linear-gradient(135deg,#1a1610,#0e0c09);padding:22px 28px 18px;border-bottom:1.5px solid var(--gold-line);display:flex;align-items:center;justify-content:space-between;}
+.rb-head-title{font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--cream);}
+.rb-head-title span{color:var(--gold);}
+.rb-head-sub{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:rgba(200,169,110,0.6);margin-top:4px;}
+.rb-close{background:rgba(200,169,110,0.12);border:1px solid var(--gold-line);width:32px;height:32px;border-radius:50%;color:var(--cream);font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.rb-close:hover{background:var(--gold);color:var(--black);}
+.rb-body{padding:24px 28px;overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(200,169,110,0.2) transparent;}
+.rb-section{margin-bottom:22px;}
+.rb-section:last-child{margin-bottom:0;}
+.rb-section-label{font-size:9px;font-weight:700;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+
+/* Period */
+.rb-period-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.rb-select-group label{display:block;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(247,243,236,0.4);margin-bottom:5px;}
+.rb-select{width:100%;background:var(--black);border:1px solid var(--gold-line);color:var(--cream);padding:10px 12px;font-family:var(--font-sans);font-size:13px;cursor:pointer;transition:border-color .2s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23C8A96E' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.rb-select:focus{outline:none;border-color:var(--gold);}
+
+/* Templates */
+.rb-templates{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.rb-tpl{background:var(--black);border:1.5px solid var(--gold-line);padding:14px 8px 12px;text-align:center;cursor:pointer;transition:all .25s;}
+.rb-tpl:hover{border-color:var(--gold);background:rgba(200,169,110,0.06);}
+.rb-tpl.active{border-color:var(--gold);background:rgba(200,169,110,0.12);box-shadow:0 0 16px rgba(200,169,110,0.15);}
+.rb-tpl-icon{font-size:20px;margin-bottom:6px;display:block;}
+.rb-tpl-name{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--cream);}
+
+/* Sections list */
+.rb-sections-list{display:flex;flex-direction:column;gap:6px;}
+.rb-sec-item{display:flex;align-items:center;gap:14px;background:var(--black);border:1.5px solid var(--gold-line);padding:12px 16px;cursor:pointer;transition:all .2s;user-select:none;}
+.rb-sec-item:hover{border-color:rgba(200,169,110,0.5);}
+.rb-sec-item.selected{border-color:var(--gold);background:rgba(200,169,110,0.08);}
+.rb-sec-item input[type="checkbox"]{width:18px;height:18px;accent-color:var(--gold);cursor:pointer;flex-shrink:0;}
+.rb-sec-info{flex:1;min-width:0;}
+.rb-sec-title{font-size:13px;font-weight:600;color:var(--cream);}
+.rb-sec-desc{font-size:10px;color:rgba(247,243,236,0.35);margin-top:2px;}
+.rb-sec-badge{background:rgba(200,169,110,0.15);color:var(--gold);padding:3px 10px;font-size:9px;font-weight:700;letter-spacing:.08em;white-space:nowrap;flex-shrink:0;}
+
+/* Format buttons */
+.rb-formats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.rb-fmt{background:var(--black);border:1.5px solid var(--gold-line);padding:16px 10px;text-align:center;cursor:pointer;transition:all .25s;}
+.rb-fmt:hover{border-color:var(--gold);}
+.rb-fmt.selected{border-color:var(--gold);background:rgba(200,169,110,0.1);}
+.rb-fmt-icon{font-size:24px;margin-bottom:6px;display:block;}
+.rb-fmt-name{font-size:12px;font-weight:700;color:var(--cream);}
+
+/* Info box */
+.rb-info{background:rgba(200,169,110,0.06);border:1px solid rgba(200,169,110,0.2);padding:12px 16px;display:flex;align-items:flex-start;gap:10px;font-size:11px;color:rgba(247,243,236,0.5);line-height:1.6;}
+.rb-info strong{color:var(--gold);}
+
+/* Footer */
+.rb-foot{padding:16px 28px;border-top:1.5px solid var(--gold-line);display:flex;gap:10px;background:#0a0907;}
+.rb-btn{flex:1;padding:12px;font-family:var(--font-sans);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:6px;border:none;}
+.rb-btn-cancel{background:var(--black2);border:1px solid var(--gold-line);color:rgba(247,243,236,0.5);}
+.rb-btn-cancel:hover{border-color:var(--gold);color:var(--cream);}
+.rb-btn-preview{background:transparent;border:1.5px solid var(--gold);color:var(--gold);}
+.rb-btn-preview:hover{background:rgba(200,169,110,0.1);}
+.rb-btn-generate{background:var(--gold);color:var(--black);box-shadow:0 4px 20px rgba(200,169,110,0.3);}
+.rb-btn-generate:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 8px 30px rgba(200,169,110,0.4);}
+
+/* Progress modal */
+.rb-progress-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:10000;}
+.rb-progress-overlay:not(.open){display:none;}
+.rb-progress-box{background:var(--black2);border:1px solid var(--gold-line);padding:40px;width:100%;max-width:420px;text-align:center;}
+.rb-progress-icon{font-size:48px;margin-bottom:16px;}
+.rb-progress-title{font-family:var(--font-serif);font-size:18px;color:var(--cream);margin-bottom:8px;}
+.rb-progress-status{font-size:12px;color:rgba(247,243,236,0.5);margin-bottom:20px;}
+.rb-progress-bar-bg{width:100%;height:6px;background:var(--black);overflow:hidden;margin-bottom:12px;}
+.rb-progress-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));width:0%;transition:width .4s ease;}
+.rb-progress-step{font-size:11px;color:var(--gold);letter-spacing:.1em;}
+
+/* Responsive */
+@media(max-width:600px){
+  .rb-box{max-width:100%;margin:8px;max-height:96vh;}
+  .rb-head{padding:16px 18px 14px;}
+  .rb-body{padding:18px;}
+  .rb-templates{grid-template-columns:repeat(2,1fr);}
+  .rb-formats{grid-template-columns:1fr;}
+  .rb-period-row{grid-template-columns:1fr;}
+  .rb-foot{padding:14px 18px;flex-wrap:wrap;}
+  .rb-btn{font-size:10px;padding:10px 8px;}
+}
 
 /* ===== APP SHELL ===== */
 .admin-wrap{display:none;}
@@ -592,7 +665,6 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
   .login-box{padding:30px 20px;}
   .login-logo-frame{min-width:140px;padding:14px 22px 10px;}
   .login-logo-frame svg{width:80px;height:80px;}
-  .export-grid{grid-template-columns:1fr;}
 }
 
 /* Small phones (<400px) */
@@ -603,7 +675,6 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
   .stats-grid{grid-template-columns:1fr!important;}
   .contact-details-grid{font-size:10px;}
   .mobile-tab{padding:6px 10px;font-size:9px;letter-spacing:0.1em;}
-  .export-grid{grid-template-columns:1fr!important;}
 }
 
 .empty-msg{color:rgba(255,255,255,0.5);font-size:15px;font-style:italic;font-weight:500;padding:14px 0;}
@@ -858,7 +929,7 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
     <button class="mobile-tab" onclick="switchView('erp-calendar')">Ημερολόγιο</button>
     <button class="mobile-tab" onclick="switchView('erp-users')">Χρήστες</button>
     <button class="mobile-tab" onclick="switchView('erp-reports')">Αναφορές</button>
-    <button class="mobile-tab" onclick="switchView('erp-exports')">Exports</button>
+    <button class="mobile-tab" onclick="openReportBuilder()">Report Builder</button>
   </div>
 
   <div class="admin-body">
@@ -920,9 +991,9 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Αναφορές
       </button>
-      <button class="sidebar-link" onclick="switchView('erp-exports')">
+      <button class="sidebar-link" onclick="openReportBuilder()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Exports
+        Report Builder
       </button>
 
       <div class="sidebar-section">ERP — Ομάδα</div>
@@ -1450,210 +1521,210 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
         <div id="reports-body"></div>
       </div>
 
-      <!-- ===== EXPORTS & REPORTING ===== -->
-      <div class="view" id="view-erp-exports">
-        <div class="page-title">Exports <span>& Reporting</span></div>
+    </div><!-- /main -->
+  </div><!-- /admin-body -->
 
-        <!-- Period filter -->
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)">Περίοδος</div>
-          <select class="filter-select" id="exp-period" onchange="updateExportPeriod()" style="min-width:160px">
-            <option value="all">Όλα τα δεδομένα</option>
-            <option value="year">Τρέχον Έτος</option>
-            <option value="q1">Α΄ Τρίμηνο</option>
-            <option value="q2">Β΄ Τρίμηνο</option>
-            <option value="q3">Γ΄ Τρίμηνο</option>
-            <option value="q4">Δ΄ Τρίμηνο</option>
-            <option value="custom">Προσαρμοσμένο</option>
-          </select>
-          <input type="date" id="exp-date-from" class="filter-select" style="display:none;min-width:140px">
-          <span id="exp-date-sep" style="display:none;color:var(--gold);font-size:12px">—</span>
-          <input type="date" id="exp-date-to" class="filter-select" style="display:none;min-width:140px">
-        </div>
+<!-- ═══════ REPORT BUILDER MODAL ═══════ -->
+<div class="rb-overlay" id="rbOverlay" onclick="if(event.target===this)closeReportBuilder()">
+  <div class="rb-box">
+    <div class="rb-head">
+      <div>
+        <div class="rb-head-title">Report <span>Builder</span></div>
+        <div class="rb-head-sub">Δημιουργία Προσαρμοσμένων Αναφορών</div>
+      </div>
+      <button class="rb-close" onclick="closeReportBuilder()">✕</button>
+    </div>
 
-        <!-- Section: Οικονομικά -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
-          Οικονομικά
+    <div class="rb-body">
+      <!-- Χρονική Περίοδος -->
+      <div class="rb-section">
+        <div class="rb-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="1"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Χρονική Περίοδος
         </div>
-        <div class="export-grid">
-          <div class="export-card" onclick="exportFinancePDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Οικονομική Αναφορά</div>
-              <div class="export-desc">Έσοδα, έξοδα, ισοζύγιο — μηνιαία & τριμηνιαία ανάλυση</div>
-            </div>
+        <div class="rb-period-row">
+          <div class="rb-select-group">
+            <label>Από</label>
+            <select class="rb-select" id="rbFrom">
+              <option value="2026-Q1" selected>Α΄ Τρίμ. 2026</option>
+              <option value="2026-Q2">Β΄ Τρίμ. 2026</option>
+              <option value="2026-Q3">Γ΄ Τρίμ. 2026</option>
+              <option value="2026-Q4">Δ΄ Τρίμ. 2026</option>
+              <option value="2026-H1">Α΄ Εξάμ. 2026</option>
+              <option value="2026-H2">Β΄ Εξάμ. 2026</option>
+              <option value="2026-ALL">Έτος 2026</option>
+            </select>
           </div>
-          <div class="export-card" onclick="exportFinanceXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Οικονομικά — Excel</div>
-              <div class="export-desc">Αναλυτικές εγγραφές, μηνιαίο breakdown, τριμηνιαία σύνοψη</div>
-            </div>
+          <div class="rb-select-group">
+            <label>Έως</label>
+            <select class="rb-select" id="rbTo">
+              <option value="2026-Q1">Α΄ Τρίμ. 2026</option>
+              <option value="2026-Q2" selected>Β΄ Τρίμ. 2026</option>
+              <option value="2026-Q3">Γ΄ Τρίμ. 2026</option>
+              <option value="2026-Q4">Δ΄ Τρίμ. 2026</option>
+              <option value="2026-H1">Α΄ Εξάμ. 2026</option>
+              <option value="2026-H2">Β΄ Εξάμ. 2026</option>
+              <option value="2026-ALL">Έτος 2026</option>
+            </select>
           </div>
-          <div class="export-card" onclick="exportOrgBudgetPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Budget Φορέα</div>
-              <div class="export-desc">Πρόβλεψη vs πραγματικά — έσοδα & έξοδα φορέα</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportOrgBudgetXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Budget Φορέα — Excel</div>
-              <div class="export-desc">Πλήρης πίνακας προϋπολογισμού σε Excel</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0"></div>
-
-        <!-- Section: Εκδηλώσεις -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-          Εκδηλώσεις
-        </div>
-        <div class="export-grid">
-          <div class="export-card" onclick="exportEventsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Λίστα Εκδηλώσεων</div>
-              <div class="export-desc">Πλήρης κατάλογος εκδηλώσεων με ημερομηνίες, χώρους & κατηγορίες</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportEventsXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Εκδηλώσεις — Excel</div>
-              <div class="export-desc">Αναλυτικά δεδομένα εκδηλώσεων σε επεξεργάσιμη μορφή</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportEventBudgetsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Event Budgets</div>
-              <div class="export-desc">Πρόβλεψη vs πραγματικά ανά εκδήλωση — έσοδα, έξοδα, αποτέλεσμα</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportEventBudgetsXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Event Budgets — Excel</div>
-              <div class="export-desc">Αναλυτικοί πίνακες budget ανά εκδήλωση</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0"></div>
-
-        <!-- Section: Εισιτήρια & Χορηγοί -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3v4M8 3v4"/></svg>
-          Εισιτήρια & Χορηγοί
-        </div>
-        <div class="export-grid">
-          <div class="export-card" onclick="exportTicketsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Αναφορά Εισιτηρίων</div>
-              <div class="export-desc">Πωλήσεις, έσοδα, αποκλίσεις ανά εκδήλωση</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportTicketsXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Εισιτήρια — Excel</div>
-              <div class="export-desc">Πλήρης πίνακας εισιτηρίων σε Excel</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportSponsorsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Αναφορά Χορηγών</div>
-              <div class="export-desc">Χορηγοί, τύποι, ποσά, δόσεις & κατάσταση πληρωμής</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportSponsorsXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Χορηγοί — Excel</div>
-              <div class="export-desc">Πλήρης πίνακας χορηγιών σε Excel</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0"></div>
-
-        <!-- Section: KPIs & Στατιστικά -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          KPIs & Στατιστικά
-        </div>
-        <div class="export-grid">
-          <div class="export-card" onclick="exportKPIsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">KPI Dashboard</div>
-              <div class="export-desc">Συνολικά KPIs: εκδηλώσεις, ψήφοι, έσοδα, ισοζύγιο, hub ανάλυση</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportFullReportPDF()">
-            <div class="export-icon pdf" style="background:linear-gradient(135deg,rgba(200,169,110,0.25),rgba(200,169,110,0.08))">★</div>
-            <div class="export-info">
-              <div class="export-title">Πλήρης Αναφορά Δραστηριότητας</div>
-              <div class="export-desc">Ολοκληρωμένο PDF — όλα τα sections: KPIs, οικονομικά, εκδηλώσεις, εισιτήρια, χορηγοί</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="height:1px;background:linear-gradient(to right,transparent,var(--gold-line),transparent);margin:24px 0"></div>
-
-        <!-- Section: Εργασίες & Επαφές -->
-        <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Εργασίες & Επαφές
-        </div>
-        <div class="export-grid">
-          <div class="export-card" onclick="exportTasksPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Αναφορά Εργασιών</div>
-              <div class="export-desc">Εκκρεμείς & ολοκληρωμένες εργασίες, assignees, deadlines</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportTasksXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Εργασίες — Excel</div>
-              <div class="export-desc">Πλήρης λίστα εργασιών σε Excel</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportContactsPDF()">
-            <div class="export-icon pdf">PDF</div>
-            <div class="export-info">
-              <div class="export-title">Κατάλογος Επαφών</div>
-              <div class="export-desc">Ονοματεπώνυμο, εταιρεία, email, τηλέφωνο, κατηγορία</div>
-            </div>
-          </div>
-          <div class="export-card" onclick="exportContactsXLSX()">
-            <div class="export-icon xlsx">XLS</div>
-            <div class="export-info">
-              <div class="export-title">Επαφές — Excel</div>
-              <div class="export-desc">Πλήρης κατάλογος επαφών σε Excel</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Export log -->
-        <div style="margin-top:32px;padding:16px 20px;background:var(--black2);border:1px solid var(--gold-line)">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Τελευταία Exports</div>
-          <div id="export-log" style="font-size:12px;color:rgba(247,243,236,0.5);line-height:2">Δεν έχουν πραγματοποιηθεί exports ακόμα.</div>
         </div>
       </div>
 
-    </div><!-- /main -->
-  </div><!-- /admin-body -->
+      <!-- Γρήγορα Πρότυπα -->
+      <div class="rb-section">
+        <div class="rb-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Γρήγορα Πρότυπα
+        </div>
+        <div class="rb-templates">
+          <div class="rb-tpl" onclick="rbSelectTemplate('meeting')">
+            <span class="rb-tpl-icon">📋</span>
+            <div class="rb-tpl-name">Συνεδρίαση ΔΣ</div>
+          </div>
+          <div class="rb-tpl" onclick="rbSelectTemplate('monthly')">
+            <span class="rb-tpl-icon">📈</span>
+            <div class="rb-tpl-name">Μηνιαία Ανασκόπηση</div>
+          </div>
+          <div class="rb-tpl" onclick="rbSelectTemplate('executive')">
+            <span class="rb-tpl-icon">⚡</span>
+            <div class="rb-tpl-name">Executive Summary</div>
+          </div>
+          <div class="rb-tpl" onclick="rbSelectTemplate('full')">
+            <span class="rb-tpl-icon">📊</span>
+            <div class="rb-tpl-name">Πλήρης Αναφορά</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ενότητες Αναφοράς -->
+      <div class="rb-section">
+        <div class="rb-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Ενότητες Αναφοράς
+        </div>
+        <div class="rb-sections-list">
+          <label class="rb-sec-item selected" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecKpi" checked>
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">✦ Executive Summary & KPIs</div>
+              <div class="rb-sec-desc">Συνοπτική παρουσίαση βασικών δεικτών απόδοσης</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+          <label class="rb-sec-item selected" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecFinance" checked>
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">💰 Οικονομική Ανάλυση</div>
+              <div class="rb-sec-desc">Έσοδα, έξοδα, ισοζύγιο — μηνιαία & τριμηνιαία ανάλυση</div>
+            </div>
+            <span class="rb-sec-badge">2 σελ.</span>
+          </label>
+          <label class="rb-sec-item selected" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecBudget" checked>
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">📊 Budget Φορέα</div>
+              <div class="rb-sec-desc">Πρόβλεψη vs πραγματικά — έσοδα & έξοδα φορέα</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecEvents">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">🎭 Εκδηλώσεις & Event Budgets</div>
+              <div class="rb-sec-desc">Λίστα εκδηλώσεων, πρόβλεψη vs πραγματικά ανά event</div>
+            </div>
+            <span class="rb-sec-badge">1-2 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecTickets">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">🎫 Εισιτήρια</div>
+              <div class="rb-sec-desc">Πωλήσεις, έσοδα, αποκλίσεις ανά εκδήλωση</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecSponsors">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">🤝 Χορηγοί & Καλλιτέχνες</div>
+              <div class="rb-sec-desc">Χορηγίες, αμοιβές, δόσεις, κατάσταση πληρωμών</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecTasks">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">✅ Εργασίες</div>
+              <div class="rb-sec-desc">Εκκρεμείς & ολοκληρωμένες, assignees, deadlines</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecContacts">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">📇 Επαφές</div>
+              <div class="rb-sec-desc">Κατάλογος επαφών — email, τηλέφωνο, εταιρεία</div>
+            </div>
+            <span class="rb-sec-badge">1-2 σελ.</span>
+          </label>
+          <label class="rb-sec-item" onclick="rbToggleSection(this)">
+            <input type="checkbox" id="rbSecHubs">
+            <div class="rb-sec-info">
+              <div class="rb-sec-title">🏷️ Ανάλυση ανά Hub</div>
+              <div class="rb-sec-desc">CineHub, LogoHub, MusicHub, ArtHub, StageHub</div>
+            </div>
+            <span class="rb-sec-badge">1 σελ.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Μορφή Εξαγωγής -->
+      <div class="rb-section">
+        <div class="rb-section-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Μορφή Εξαγωγής
+        </div>
+        <div class="rb-formats">
+          <div class="rb-fmt selected" onclick="rbSelectFormat('pdf',this)" id="rbFmtPdf">
+            <span class="rb-fmt-icon">📄</span>
+            <div class="rb-fmt-name">PDF</div>
+          </div>
+          <div class="rb-fmt" onclick="rbSelectFormat('excel',this)" id="rbFmtExcel">
+            <span class="rb-fmt-icon">📊</span>
+            <div class="rb-fmt-name">Excel</div>
+          </div>
+          <div class="rb-fmt" onclick="rbSelectFormat('both',this)" id="rbFmtBoth">
+            <span class="rb-fmt-icon">📦</span>
+            <div class="rb-fmt-name">PDF + Excel</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info Box -->
+      <div class="rb-info">
+        <span style="font-size:16px;flex-shrink:0">💡</span>
+        <div><strong>Συμβουλή:</strong> Επιλέξτε μόνο τις ενότητες που χρειάζεστε για πιο γρήγορη δημιουργία αναφοράς.</div>
+      </div>
+    </div>
+
+    <div class="rb-foot">
+      <button class="rb-btn rb-btn-cancel" onclick="closeReportBuilder()">Ακύρωση</button>
+      <button class="rb-btn rb-btn-preview" onclick="rbPreview()">🔍 Προεπισκόπηση</button>
+      <button class="rb-btn rb-btn-generate" onclick="rbGenerate()">📄 Δημιουργία</button>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Modal -->
+<div class="rb-progress-overlay" id="rbProgressOverlay">
+  <div class="rb-progress-box">
+    <div class="rb-progress-icon">📄</div>
+    <div class="rb-progress-title" id="rbProgressTitle">Δημιουργία Αναφοράς...</div>
+    <div class="rb-progress-status" id="rbProgressStatus">Προετοιμασία δεδομένων</div>
+    <div class="rb-progress-bar-bg"><div class="rb-progress-bar" id="rbProgressBar"></div></div>
+    <div class="rb-progress-step" id="rbProgressStep">Αρχικοποίηση...</div>
+  </div>
+</div>
 </div><!-- /adminWrap -->
 
 <!-- ===== MODALS ===== -->
@@ -2275,7 +2346,6 @@ function switchView(v) {
   if(v==='erp-users') renderUsers();
   if(v==='erp-contacts') renderContacts();
   if(v==='erp-reports') renderReports();
-  if(v==='erp-exports') initExportsView();
 }
 
 // ===== TOAST =====
@@ -4774,632 +4844,365 @@ renderTickets=function(){
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EXPORTS & REPORTING ENGINE
+// REPORT BUILDER ENGINE
 // ═══════════════════════════════════════════════════════════════════════════
 
-let _exportLog=[];
+let _rbFormat='pdf';
+let _rbActiveTemplate='';
 
-function initExportsView(){
-  // Set default period dates
-  const now=new Date();
-  document.getElementById('exp-date-from').value=now.getFullYear()+'-01-01';
-  document.getElementById('exp-date-to').value=now.toISOString().split('T')[0];
+function openReportBuilder(){
+  document.getElementById('rbOverlay').classList.add('open');
+}
+function closeReportBuilder(){
+  document.getElementById('rbOverlay').classList.remove('open');
 }
 
-function updateExportPeriod(){
-  const sel=document.getElementById('exp-period').value;
-  const show=sel==='custom';
-  document.getElementById('exp-date-from').style.display=show?'':'none';
-  document.getElementById('exp-date-sep').style.display=show?'':'none';
-  document.getElementById('exp-date-to').style.display=show?'':'none';
+function rbToggleSection(label){
+  const cb=label.querySelector('input[type="checkbox"]');
+  // Let the default checkbox toggle happen, then sync class
+  setTimeout(()=>{
+    if(cb.checked) label.classList.add('selected');
+    else label.classList.remove('selected');
+  },10);
 }
 
-function getExportDateRange(){
-  const sel=document.getElementById('exp-period').value;
-  const y=new Date().getFullYear();
-  if(sel==='all') return {from:null,to:null,label:'Όλα τα δεδομένα'};
-  if(sel==='year') return {from:y+'-01-01',to:y+'-12-31',label:'Έτος '+y};
-  if(sel==='q1') return {from:y+'-01-01',to:y+'-03-31',label:'Α\' Τρίμηνο '+y};
-  if(sel==='q2') return {from:y+'-04-01',to:y+'-06-30',label:'Β\' Τρίμηνο '+y};
-  if(sel==='q3') return {from:y+'-07-01',to:y+'-09-30',label:'Γ\' Τρίμηνο '+y};
-  if(sel==='q4') return {from:y+'-10-01',to:y+'-12-31',label:'Δ\' Τρίμηνο '+y};
-  if(sel==='custom') return {
-    from:document.getElementById('exp-date-from').value,
-    to:document.getElementById('exp-date-to').value,
-    label:(document.getElementById('exp-date-from').value||'?')+' — '+(document.getElementById('exp-date-to').value||'?')
+function rbSelectFormat(fmt,el){
+  _rbFormat=fmt;
+  document.querySelectorAll('.rb-fmt').forEach(f=>f.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function rbSelectTemplate(tpl){
+  _rbActiveTemplate=tpl;
+  document.querySelectorAll('.rb-tpl').forEach(t=>t.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  // Define template presets
+  const presets={
+    meeting:   ['rbSecKpi','rbSecFinance','rbSecBudget','rbSecEvents'],
+    monthly:   ['rbSecKpi','rbSecFinance','rbSecHubs'],
+    executive: ['rbSecKpi','rbSecFinance','rbSecBudget'],
+    full:      ['rbSecKpi','rbSecFinance','rbSecBudget','rbSecEvents','rbSecTickets','rbSecSponsors','rbSecTasks','rbSecContacts','rbSecHubs']
   };
-  return {from:null,to:null,label:''};
-}
 
-function filterByDate(arr,dateField){
-  const {from,to}=getExportDateRange();
-  if(!from&&!to) return arr;
-  return arr.filter(item=>{
-    const d=item[dateField];
-    if(!d) return false;
-    if(from && d<from) return false;
-    if(to && d>to) return false;
-    return true;
+  const ids=presets[tpl]||[];
+  document.querySelectorAll('.rb-sec-item input[type="checkbox"]').forEach(cb=>{
+    cb.checked=ids.includes(cb.id);
+    const label=cb.closest('.rb-sec-item');
+    if(cb.checked) label.classList.add('selected');
+    else label.classList.remove('selected');
   });
 }
 
-function logExport(name,type){
-  const now=new Date().toLocaleString('el-GR');
-  _exportLog.unshift(now+' — '+name+' ('+type+')');
-  if(_exportLog.length>10) _exportLog.length=10;
-  const el=document.getElementById('export-log');
-  if(el) el.innerHTML=_exportLog.map(l=>'<div>'+l+'</div>').join('');
-  toast('Export: '+name+' ('+type+')');
+function rbGetSelectedSections(){
+  const secs=[];
+  document.querySelectorAll('.rb-sec-item input[type="checkbox"]:checked').forEach(cb=>{
+    secs.push(cb.id.replace('rbSec','').toLowerCase());
+  });
+  return secs;
 }
 
-// ─── PDF Helper ───
-function createPDF(title,orientation){
+function rbGetPeriodLabel(){
+  const from=document.getElementById('rbFrom');
+  const to=document.getElementById('rbTo');
+  return from.options[from.selectedIndex].text+' — '+to.options[to.selectedIndex].text;
+}
+
+// ─── PDF Helpers ───
+function rbCreatePDF(title,orientation){
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:orientation||'portrait',unit:'mm',format:'a4'});
-  // Header
-  doc.setFillColor(14,12,9);
-  doc.rect(0,0,doc.internal.pageSize.getWidth(),32,  'F');
-  doc.setFont('helvetica','bold');
-  doc.setFontSize(18);
-  doc.setTextColor(200,169,110);
+  const w=doc.internal.pageSize.getWidth();
+  doc.setFillColor(14,12,9);doc.rect(0,0,w,32,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.setTextColor(200,169,110);
   doc.text('ΛογοΣύνθεση',14,16);
-  doc.setFontSize(9);
-  doc.setTextColor(180,160,130);
+  doc.setFontSize(9);doc.setTextColor(180,160,130);
   doc.text('ΣΥΣΤΗΜΑ ΔΙΑΧΕΙΡΙΣΗΣ · ADMIN',14,24);
-  doc.setFontSize(10);
-  doc.setTextColor(247,243,236);
-  doc.text(title,doc.internal.pageSize.getWidth()-14,16,{align:'right'});
-  const range=getExportDateRange();
-  doc.setFontSize(8);
-  doc.setTextColor(150,140,120);
-  doc.text(range.label+' — '+new Date().toLocaleDateString('el-GR'),doc.internal.pageSize.getWidth()-14,23,{align:'right'});
-  doc.setDrawColor(200,169,110);
-  doc.setLineWidth(0.4);
-  doc.line(14,30,doc.internal.pageSize.getWidth()-14,30);
+  doc.setFontSize(10);doc.setTextColor(247,243,236);
+  doc.text(title,w-14,16,{align:'right'});
+  doc.setFontSize(8);doc.setTextColor(150,140,120);
+  doc.text(rbGetPeriodLabel()+' · '+new Date().toLocaleDateString('el-GR'),w-14,23,{align:'right'});
+  doc.setDrawColor(200,169,110);doc.setLineWidth(0.4);doc.line(14,30,w-14,30);
   return doc;
 }
 
-function pdfFooter(doc){
+function rbPdfFooter(doc){
   const pages=doc.internal.getNumberOfPages();
   for(let i=1;i<=pages;i++){
-    doc.setPage(i);
-    doc.setFontSize(7);
-    doc.setTextColor(150,140,120);
-    doc.text('ΛογοΣύνθεση Admin · Export '+new Date().toLocaleDateString('el-GR'),14,doc.internal.pageSize.getHeight()-8);
+    doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150,140,120);
+    doc.text('ΛογοΣύνθεση · Report Builder · '+new Date().toLocaleDateString('el-GR'),14,doc.internal.pageSize.getHeight()-8);
     doc.text('Σελ. '+i+'/'+pages,doc.internal.pageSize.getWidth()-14,doc.internal.pageSize.getHeight()-8,{align:'right'});
   }
 }
 
-// ─── XLSX Helper ───
-function createWorkbook(){ return XLSX.utils.book_new(); }
-function addSheet(wb,data,name){
+function rbAutoTable(doc,startY,head,body,opts){
+  doc.autoTable(Object.assign({
+    startY:startY,head:[head],body:body,theme:'grid',
+    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2,font:'helvetica',cellPadding:3},
+    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:8},
+    alternateRowStyles:{fillColor:[25,22,17]},
+    margin:{left:14,right:14}
+  },opts||{}));
+  return doc.lastAutoTable.finalY;
+}
+
+function rbSectionTitle(doc,y,text){
+  if(y>250){doc.addPage();y=20;}
+  doc.setFontSize(11);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
+  doc.text(text,14,y);
+  doc.setFont('helvetica','normal');
+  return y+6;
+}
+
+// ─── XLSX Helpers ───
+function rbCreateWB(){return XLSX.utils.book_new();}
+function rbAddSheet(wb,data,name){
   const ws=XLSX.utils.aoa_to_sheet(data);
-  // Auto column widths
-  const colWidths=data[0].map((_,ci)=>{
-    let max=10;
-    data.forEach(row=>{const v=String(row[ci]||'');if(v.length>max)max=v.length;});
-    return {wch:Math.min(max+2,40)};
-  });
-  ws['!cols']=colWidths;
+  ws['!cols']=data[0].map((_,ci)=>{let max=10;data.forEach(row=>{const v=String(row[ci]||'');if(v.length>max)max=v.length;});return{wch:Math.min(max+2,40)};});
   XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
 }
-function downloadXLSX(wb,filename){
-  XLSX.writeFile(wb,filename);
-}
 
-// ═══════════════════════════════════════════════════════════════
-// EXPORT FUNCTIONS
-// ═══════════════════════════════════════════════════════════════
-
-// ─── FINANCE PDF ───
-function exportFinancePDF(){
-  const doc=createPDF('Οικονομική Αναφορά');
-  const range=getExportDateRange();
-  const year=new Date().getFullYear();
-  const months=getMonthlyBreakdown([],year);
-  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
-
-  // Summary cards
-  const totalInc=months.reduce((s,m)=>s+m.income,0);
-  const totalExp=months.reduce((s,m)=>s+m.expense,0);
-  doc.setFontSize(11);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('Σύνοψη '+year,14,40);
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.setTextColor(76,175,80);doc.text('Έσοδα: '+fmtMoney(totalInc),14,48);
-  doc.setTextColor(229,115,115);doc.text('Έξοδα: '+fmtMoney(totalExp),80,48);
-  doc.setTextColor(totalInc-totalExp>=0?76:229,totalInc-totalExp>=0?175:115,totalInc-totalExp>=0?80:115);
-  doc.text('Ισοζύγιο: '+fmtMoney(totalInc-totalExp),145,48);
-
-  // Monthly table
-  let cumInc=0,cumExp=0;
-  const monthRows=months.map((m,i)=>{cumInc+=m.income;cumExp+=m.expense;return [mNames[i],fmtMoney(m.income),fmtMoney(m.expense),fmtMoney(m.income-m.expense),fmtMoney(cumInc-cumExp)];});
-  monthRows.push(['ΣΥΝΟΛΟ',fmtMoney(totalInc),fmtMoney(totalExp),fmtMoney(totalInc-totalExp),'']);
-
-  doc.autoTable({
-    startY:54,
-    head:[['Μήνας','Έσοδα','Έξοδα','Ισοζύγιο','Σωρευτικό']],
-    body:monthRows,
-    theme:'grid',
-    styles:{fontSize:9,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2,font:'helvetica'},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:8},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  // Quarterly table
-  doc.autoTable({
-    startY:doc.lastAutoTable.finalY+12,
-    head:[['Περίοδος','Έσοδα','Έξοδα','Ισοζύγιο']],
-    body:[0,1,2,3].map(q=>{
-      const qNames=['Α\' Τρίμηνο','Β\' Τρίμηνο','Γ\' Τρίμηνο','Δ\' Τρίμηνο'];
-      const qInc=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0);
-      const qExp=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.expense,0);
-      return [qNames[q],fmtMoney(qInc),fmtMoney(qExp),fmtMoney(qInc-qExp)];
-    }),
-    theme:'grid',
-    styles:{fontSize:9,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:8},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Οικονομικά_'+year+'.pdf');
-  logExport('Οικονομική Αναφορά','PDF');
-}
-
-// ─── FINANCE XLSX ───
-function exportFinanceXLSX(){
-  const wb=createWorkbook();
-  const year=new Date().getFullYear();
-  const months=getMonthlyBreakdown([],year);
-  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
-
-  // Sheet 1: Monthly
-  let cumInc=0,cumExp=0;
-  const monthData=[['Μήνας','Έσοδα','Έξοδα','Ισοζύγιο','Σωρευτικό']];
-  months.forEach((m,i)=>{cumInc+=m.income;cumExp+=m.expense;monthData.push([mNames[i],m.income,m.expense,m.income-m.expense,cumInc-cumExp]);});
-  addSheet(wb,monthData,'Μηνιαία');
-
-  // Sheet 2: Quarterly
-  const qData=[['Περίοδος','Έσοδα','Έξοδα','Ισοζύγιο']];
-  [0,1,2,3].forEach(q=>{
-    const qNames=['Α\' Τρίμηνο','Β\' Τρίμηνο','Γ\' Τρίμηνο','Δ\' Τρίμηνο'];
-    const qInc=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0);
-    const qExp=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.expense,0);
-    qData.push([qNames[q],qInc,qExp,qInc-qExp]);
-  });
-  addSheet(wb,qData,'Τριμηνιαία');
-
-  // Sheet 3: Detailed entries
-  const detailData=[['Τύπος','Περιγραφή','Ποσό','Κατηγορία','Ημερομηνία','Εκδήλωση']];
-  filterByDate(_finance,'date').forEach(f=>{
-    const ev=f.eventId?_events.find(e=>e.id===f.eventId):null;
-    detailData.push([f.type==='income'?'Έσοδο':'Έξοδο',f.description||'',Number(f.amount),f.category||'',f.date||'',ev?ev.title:'Γενικό']);
-  });
-  addSheet(wb,detailData,'Αναλυτικά');
-
-  downloadXLSX(wb,'ΛογοΣύνθεση_Οικονομικά_'+year+'.xlsx');
-  logExport('Οικονομικά','Excel');
-}
-
-// ─── ORG BUDGET PDF ───
-function exportOrgBudgetPDF(){
-  const doc=createPDF('Budget Φορέα');
-  const budget=_orgBudget||defaultOrgBudget();
-
-  doc.setFontSize(11);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('Προϋπολογισμός Φορέα — '+budget.year,14,40);
-
-  // Income
-  const incRows=(budget.incomeRows||[]).map(r=>[r.label,fmtMoney(r.planned),fmtMoney(r.actual),fmtMoney(r.actual-r.planned),r.notes||'']);
-  const incPlanTot=(budget.incomeRows||[]).reduce((s,r)=>s+Number(r.planned||0),0);
-  const incActTot=(budget.incomeRows||[]).reduce((s,r)=>s+Number(r.actual||0),0);
-  incRows.push(['ΣΥΝΟΛΟ ΕΣΟΔΩΝ',fmtMoney(incPlanTot),fmtMoney(incActTot),fmtMoney(incActTot-incPlanTot),'']);
-
-  doc.autoTable({
-    startY:46,
-    head:[['Κατηγορία Εσόδων','Πρόβλεψη','Πραγματικά','Απόκλιση','Σημειώσεις']],
-    body:incRows,
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[76,175,80],fontStyle:'bold',fontSize:8},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  // Expenses
-  const expRows=(budget.expenseRows||[]).map(r=>[r.label,fmtMoney(r.planned),fmtMoney(r.actual),fmtMoney(r.actual-r.planned),r.notes||'']);
-  const expPlanTot=(budget.expenseRows||[]).reduce((s,r)=>s+Number(r.planned||0),0);
-  const expActTot=(budget.expenseRows||[]).reduce((s,r)=>s+Number(r.actual||0),0);
-  expRows.push(['ΣΥΝΟΛΟ ΕΞΟΔΩΝ',fmtMoney(expPlanTot),fmtMoney(expActTot),fmtMoney(expActTot-expPlanTot),'']);
-
-  doc.autoTable({
-    startY:doc.lastAutoTable.finalY+10,
-    head:[['Κατηγορία Εξόδων','Πρόβλεψη','Πραγματικά','Απόκλιση','Σημειώσεις']],
-    body:expRows,
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[229,115,115],fontStyle:'bold',fontSize:8},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  // Net result
-  const y=doc.lastAutoTable.finalY+10;
-  doc.setFontSize(10);doc.setTextColor(200,169,110);
-  doc.text('Καθαρό Αποτέλεσμα (Πρόβλεψη): '+fmtMoney(incPlanTot-expPlanTot),14,y);
-  doc.text('Καθαρό Αποτέλεσμα (Πραγματικά): '+fmtMoney(incActTot-expActTot),14,y+7);
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Budget_Φορέα_'+budget.year+'.pdf');
-  logExport('Budget Φορέα','PDF');
-}
-
-// ─── ORG BUDGET XLSX ───
-function exportOrgBudgetXLSX(){
-  const wb=createWorkbook();
-  const budget=_orgBudget||defaultOrgBudget();
-
-  const incData=[['ΕΣΟΔΑ','Πρόβλεψη','Πραγματικά','Απόκλιση','Σημειώσεις']];
-  (budget.incomeRows||[]).forEach(r=>incData.push([r.label,Number(r.planned||0),Number(r.actual||0),Number(r.actual||0)-Number(r.planned||0),r.notes||'']));
-  const expData=[['ΕΞΟΔΑ','Πρόβλεψη','Πραγματικά','Απόκλιση','Σημειώσεις']];
-  (budget.expenseRows||[]).forEach(r=>expData.push([r.label,Number(r.planned||0),Number(r.actual||0),Number(r.actual||0)-Number(r.planned||0),r.notes||'']));
-
-  addSheet(wb,[...incData,[''],...expData],'Budget '+budget.year);
-  downloadXLSX(wb,'ΛογοΣύνθεση_Budget_'+budget.year+'.xlsx');
-  logExport('Budget Φορέα','Excel');
-}
-
-// ─── EVENTS PDF ───
-function exportEventsPDF(){
-  const doc=createPDF('Λίστα Εκδηλώσεων');
-  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const filtered=filterByDate(_events,'date');
-
-  doc.autoTable({
-    startY:36,
-    head:[['Τίτλος','Κατηγορία','Ημερομηνία','Χώρος','Ώρα']],
-    body:filtered.map(e=>[e.title||'',hubLabels[(e.category||'').toLowerCase()]||e.category||'',fmtDate(e.date),e.venue||'—',e.time||'—']),
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Εκδηλώσεις.pdf');
-  logExport('Λίστα Εκδηλώσεων','PDF');
-}
-
-// ─── EVENTS XLSX ───
-function exportEventsXLSX(){
-  const wb=createWorkbook();
-  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const data=[['Τίτλος','Κατηγορία','Ημερομηνία','Χώρος','Ώρα','Τιμή Εισιτηρίου']];
-  filterByDate(_events,'date').forEach(e=>{
-    data.push([e.title||'',hubLabels[(e.category||'').toLowerCase()]||e.category||'',e.date||'',e.venue||'',e.time||'',e.ticketPrice||'']);
-  });
-  addSheet(wb,data,'Εκδηλώσεις');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Εκδηλώσεις.xlsx');
-  logExport('Εκδηλώσεις','Excel');
-}
-
-// ─── EVENT BUDGETS PDF ───
-function exportEventBudgetsPDF(){
-  const doc=createPDF('Event Budgets','landscape');
-
-  const rows=_eventBudgets.map(b=>{
-    const ev=_events.find(e=>e.id===b.eventId);
-    const pInc=ebIncomeTotal(b,'planned');
-    const aInc=ebIncomeTotal(b,'actual');
-    const pExp=ebExpenseGrossTotal(b,'planned');
-    const aExp=ebExpenseGrossTotal(b,'actual');
-    return [ev?ev.title:(b.eventTitle||'—'),fmtMoney(pInc),fmtMoney(aInc),fmtMoney(pExp),fmtMoney(aExp),fmtMoney(pInc-pExp),fmtMoney(aInc-aExp)];
-  });
-
-  doc.autoTable({
-    startY:36,
-    head:[['Εκδήλωση','Πρόβλ. Εσόδων','Πραγμ. Εσόδων','Πρόβλ. Εξόδων','Πραγμ. Εξόδων','Πρόβλ. Κ/Ζ','Πραγμ. Κ/Ζ']],
-    body:rows,
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:7},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Event_Budgets.pdf');
-  logExport('Event Budgets','PDF');
-}
-
-// ─── EVENT BUDGETS XLSX ───
-function exportEventBudgetsXLSX(){
-  const wb=createWorkbook();
-  const data=[['Εκδήλωση','Πρόβλ. Εσόδων','Πραγμ. Εσόδων','Πρόβλ. Εξόδων','Πραγμ. Εξόδων','Πρόβλ. Κ/Ζ','Πραγμ. Κ/Ζ']];
-  _eventBudgets.forEach(b=>{
-    const ev=_events.find(e=>e.id===b.eventId);
-    const pI=ebIncomeTotal(b,'planned'),aI=ebIncomeTotal(b,'actual');
-    const pE=ebExpenseGrossTotal(b,'planned'),aE=ebExpenseGrossTotal(b,'actual');
-    data.push([ev?ev.title:(b.eventTitle||'—'),pI,aI,pE,aE,pI-pE,aI-aE]);
-  });
-  addSheet(wb,data,'Event Budgets');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Event_Budgets.xlsx');
-  logExport('Event Budgets','Excel');
-}
-
-// ─── TICKETS PDF ───
-function exportTicketsPDF(){
-  const doc=createPDF('Αναφορά Εισιτηρίων');
-  const rows=_eventBudgets.filter(b=>(b.income||[]).some(r=>r.key==='tickets')).map(b=>{
-    const ev=_events.find(e=>e.id===b.eventId);
-    const tk=(b.income||[]).find(r=>r.key==='tickets')||{};
-    return [ev?ev.title:'—',b.ticketPrice||'—',tk.planned||0,tk.actual||0,fmtMoney((tk.planned||0)*(b.ticketPrice||0)),fmtMoney((tk.actual||0)*(b.ticketPrice||0))];
-  });
-
-  doc.autoTable({
-    startY:36,
-    head:[['Εκδήλωση','Τιμή (€)','Πρόβλ. Πωλ.','Πραγμ. Πωλ.','Πρόβλ. Εσόδων','Πραγμ. Εσόδων']],
-    body:rows.length?rows:[['Δεν υπάρχουν δεδομένα εισιτηρίων','','','','','']],
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Εισιτήρια.pdf');
-  logExport('Αναφορά Εισιτηρίων','PDF');
-}
-
-// ─── TICKETS XLSX ───
-function exportTicketsXLSX(){
-  const wb=createWorkbook();
-  const data=[['Εκδήλωση','Τιμή (€)','Πρόβλεψη Πωλ.','Πραγματικές Πωλ.','Πρόβλεψη Εσόδων','Πραγματικά Εσόδων']];
-  _eventBudgets.forEach(b=>{
-    const ev=_events.find(e=>e.id===b.eventId);
-    const tk=(b.income||[]).find(r=>r.key==='tickets')||{};
-    if(tk.planned||tk.actual) data.push([ev?ev.title:'—',b.ticketPrice||0,tk.planned||0,tk.actual||0,(tk.planned||0)*(b.ticketPrice||0),(tk.actual||0)*(b.ticketPrice||0)]);
-  });
-  addSheet(wb,data,'Εισιτήρια');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Εισιτήρια.xlsx');
-  logExport('Εισιτήρια','Excel');
-}
-
-// ─── SPONSORS PDF ───
-function exportSponsorsPDF(){
-  const doc=createPDF('Αναφορά Χορηγών');
-  const rows=_sponsors.map(s=>{
-    const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;
-    return [ev?ev.title:'Φορέας',s.name||'—',s.type||'—',fmtMoney(s.planned||0),fmtMoney(s.actual||0),s.payType||'—',s.status||'—'];
-  });
-
-  doc.autoTable({
-    startY:36,
-    head:[['Εκδήλωση','Χορηγός','Τύπος','Πρόβλεψη','Πραγματικά','Πληρωμή','Κατάσταση']],
-    body:rows.length?rows:[['Δεν υπάρχουν χορηγοί','','','','','','']],
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:7},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Χορηγοί.pdf');
-  logExport('Αναφορά Χορηγών','PDF');
-}
-
-// ─── SPONSORS XLSX ───
-function exportSponsorsXLSX(){
-  const wb=createWorkbook();
-  const data=[['Εκδήλωση','Χορηγός','Τύπος','Πρόβλεψη','Πραγματικά','Δόσεις','Πληρωμή','Κατάσταση','Σημειώσεις']];
-  _sponsors.forEach(s=>{
-    const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;
-    data.push([ev?ev.title:'Φορέας',s.name||'',s.type||'',Number(s.planned||0),Number(s.actual||0),s.installments||'',s.payType||'',s.status||'',s.notes||'']);
-  });
-  addSheet(wb,data,'Χορηγοί');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Χορηγοί.xlsx');
-  logExport('Χορηγοί','Excel');
-}
-
-// ─── TASKS PDF ───
-function exportTasksPDF(){
-  const doc=createPDF('Αναφορά Εργασιών');
-  const rows=_tasks.map(t=>[t.title||'',t.assignee||'—',t.status||'—',t.priority||'—',fmtDate(t.deadline),t.hub||'—']);
-
-  doc.autoTable({
-    startY:36,
-    head:[['Εργασία','Υπεύθυνος','Κατάσταση','Προτεραιότητα','Deadline','Hub']],
-    body:rows.length?rows:[['Δεν υπάρχουν εργασίες','','','','','']],
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Εργασίες.pdf');
-  logExport('Αναφορά Εργασιών','PDF');
-}
-
-// ─── TASKS XLSX ───
-function exportTasksXLSX(){
-  const wb=createWorkbook();
-  const data=[['Εργασία','Υπεύθυνος','Κατάσταση','Προτεραιότητα','Deadline','Hub','Σημειώσεις']];
-  _tasks.forEach(t=>data.push([t.title||'',t.assignee||'',t.status||'',t.priority||'',t.deadline||'',t.hub||'',t.notes||'']));
-  addSheet(wb,data,'Εργασίες');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Εργασίες.xlsx');
-  logExport('Εργασίες','Excel');
-}
-
-// ─── CONTACTS PDF ───
-function exportContactsPDF(){
-  const doc=createPDF('Κατάλογος Επαφών');
-  const rows=_contacts.map(c=>[c.name||'',c.company||'—',c.email||'—',c.phone||'—',(c.hubs||[]).join(', ')||'—']);
-
-  doc.autoTable({
-    startY:36,
-    head:[['Ονοματεπώνυμο','Εταιρεία','Email','Τηλέφωνο','Hubs']],
-    body:rows.length?rows:[['Δεν υπάρχουν επαφές','','','','']],
-    theme:'grid',
-    styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
-  });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Επαφές.pdf');
-  logExport('Κατάλογος Επαφών','PDF');
-}
-
-// ─── CONTACTS XLSX ───
-function exportContactsXLSX(){
-  const wb=createWorkbook();
-  const data=[['Ονοματεπώνυμο','Εταιρεία','Email','Τηλέφωνο','Hubs','Σημειώσεις']];
-  _contacts.forEach(c=>data.push([c.name||'',c.company||'',c.email||'',c.phone||'',(c.hubs||[]).join(', '),c.notes||'']));
-  addSheet(wb,data,'Επαφές');
-  downloadXLSX(wb,'ΛογοΣύνθεση_Επαφές.xlsx');
-  logExport('Επαφές','Excel');
-}
-
-// ─── KPIs PDF ───
-function exportKPIsPDF(){
-  const doc=createPDF('KPI Dashboard');
-  const year=new Date().getFullYear();
-  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const hubs=['cinehub','logohub','musichub','arthub','stagehub'];
-
-  // Summary KPIs
-  const totalEvents=_events.length;
+// ─── Section Generators ───
+function rbBuildKPI(doc,y){
+  y=rbSectionTitle(doc,y,'Executive Summary & KPIs');
   const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
-  const pendingTasks=_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length;
-  const totalContacts=_contacts.length;
+  const net=totalInc-totalExp;
+  doc.setFontSize(9);doc.setTextColor(247,243,236);
+  doc.text('Εκδηλώσεις: '+_events.length+'   |   Εκκρεμείς Εργασίες: '+_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length+'   |   Επαφές: '+_contacts.length+'   |   Μέλη: '+_members.length,14,y);y+=6;
+  doc.setTextColor(76,175,80);doc.text('Σύνολο Εσόδων: '+fmtMoney(totalInc),14,y);
+  doc.setTextColor(229,115,115);doc.text('Σύνολο Εξόδων: '+fmtMoney(totalExp),80,y);
+  doc.setTextColor(net>=0?76:229,net>=0?175:115,net>=0?80:115);
+  doc.text('Ισοζύγιο: '+fmtMoney(net),145,y);
+  return y+10;
+}
+function rbBuildKPIxl(wb){
+  const totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+  const totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+  rbAddSheet(wb,[['KPI','Τιμή'],['Εκδηλώσεις',_events.length],['Εκκρεμείς Εργασίες',_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length],['Επαφές',_contacts.length],['Μέλη',_members.length],['Σύνολο Εσόδων',totalInc],['Σύνολο Εξόδων',totalExp],['Ισοζύγιο',totalInc-totalExp]],'KPIs');
+}
 
-  doc.setFontSize(11);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('Βασικά KPIs',14,40);
-  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(247,243,236);
-  doc.text('Εκδηλώσεις: '+totalEvents,14,48);
-  doc.text('Εκκρεμείς Εργασίες: '+pendingTasks,80,48);
-  doc.text('Επαφές: '+totalContacts,145,48);
-  doc.setTextColor(76,175,80);doc.text('Έσοδα: '+fmtMoney(totalInc),14,56);
-  doc.setTextColor(229,115,115);doc.text('Έξοδα: '+fmtMoney(totalExp),80,56);
-  doc.setTextColor(200,169,110);doc.text('Ισοζύγιο: '+fmtMoney(totalInc-totalExp),145,56);
+function rbBuildFinance(doc,y){
+  y=rbSectionTitle(doc,y,'Οικονομική Ανάλυση');
+  const year=new Date().getFullYear();
+  const months=getMonthlyBreakdown([],year);
+  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
+  let cumI=0,cumE=0;
+  const rows=months.map((m,i)=>{cumI+=m.income;cumE+=m.expense;return[mNames[i],fmtMoney(m.income),fmtMoney(m.expense),fmtMoney(m.income-m.expense),fmtMoney(cumI-cumE)];});
+  const tI=months.reduce((s,m)=>s+m.income,0),tE=months.reduce((s,m)=>s+m.expense,0);
+  rows.push(['ΣΥΝΟΛΟ',fmtMoney(tI),fmtMoney(tE),fmtMoney(tI-tE),'']);
+  y=rbAutoTable(doc,y,['Μήνας','Έσοδα','Έξοδα','Ισοζύγιο','Σωρευτικό'],rows);
+  // Quarterly
+  y+=8;if(y>250){doc.addPage();y=20;}
+  doc.setFontSize(9);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');doc.text('Τριμηνιαία Σύνοψη',14,y);y+=4;
+  const qRows=[0,1,2,3].map(q=>{const qI=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.income,0);const qE=months.slice(q*3,q*3+3).reduce((s,m)=>s+m.expense,0);return[['Α\'','Β\'','Γ\'','Δ\''][q]+' Τρίμ.',fmtMoney(qI),fmtMoney(qE),fmtMoney(qI-qE)];});
+  y=rbAutoTable(doc,y,['Περίοδος','Έσοδα','Έξοδα','Ισοζύγιο'],qRows);
+  return y+8;
+}
+function rbBuildFinanceXL(wb){
+  const year=new Date().getFullYear();
+  const months=getMonthlyBreakdown([],year);
+  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
+  let cumI=0,cumE=0;
+  const data=[['Μήνας','Έσοδα','Έξοδα','Ισοζύγιο','Σωρευτικό']];
+  months.forEach((m,i)=>{cumI+=m.income;cumE+=m.expense;data.push([mNames[i],m.income,m.expense,m.income-m.expense,cumI-cumE]);});
+  rbAddSheet(wb,data,'Μηνιαία Ανάλυση');
+}
 
-  // Hub breakdown
-  const hubRows=hubs.map(h=>{
+function rbBuildBudget(doc,y){
+  y=rbSectionTitle(doc,y,'Budget Φορέα');
+  const b=_orgBudget||defaultOrgBudget();
+  const incRows=(b.incomeRows||[]).map(r=>[r.label,fmtMoney(r.planned),fmtMoney(r.actual),fmtMoney(r.actual-r.planned)]);
+  y=rbAutoTable(doc,y,['Κατηγορία Εσόδων','Πρόβλεψη','Πραγματικά','Απόκλιση'],incRows);
+  y+=6;if(y>250){doc.addPage();y=20;}
+  const expRows=(b.expenseRows||[]).map(r=>[r.label,fmtMoney(r.planned),fmtMoney(r.actual),fmtMoney(r.actual-r.planned)]);
+  y=rbAutoTable(doc,y,['Κατηγορία Εξόδων','Πρόβλεψη','Πραγματικά','Απόκλιση'],expRows);
+  return y+8;
+}
+function rbBuildBudgetXL(wb){
+  const b=_orgBudget||defaultOrgBudget();
+  const data=[['Τύπος','Κατηγορία','Πρόβλεψη','Πραγματικά','Απόκλιση']];
+  (b.incomeRows||[]).forEach(r=>data.push(['Έσοδο',r.label,Number(r.planned||0),Number(r.actual||0),Number(r.actual||0)-Number(r.planned||0)]));
+  (b.expenseRows||[]).forEach(r=>data.push(['Έξοδο',r.label,Number(r.planned||0),Number(r.actual||0),Number(r.actual||0)-Number(r.planned||0)]));
+  rbAddSheet(wb,data,'Budget Φορέα');
+}
+
+function rbBuildEvents(doc,y){
+  y=rbSectionTitle(doc,y,'Εκδηλώσεις & Event Budgets');
+  const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+  const rows=_events.map(e=>[e.title||'',hl[(e.category||'').toLowerCase()]||'',fmtDate(e.date),e.venue||'—']);
+  y=rbAutoTable(doc,y,['Τίτλος','Hub','Ημερομηνία','Χώρος'],rows.length?rows:[['Δεν υπάρχουν','','','']]);
+  if(_eventBudgets.length){
+    y+=6;if(y>240){doc.addPage();y=20;}
+    doc.setFontSize(9);doc.setTextColor(200,169,110);doc.text('Event Budgets',14,y);y+=4;
+    const bRows=_eventBudgets.map(b=>{const ev=_events.find(e=>e.id===b.eventId);const aI=ebIncomeTotal(b,'actual'),aE=ebExpenseGrossTotal(b,'actual');return[ev?ev.title:'—',fmtMoney(ebIncomeTotal(b,'planned')),fmtMoney(aI),fmtMoney(ebExpenseGrossTotal(b,'planned')),fmtMoney(aE),fmtMoney(aI-aE)];});
+    y=rbAutoTable(doc,y,['Εκδήλωση','Πρ.Εσόδ.','Πρ.Εσόδ.','Πρ.Εξόδ.','Πρ.Εξόδ.','Κ/Ζ'],bRows,{styles:{fontSize:7}});
+  }
+  return y+8;
+}
+function rbBuildEventsXL(wb){
+  const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+  const data=[['Τίτλος','Κατηγορία','Ημερομηνία','Χώρος','Ώρα']];
+  _events.forEach(e=>data.push([e.title||'',hl[(e.category||'').toLowerCase()]||'',e.date||'',e.venue||'',e.time||'']));
+  rbAddSheet(wb,data,'Εκδηλώσεις');
+  if(_eventBudgets.length){
+    const bd=[['Εκδήλωση','Πρ.Εσόδων','Πραγμ.Εσόδων','Πρ.Εξόδων','Πραγμ.Εξόδων','Κ/Ζ']];
+    _eventBudgets.forEach(b=>{const ev=_events.find(e=>e.id===b.eventId);const aI=ebIncomeTotal(b,'actual'),aE=ebExpenseGrossTotal(b,'actual');bd.push([ev?ev.title:'—',ebIncomeTotal(b,'planned'),aI,ebExpenseGrossTotal(b,'planned'),aE,aI-aE]);});
+    rbAddSheet(wb,bd,'Event Budgets');
+  }
+}
+
+function rbBuildTickets(doc,y){
+  y=rbSectionTitle(doc,y,'Εισιτήρια');
+  const rows=_eventBudgets.filter(b=>(b.income||[]).some(r=>r.key==='tickets')).map(b=>{const ev=_events.find(e=>e.id===b.eventId);const tk=(b.income||[]).find(r=>r.key==='tickets')||{};return[ev?ev.title:'—',b.ticketPrice||'—',tk.planned||0,tk.actual||0,fmtMoney((tk.planned||0)*(b.ticketPrice||0)),fmtMoney((tk.actual||0)*(b.ticketPrice||0))];});
+  y=rbAutoTable(doc,y,['Εκδήλωση','Τιμή','Πρόβλ.Πωλ.','Πραγμ.Πωλ.','Πρόβλ.Εσόδ.','Πραγμ.Εσόδ.'],rows.length?rows:[['Δεν υπάρχουν','','','','','']]);
+  return y+8;
+}
+function rbBuildTicketsXL(wb){
+  const data=[['Εκδήλωση','Τιμή','Πρόβλεψη Πωλ.','Πραγματικές Πωλ.','Πρόβλεψη Εσόδων','Πραγματικά Εσόδων']];
+  _eventBudgets.forEach(b=>{const ev=_events.find(e=>e.id===b.eventId);const tk=(b.income||[]).find(r=>r.key==='tickets')||{};if(tk.planned||tk.actual)data.push([ev?ev.title:'—',b.ticketPrice||0,tk.planned||0,tk.actual||0,(tk.planned||0)*(b.ticketPrice||0),(tk.actual||0)*(b.ticketPrice||0)]);});
+  rbAddSheet(wb,data,'Εισιτήρια');
+}
+
+function rbBuildSponsors(doc,y){
+  y=rbSectionTitle(doc,y,'Χορηγοί & Καλλιτέχνες');
+  if(_sponsors.length){
+    const rows=_sponsors.map(s=>{const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;return[ev?ev.title:'Φορέας',s.name||'—',fmtMoney(s.planned||0),fmtMoney(s.actual||0),s.status||'—'];});
+    y=rbAutoTable(doc,y,['Εκδήλωση','Χορηγός','Πρόβλεψη','Πραγματικά','Κατάσταση'],rows);
+  }
+  if(_artists.length){
+    y+=6;if(y>240){doc.addPage();y=20;}
+    doc.setFontSize(9);doc.setTextColor(200,169,110);doc.text('Καλλιτέχνες / Προμηθευτές',14,y);y+=4;
+    const rows=_artists.map(a=>{const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;return[ev?ev.title:'Φορέας',a.name||'—',fmtMoney(a.planned||0),fmtMoney(a.actual||0),a.status||'—'];});
+    y=rbAutoTable(doc,y,['Εκδήλωση','Αντισυμβαλλόμενος','Πρόβλεψη','Πραγματικά','Κατάσταση'],rows);
+  }
+  if(!_sponsors.length&&!_artists.length){
+    doc.setFontSize(9);doc.setTextColor(150,140,120);doc.text('Δεν υπάρχουν εγγραφές.',14,y);y+=8;
+  }
+  return y+8;
+}
+function rbBuildSponsorsXL(wb){
+  if(_sponsors.length){const d=[['Εκδήλωση','Χορηγός','Τύπος','Πρόβλεψη','Πραγματικά','Κατάσταση']];_sponsors.forEach(s=>{const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;d.push([ev?ev.title:'Φορέας',s.name||'',s.type||'',Number(s.planned||0),Number(s.actual||0),s.status||'']);});rbAddSheet(wb,d,'Χορηγοί');}
+  if(_artists.length){const d=[['Εκδήλωση','Αντισυμβαλλόμενος','Πρόβλεψη','Πραγματικά','Κατάσταση']];_artists.forEach(a=>{const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;d.push([ev?ev.title:'Φορέας',a.name||'',Number(a.planned||0),Number(a.actual||0),a.status||'']);});rbAddSheet(wb,d,'Καλλιτέχνες');}
+}
+
+function rbBuildTasks(doc,y){
+  y=rbSectionTitle(doc,y,'Εργασίες');
+  const rows=_tasks.map(t=>[t.title||'',t.assignee||'—',t.status||'—',t.priority||'—',fmtDate(t.deadline)]);
+  y=rbAutoTable(doc,y,['Εργασία','Υπεύθυνος','Κατάσταση','Προτ/τα','Deadline'],rows.length?rows:[['Δεν υπάρχουν','','','','']]);
+  return y+8;
+}
+function rbBuildTasksXL(wb){
+  const d=[['Εργασία','Υπεύθυνος','Κατάσταση','Προτεραιότητα','Deadline','Hub']];_tasks.forEach(t=>d.push([t.title||'',t.assignee||'',t.status||'',t.priority||'',t.deadline||'',t.hub||'']));rbAddSheet(wb,d,'Εργασίες');
+}
+
+function rbBuildContacts(doc,y){
+  y=rbSectionTitle(doc,y,'Επαφές');
+  const rows=_contacts.map(c=>[c.name||'',c.company||'—',c.email||'—',c.phone||'—']);
+  y=rbAutoTable(doc,y,['Ονοματεπώνυμο','Εταιρεία','Email','Τηλέφωνο'],rows.length?rows:[['Δεν υπάρχουν','','','']]);
+  return y+8;
+}
+function rbBuildContactsXL(wb){
+  const d=[['Ονοματεπώνυμο','Εταιρεία','Email','Τηλέφωνο','Hubs']];_contacts.forEach(c=>d.push([c.name||'',c.company||'',c.email||'',c.phone||'',(c.hubs||[]).join(', ')]));rbAddSheet(wb,d,'Επαφές');
+}
+
+function rbBuildHubs(doc,y){
+  y=rbSectionTitle(doc,y,'Ανάλυση ανά Hub');
+  const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+  const rows=['cinehub','logohub','musichub','arthub','stagehub'].map(h=>{
     const hevs=_events.filter(e=>(e.category||'').toLowerCase()===h);
     const hinc=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
     const hexp=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
-    return [hubLabels[h],hevs.length,fmtMoney(hinc),fmtMoney(hexp),fmtMoney(hinc-hexp)];
+    return[hl[h],hevs.length,fmtMoney(hinc),fmtMoney(hexp),fmtMoney(hinc-hexp)];
   });
-
-  doc.autoTable({
-    startY:64,
-    head:[['Hub','Εκδηλώσεις','Έσοδα','Έξοδα','Ισοζύγιο']],
-    body:hubRows,
-    theme:'grid',
-    styles:{fontSize:9,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},
-    margin:{left:14,right:14}
+  y=rbAutoTable(doc,y,['Hub','Εκδηλώσεις','Έσοδα','Έξοδα','Ισοζύγιο'],rows);
+  return y+8;
+}
+function rbBuildHubsXL(wb){
+  const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
+  const d=[['Hub','Εκδηλώσεις','Έσοδα','Έξοδα','Ισοζύγιο']];
+  ['cinehub','logohub','musichub','arthub','stagehub'].forEach(h=>{
+    const hevs=_events.filter(e=>(e.category||'').toLowerCase()===h);
+    const hinc=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
+    const hexp=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
+    d.push([hl[h],hevs.length,hinc,hexp,hinc-hexp]);
   });
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_KPIs_'+year+'.pdf');
-  logExport('KPI Dashboard','PDF');
+  rbAddSheet(wb,d,'Ανά Hub');
 }
 
-// ─── FULL REPORT PDF ───
-function exportFullReportPDF(){
-  const doc=createPDF('Πλήρης Αναφορά Δραστηριότητας','portrait');
-  const year=new Date().getFullYear();
-  const hubLabels={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const hubs=['cinehub','logohub','musichub','arthub','stagehub'];
-  const months=getMonthlyBreakdown([],year);
-  const mNames=['Ιαν','Φεβ','Μαρ','Απρ','Μάι','Ιούν','Ιούλ','Αύγ','Σεπ','Οκτ','Νοέ','Δεκ'];
+// ─── Section dispatch map ───
+const rbPdfBuilders={kpi:rbBuildKPI,finance:rbBuildFinance,budget:rbBuildBudget,events:rbBuildEvents,tickets:rbBuildTickets,sponsors:rbBuildSponsors,tasks:rbBuildTasks,contacts:rbBuildContacts,hubs:rbBuildHubs};
+const rbXlBuilders={kpi:rbBuildKPIxl,finance:rbBuildFinanceXL,budget:rbBuildBudgetXL,events:rbBuildEventsXL,tickets:rbBuildTicketsXL,sponsors:rbBuildSponsorsXL,tasks:rbBuildTasksXL,contacts:rbBuildContactsXL,hubs:rbBuildHubsXL};
+const rbSectionLabels={kpi:'Executive Summary & KPIs',finance:'Οικονομική Ανάλυση',budget:'Budget Φορέα',events:'Εκδηλώσεις',tickets:'Εισιτήρια',sponsors:'Χορηγοί',tasks:'Εργασίες',contacts:'Επαφές',hubs:'Ανά Hub'};
 
-  // Section 1: KPIs
-  let y=38;
-  doc.setFontSize(12);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('1. Βασικά KPIs',14,y);y+=8;
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(247,243,236);
-  const totalInc=months.reduce((s,m)=>s+m.income,0);
-  const totalExp=months.reduce((s,m)=>s+m.expense,0);
-  doc.text('Εκδηλώσεις: '+_events.length+'   |   Εκκρεμείς Εργασίες: '+_tasks.filter(t=>t.status!=='Ολοκληρώθηκε').length+'   |   Επαφές: '+_contacts.length,14,y);y+=6;
-  doc.text('Έσοδα: '+fmtMoney(totalInc)+'   |   Έξοδα: '+fmtMoney(totalExp)+'   |   Ισοζύγιο: '+fmtMoney(totalInc-totalExp),14,y);y+=10;
+// ─── Preview ───
+function rbPreview(){
+  const secs=rbGetSelectedSections();
+  if(!secs.length){toast('Επιλέξτε τουλάχιστον μία ενότητα','error');return;}
+  const est=secs.reduce((s,sec)=>{const badges={kpi:1,finance:2,budget:1,events:2,tickets:1,sponsors:1,tasks:1,contacts:2,hubs:1};return s+(badges[sec]||1);},0);
+  const names=secs.map(s=>rbSectionLabels[s]||s);
+  const fmt=_rbFormat==='both'?'PDF + Excel':_rbFormat==='excel'?'Excel':'PDF';
+  alert('📋 Προεπισκόπηση Αναφοράς\n\nΠερίοδος: '+rbGetPeriodLabel()+'\nΜορφή: '+fmt+'\nΕνότητες ('+secs.length+'): '+names.join(', ')+'\nΕκτιμώμενες σελίδες: ~'+est+'\n\nΠατήστε "Δημιουργία" για εξαγωγή.');
+}
 
-  // Section 2: Events per Hub
-  doc.setFontSize(12);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('2. Εκδηλώσεις ανά Hub',14,y);
-  doc.autoTable({
-    startY:y+4,
-    head:[['Hub','Εκδηλώσεις','Έσοδα','Έξοδα']],
-    body:hubs.map(h=>{
-      const hevs=_events.filter(e=>(e.category||'').toLowerCase()===h);
-      const hinc=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='income';}).reduce((a,b)=>a+Number(b.amount),0);
-      const hexp=_finance.filter(f=>{const ev=_events.find(e=>e.id===f.eventId);return ev&&(ev.category||'').toLowerCase()===h&&f.type==='expense';}).reduce((a,b)=>a+Number(b.amount),0);
-      return [hubLabels[h],hevs.length,fmtMoney(hinc),fmtMoney(hexp)];
-    }),
-    theme:'grid',styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},margin:{left:14,right:14}
-  });
+// ─── Progress helpers ───
+function rbShowProgress(){document.getElementById('rbProgressOverlay').classList.add('open');}
+function rbHideProgress(){document.getElementById('rbProgressOverlay').classList.remove('open');}
+function rbProgress(pct,step){
+  document.getElementById('rbProgressBar').style.width=pct+'%';
+  document.getElementById('rbProgressStep').textContent=step;
+}
+function rbWait(ms){return new Promise(r=>setTimeout(r,ms));}
 
-  // Section 3: Monthly Breakdown
-  doc.setFontSize(12);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-  doc.text('3. Μηνιαία Ανάλυση — '+year,14,doc.lastAutoTable.finalY+10);
-  let cumI=0,cumE=0;
-  doc.autoTable({
-    startY:doc.lastAutoTable.finalY+14,
-    head:[['Μήνας','Έσοδα','Έξοδα','Ισοζύγιο','Σωρευτικό']],
-    body:months.map((m,i)=>{cumI+=m.income;cumE+=m.expense;return [mNames[i],fmtMoney(m.income),fmtMoney(m.expense),fmtMoney(m.income-m.expense),fmtMoney(cumI-cumE)];}),
-    theme:'grid',styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-    headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[25,22,17]},margin:{left:14,right:14}
-  });
+// ─── Generate ───
+async function rbGenerate(){
+  const secs=rbGetSelectedSections();
+  if(!secs.length){toast('Επιλέξτε τουλάχιστον μία ενότητα','error');return;}
 
-  // Section 4: Sponsors
-  if(_sponsors.length){
-    doc.addPage();
-    doc.setFontSize(12);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-    doc.text('4. Χορηγοί',14,20);
-    doc.autoTable({
-      startY:24,
-      head:[['Εκδήλωση','Χορηγός','Πρόβλεψη','Πραγματικά','Κατάσταση']],
-      body:_sponsors.map(s=>{const ev=s.eventId?_events.find(e=>e.id===s.eventId):null;return [ev?ev.title:'Φορέας',s.name||'—',fmtMoney(s.planned||0),fmtMoney(s.actual||0),s.status||'—'];}),
-      theme:'grid',styles:{fontSize:8,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-      headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[25,22,17]},margin:{left:14,right:14}
-    });
+  closeReportBuilder();
+  rbShowProgress();
+  const total=secs.length;
+  let step=0;
+
+  try{
+    // PDF
+    if(_rbFormat==='pdf'||_rbFormat==='both'){
+      rbProgress(5,'Δημιουργία PDF...');
+      await rbWait(200);
+      const doc=rbCreatePDF('Αναφορά ΛογοΣύνθεση');
+      let y=38;
+      for(const sec of secs){
+        step++;
+        rbProgress(Math.round((step/total)*80),'Ενότητα: '+(rbSectionLabels[sec]||sec)+'...');
+        await rbWait(150);
+        if(rbPdfBuilders[sec]) y=rbPdfBuilders[sec](doc,y);
+      }
+      rbProgress(85,'Τελική μορφοποίηση PDF...');
+      await rbWait(200);
+      rbPdfFooter(doc);
+      doc.save('ΛογοΣύνθεση_Αναφορά_'+new Date().toISOString().split('T')[0]+'.pdf');
+    }
+
+    // Excel
+    if(_rbFormat==='excel'||_rbFormat==='both'){
+      rbProgress(90,'Δημιουργία Excel...');
+      await rbWait(200);
+      const wb=rbCreateWB();
+      for(const sec of secs){
+        if(rbXlBuilders[sec]) rbXlBuilders[sec](wb);
+      }
+      XLSX.writeFile(wb,'ΛογοΣύνθεση_Αναφορά_'+new Date().toISOString().split('T')[0]+'.xlsx');
+    }
+
+    rbProgress(100,'Ολοκληρώθηκε!');
+    await rbWait(600);
+    toast('Αναφορά δημιουργήθηκε επιτυχώς!');
+  }catch(e){
+    console.error('Report generation error:',e);
+    toast('Σφάλμα δημιουργίας αναφοράς','error');
   }
 
-  // Section 5: Event Budgets
-  if(_eventBudgets.length){
-    const startSec=_sponsors.length?doc.lastAutoTable.finalY+12:20;
-    if(startSec>240) doc.addPage();
-    const sy=startSec>240?20:startSec;
-    doc.setFontSize(12);doc.setTextColor(200,169,110);doc.setFont('helvetica','bold');
-    doc.text((_sponsors.length?'5':'4')+'. Event Budgets',14,sy);
-    doc.autoTable({
-      startY:sy+4,
-      head:[['Εκδήλωση','Πρόβλ. Εσόδ.','Πραγμ. Εσόδ.','Πρόβλ. Εξόδ.','Πραγμ. Εξόδ.','Κ/Ζ']],
-      body:_eventBudgets.map(b=>{const ev=_events.find(e=>e.id===b.eventId);const aI=ebIncomeTotal(b,'actual'),aE=ebExpenseGrossTotal(b,'actual');return [ev?ev.title:'—',fmtMoney(ebIncomeTotal(b,'planned')),fmtMoney(aI),fmtMoney(ebExpenseGrossTotal(b,'planned')),fmtMoney(aE),fmtMoney(aI-aE)];}),
-      theme:'grid',styles:{fontSize:7,textColor:[247,243,236],fillColor:[20,18,14],lineColor:[60,50,35],lineWidth:0.2},
-      headStyles:{fillColor:[30,27,22],textColor:[200,169,110],fontStyle:'bold',fontSize:7},
-      alternateRowStyles:{fillColor:[25,22,17]},margin:{left:14,right:14}
-    });
-  }
-
-  pdfFooter(doc);
-  doc.save('ΛογοΣύνθεση_Πλήρης_Αναφορά_'+year+'.pdf');
-  logExport('Πλήρης Αναφορά Δραστηριότητας','PDF');
+  rbHideProgress();
 }
 </script>
 </body>
