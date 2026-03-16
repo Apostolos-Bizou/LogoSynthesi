@@ -92,12 +92,26 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
 .btn-sm{background:none;border:1px solid var(--gold-line);color:#ffffff;padding:7px 16px;font-family:var(--font-sans);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;}
 .btn-sm:hover{border-color:var(--gold);color:var(--gold);}
 
-/* SIDEBAR — Collapsible, hover to reveal */
+/* SIDEBAR — Collapsible, hover to reveal on desktop, hamburger on mobile */
 .admin-body{display:flex;flex:1;position:relative;}
 .sidebar{width:280px;background:#0e0c09;border-right:2px solid var(--gold-line);padding:20px 0;flex-shrink:0;overflow-y:auto;position:fixed;top:66px;left:0;bottom:0;z-index:40;transform:translateX(-278px);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:none;}
-.sidebar:hover,.sidebar:focus-within{transform:translateX(0);box-shadow:8px 0 30px rgba(0,0,0,0.6);}
+.sidebar:hover,.sidebar:focus-within,.sidebar.open{transform:translateX(0);box-shadow:8px 0 30px rgba(0,0,0,0.6);}
 .sidebar::after{content:'';position:absolute;top:0;right:-18px;bottom:0;width:18px;cursor:pointer;}
 .main{flex:1;padding:32px 28px;overflow-x:hidden;margin-left:0;transition:margin-left .3s;}
+
+/* Hamburger toggle button */
+.sidebar-toggle{display:flex;flex-direction:column;justify-content:center;gap:5px;background:none;border:1px solid var(--gold-line);border-radius:4px;padding:8px 9px;cursor:pointer;transition:all .2s;}
+.sidebar-toggle span{display:block;width:22px;height:2px;background:var(--cream);transition:all .3s;border-radius:1px;}
+.sidebar-toggle:hover{border-color:var(--gold);}
+.sidebar-toggle:hover span{background:var(--gold);}
+/* Animate to X when open */
+.sidebar-toggle.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.sidebar-toggle.active span:nth-child(2){opacity:0;}
+.sidebar-toggle.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+
+/* Dark overlay when sidebar is open (mobile) */
+.sidebar-overlay{display:none;position:fixed;top:66px;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:35;}
+.sidebar-overlay.active{display:block;}
 .sidebar-section{font-size:10px;font-weight:700;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);padding:20px 22px 8px;opacity:1;}
 .sidebar-link{display:flex;align-items:center;gap:11px;padding:13px 22px;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:#ffffff;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:all .2s;border-left:3px solid transparent;font-family:var(--font-sans);}
 .sidebar-link svg{opacity:0.9;flex-shrink:0;width:15px;height:15px;}
@@ -789,13 +803,19 @@ input[type="checkbox"]{width:18px!important;height:18px!important;}
 <div class="admin-wrap" id="adminWrap">
 
   <div class="topbar">
-    <div class="topbar-logo">Λογο<span>Σύνθεση</span> <span style="color:rgba(247,243,236,0.25);font-size:11px;letter-spacing:0.05em;">· Admin ERP</span></div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-logo">Λογο<span>Σύνθεση</span> <span style="color:rgba(247,243,236,0.25);font-size:11px;letter-spacing:0.05em;">· Admin ERP</span></div>
+    </div>
     <div class="topbar-right">
       <span class="user-email" id="userEmail"></span>
       <button class="btn-sm" onclick="doLogout()">Έξοδος</button>
       <a href="index.html" target="_blank" class="btn-sm">Website ↗</a>
     </div>
   </div>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
   <!-- MOBILE TABS -->
   <div class="mobile-tabs">
@@ -1967,6 +1987,22 @@ async function doLogin() {
   }
   btn.disabled=false; btn.textContent='ΕΙΣΟΔΟΣ ΣΤΟ ΣΥΣΤΗΜΑ';
 }
+
+function toggleSidebar(){
+  const sidebar=document.querySelector('.sidebar');
+  const toggle=document.getElementById('sidebarToggle');
+  const overlay=document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  toggle.classList.toggle('active');
+  overlay.classList.toggle('active');
+}
+// Close sidebar when clicking a link (mobile UX)
+document.addEventListener('click',function(e){
+  if(e.target.closest('.sidebar-link')){
+    const sidebar=document.querySelector('.sidebar');
+    if(sidebar.classList.contains('open')) toggleSidebar();
+  }
+});
 
 async function doLogout() {
   try { if(window._auth) await window._firebaseAuth.signOut(window._auth); } catch(e){}
