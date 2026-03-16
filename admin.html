@@ -3384,7 +3384,8 @@ function getMonthlyBreakdown(items,year){
   // ONLY include Φορέας-level sponsors (no eventId) to avoid double-counting with event budget income
   _sponsors.forEach(s=>{
     if(s.eventId && s.eventId!=='' && s.eventId!=='foreas' && s.eventId!=='Φορέας') return;
-    const total=Number(s.actual||s.planned||0);
+    const v=(parseInt(s.vat)||0)/100;
+    const total=Number(s.actual||s.planned||0)*(1+v);
     if(!total)return;
     if(s.payType==='installments'||s.payType==='monthly'){
       const n=parseInt(s.installments)||1;
@@ -3402,7 +3403,8 @@ function getMonthlyBreakdown(items,year){
   // ONLY include Φορέας-level artists (no eventId) to avoid double-counting with event budget expenses
   _artists.forEach(a=>{
     if(a.eventId && a.eventId!=='' && a.eventId!=='foreas' && a.eventId!=='Φορέας') return;
-    const total=Number(a.actual||a.planned||0);
+    const v=(parseInt(a.vat)||0)/100;
+    const total=Number(a.actual||a.planned||0)*(1+v);
     if(!total)return;
     if(a.payType==='installments'||a.payType==='monthly'){
       const n=parseInt(a.installments)||1;
@@ -3595,8 +3597,8 @@ function renderDashboard(){
   let totalInc=_finance.filter(r=>r.type==='income').reduce((a,b)=>a+Number(b.amount),0);
   let totalExp=_finance.filter(r=>r.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
   _eventBudgets.forEach(b=>{totalInc+=ebIncomeTotal(b,'actual');totalExp+=ebExpenseGrossTotal(b,'actual');});
-  _sponsors.forEach(s=>{const v=(parseInt(s.vat)||0)/100;totalInc+=Number(s.actual||0)*(1+v);});
-  _artists.forEach(a=>{const v=(parseInt(a.vat)||0)/100;totalExp+=Number(a.actual||0)*(1+v);});
+  _sponsors.forEach(s=>{if(s.eventId && s.eventId!=='' && s.eventId!=='foreas' && s.eventId!=='Φορέας') return;const v=(parseInt(s.vat)||0)/100;totalInc+=Number(s.actual||0)*(1+v);});
+  _artists.forEach(a=>{if(a.eventId && a.eventId!=='' && a.eventId!=='foreas' && a.eventId!=='Φορέας') return;const v=(parseInt(a.vat)||0)/100;totalExp+=Number(a.actual||0)*(1+v);});
   const net=totalInc-totalExp;
   document.getElementById('dash-finance').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έσοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--green)">${fmtMoney(totalInc)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(200,169,110,0.08)"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Έξοδα</div><div style="font-family:var(--font-serif);font-size:22px;color:var(--red)">${fmtMoney(totalExp)}</div></div><div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0"><div style="font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)">Ισοζύγιο</div><div style="font-family:var(--font-serif);font-size:26px;color:${net>=0?'var(--green)':'var(--red)'}">${fmtMoney(net)}</div></div>`;
   updateBadges();
