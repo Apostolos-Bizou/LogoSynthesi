@@ -946,14 +946,14 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="mobile-tab" onclick="switchView('add-event')">+ Εκδήλωση</button>
     <button class="mobile-tab" onclick="switchView('manage-events')">Εκδηλώσεις</button>
     <button class="mobile-tab" onclick="switchView('votes')">Ψηφοφορίες</button>
-    <button class="mobile-tab" onclick="switchView('about')">Για εμάς</button>
-    <button class="mobile-tab" onclick="switchView('members')">+ Μέλος</button>
-    <button class="mobile-tab" onclick="switchView('manage-members')">Μέλη</button>
     <button class="mobile-tab" onclick="switchView('erp-tasks')">Εργασίες</button>
     <button class="mobile-tab" onclick="switchView('erp-contacts')">Επαφές</button>
     <button class="mobile-tab" onclick="switchView('erp-finance')">Οικονομικά</button>
     <button class="mobile-tab" onclick="switchView('erp-calendar')">Ημερολόγιο</button>
     <button class="mobile-tab" onclick="switchView('erp-users')">Χρήστες</button>
+    <button class="mobile-tab" onclick="switchView('about')">Για εμάς</button>
+    <button class="mobile-tab" onclick="switchView('members')">+ Μέλος</button>
+    <button class="mobile-tab" onclick="switchView('manage-members')">Μέλη</button>
     <button class="mobile-tab" onclick="switchView('erp-reports')">Αναφορές</button>
     <button class="mobile-tab" onclick="openReportBuilder()">Report Builder</button>
   </div>
@@ -978,18 +978,6 @@ window.addEventListener('DOMContentLoaded',function(){
       <button class="sidebar-link" onclick="switchView('votes')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         Ψηφοφορίες
-      </button>
-      <button class="sidebar-link" onclick="switchView('about')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        Για εμάς
-      </button>
-      <button class="sidebar-link" onclick="switchView('members')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        + Μέλος
-      </button>
-      <button class="sidebar-link" onclick="switchView('manage-members')">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Μέλη
       </button>
 
       <div class="sidebar-section">ERP — Οργάνωση</div>
@@ -1026,6 +1014,18 @@ window.addEventListener('DOMContentLoaded',function(){
       <button class="sidebar-link" onclick="switchView('erp-users')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Χρήστες ERP
+      </button>
+      <button class="sidebar-link" onclick="switchView('about')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Για εμάς
+      </button>
+      <button class="sidebar-link" onclick="switchView('members')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        + Μέλος
+      </button>
+      <button class="sidebar-link" onclick="switchView('manage-members')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Μέλη
       </button>
     </div>
 
