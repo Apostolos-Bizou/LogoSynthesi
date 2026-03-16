@@ -2616,9 +2616,11 @@ function calcTicketPrice(){
     const npEl=document.getElementById('ebc-net-profit');
     npEl.textContent=fmtMoney(netProfit);
     npEl.style.color='var(--green)';
-  } else if(tickets>0){
-    const totalToCoverByTickets=totalExp-otherInc;
-    const priceNeeded=totalToCoverByTickets/(1-margin/100)/tickets;
+  } else if(tickets>0 && toCover>0){
+    // Η νέα τιμή πρέπει να καλύψει: υπόλοιπο + τα ήδη υπολογισμένα έσοδα εισιτηρίων
+    // δηλαδή (totalExp - otherInc) / tickets = πλήρης τιμή αντικατάστασης
+    const fullCover=totalExp-otherInc;
+    const priceNeeded=fullCover/(1-margin/100)/tickets;
     const rounded=Math.ceil(priceNeeded*2)/2;
     const totalTicketRev=rounded*tickets;
     const totalInc=totalTicketRev+otherInc;
