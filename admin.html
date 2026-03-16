@@ -1318,17 +1318,22 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       <!-- Υπολογιστής Τιμής Εισιτηρίου -->
       <div style="background:var(--black3);border:2px solid var(--gold);padding:20px 24px;margin-top:8px;">
         <div style="font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">Υπολογιστής Τιμής Εισιτηρίου</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:14px">
           <div>
             <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Σύνολο Εξόδων (Πρόβλεψη Μικτό)</div>
             <div style="font-family:var(--font-serif);font-size:24px;color:var(--red)" id="ebc-total-exp">0 €</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Πρόβλεψη Εσόδων Εισιτηρίων</div>
+            <div style="font-family:var(--font-serif);font-size:24px;color:var(--green)" id="ebc-current-ticket-inc">0 €</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.3);margin-top:2px" id="ebc-current-ticket-detail"></div>
           </div>
           <div>
             <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Λοιπά Έσοδα (χωρίς εισιτήρια)</div>
             <div style="font-family:var(--font-serif);font-size:24px;color:var(--green)" id="ebc-other-inc">0 €</div>
           </div>
           <div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Ποσό προς κάλυψη από εισιτήρια</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Υπόλοιπο προς κάλυψη</div>
             <div style="font-family:var(--font-serif);font-size:24px;color:var(--gold)" id="ebc-to-cover">0 €</div>
           </div>
         </div>
@@ -1346,8 +1351,24 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
             <div style="font-family:var(--font-serif);font-size:32px;font-weight:700;color:var(--gold)" id="ebc-suggested-price">— €</div>
           </div>
           <div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Καθαρό κέρδος (πρόβλεψη)</div>
-            <div style="font-family:var(--font-serif);font-size:24px" id="ebc-net-profit">— €</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px">Εκτίμηση εσόδων εισιτηρίων</div>
+            <div style="font-family:var(--font-serif);font-size:24px;color:var(--green)" id="ebc-ticket-revenue">— €</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:12px 16px;border:1px solid rgba(200,169,110,0.2);border-radius:6px;background:rgba(200,169,110,0.04)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:center">
+            <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:3px;letter-spacing:.15em;text-transform:uppercase">Σύνολο Πρόβλεψη Εσόδων</div>
+              <div style="font-family:var(--font-serif);font-size:20px;color:var(--green)" id="ebc-total-inc">— €</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:3px;letter-spacing:.15em;text-transform:uppercase">Σύνολο Πρόβλεψη Εξόδων</div>
+              <div style="font-family:var(--font-serif);font-size:20px;color:var(--red)" id="ebc-total-exp2">— €</div>
+            </div>
+            <div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:3px;letter-spacing:.15em;text-transform:uppercase">Καθαρό Αποτέλεσμα (πρόβλεψη)</div>
+              <div style="font-family:var(--font-serif);font-size:24px;font-weight:700" id="ebc-net-profit">— €</div>
+            </div>
           </div>
         </div>
         <div style="margin-top:10px;text-align:right">
@@ -2562,30 +2583,56 @@ function calcTicketPrice(){
     const pv=(parseFloat(document.getElementById('ebe-pv-'+i)?.value)||0)/100;
     totalExp+=pn*(1+pv);
   });
+  // Τρέχουσα πρόβλεψη εσόδων εισιτηρίων (τιμή × πρόβλεψη πωλήσεων)
+  const curPrice=parseFloat(document.getElementById('eb-ticket-price')?.value)||0;
+  const curPlanned=parseInt(document.getElementById('eb-planned-tickets')?.value)||0;
+  const curTicketInc=curPrice*curPlanned;
   // Λοιπά έσοδα (planned, χωρίς εισιτήρια = index 0)
   let otherInc=0;
   EB_INCOME_CATS.forEach((_,i)=>{
     if(i===0) return; // skip Εισιτήρια
     otherInc+=parseFloat(document.getElementById('ebi-p-'+i)?.value)||0;
   });
-  const toCover=totalExp-otherInc;
+  // Υπόλοιπο = έξοδα - τρέχοντα έσοδα εισιτηρίων - λοιπά έσοδα
+  const toCover=totalExp-curTicketInc-otherInc;
   const margin=parseFloat(document.getElementById('ebc-margin')?.value)||0;
   const tickets=parseInt(document.getElementById('ebc-tickets')?.value)||parseInt(document.getElementById('eb-planned-tickets')?.value)||0;
+  // Update UI - πάνω γραμμή
   document.getElementById('ebc-total-exp').textContent=fmtMoney(totalExp);
+  document.getElementById('ebc-current-ticket-inc').textContent=fmtMoney(curTicketInc);
+  document.getElementById('ebc-current-ticket-detail').textContent=curPlanned>0?(curPlanned+' εισιτ. × '+fmtMoney(curPrice)):'';
   document.getElementById('ebc-other-inc').textContent=fmtMoney(otherInc);
   document.getElementById('ebc-to-cover').textContent=fmtMoney(Math.max(toCover,0));
-  if(tickets>0 && toCover>0){
-    // τιμή = ποσό_κάλυψης / (1 - margin%) / αριθμός_εισιτηρίων
-    const priceNeeded=toCover/(1-margin/100)/tickets;
-    const rounded=Math.ceil(priceNeeded*2)/2; // στρογγυλοποίηση στο 0.50
+  const tcEl=document.getElementById('ebc-to-cover');
+  tcEl.style.color=toCover<=0?'var(--green)':'var(--gold)';
+  document.getElementById('ebc-total-exp2').textContent=fmtMoney(totalExp);
+  if(toCover<=0){
+    // Τα τρέχοντα έσοδα καλύπτουν ήδη τα έξοδα!
+    const totalInc=curTicketInc+otherInc;
+    const netProfit=totalInc-totalExp;
+    document.getElementById('ebc-suggested-price').textContent='✓ '+fmtMoney(curPrice);
+    document.getElementById('ebc-ticket-revenue').textContent=fmtMoney(curTicketInc);
+    document.getElementById('ebc-total-inc').textContent=fmtMoney(totalInc);
+    const npEl=document.getElementById('ebc-net-profit');
+    npEl.textContent=fmtMoney(netProfit);
+    npEl.style.color='var(--green)';
+  } else if(tickets>0){
+    const totalToCoverByTickets=totalExp-otherInc;
+    const priceNeeded=totalToCoverByTickets/(1-margin/100)/tickets;
+    const rounded=Math.ceil(priceNeeded*2)/2;
     const totalTicketRev=rounded*tickets;
-    const netProfit=totalTicketRev+otherInc-totalExp;
+    const totalInc=totalTicketRev+otherInc;
+    const netProfit=totalInc-totalExp;
     document.getElementById('ebc-suggested-price').textContent=fmtMoney(rounded);
+    document.getElementById('ebc-ticket-revenue').textContent=fmtMoney(totalTicketRev);
+    document.getElementById('ebc-total-inc').textContent=fmtMoney(totalInc);
     const npEl=document.getElementById('ebc-net-profit');
     npEl.textContent=fmtMoney(netProfit);
     npEl.style.color=netProfit>=0?'var(--green)':'var(--red)';
   } else {
     document.getElementById('ebc-suggested-price').textContent='— €';
+    document.getElementById('ebc-ticket-revenue').textContent='— €';
+    document.getElementById('ebc-total-inc').textContent=(curTicketInc+otherInc)>0?fmtMoney(curTicketInc+otherInc):'— €';
     document.getElementById('ebc-net-profit').textContent='— €';
     document.getElementById('ebc-net-profit').style.color='var(--gold)';
   }
