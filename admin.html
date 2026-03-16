@@ -5059,26 +5059,41 @@ function rbBuildBudgetXL(wb){
 function rbBuildEvents(doc,y){
   y=rbSectionTitle(doc,y,'Εκδηλώσεις & Event Budgets');
   const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const rows=_events.map(e=>[e.title||'',hl[(e.category||'').toLowerCase()]||'',fmtDate(e.date),e.venue||'—']);
-  y=rbAutoTable(doc,y,['Τίτλος','Hub','Ημερομηνία','Χώρος'],rows.length?rows:[['Δεν υπάρχουν','','','']]);
-  if(_eventBudgets.length){
-    y+=6;if(y>240){doc.addPage();y=20;}
-    doc.setFontSize(9);doc.setTextColor(200,169,110);doc.text('Event Budgets',14,y);y+=4;
-    const bRows=_eventBudgets.map(b=>{const ev=_events.find(e=>e.id===b.eventId);const aI=ebIncomeTotal(b,'actual'),aE=ebExpenseGrossTotal(b,'actual');return[ev?ev.title:'—',fmtMoney(ebIncomeTotal(b,'planned')),fmtMoney(aI),fmtMoney(ebExpenseGrossTotal(b,'planned')),fmtMoney(aE),fmtMoney(aI-aE)];});
-    y=rbAutoTable(doc,y,['Εκδήλωση','Πρ.Εσόδ.','Πρ.Εσόδ.','Πρ.Εξόδ.','Πρ.Εξόδ.','Κ/Ζ'],bRows,{styles:{fontSize:7}});
-  }
+
+  // Unified table: Title, Hub, Income, Expenses, P/L
+  const rows=_events.map(e=>{
+    const eb=_eventBudgets.find(b=>b.eventId===e.id);
+    let inc=0,exp=0;
+    if(eb){
+      inc=ebIncomeTotal(eb,'actual')||ebIncomeTotal(eb,'planned');
+      exp=ebExpenseGrossTotal(eb,'actual')||ebExpenseGrossTotal(eb,'planned');
+    }
+    // Also add legacy finance entries
+    inc+=_finance.filter(f=>f.eventId===e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+    exp+=_finance.filter(f=>f.eventId===e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+    const net=inc-exp;
+    return[e.title||'',hl[(e.category||'').toLowerCase()]||'',fmtMoney(inc),fmtMoney(exp),fmtMoney(net)];
+  });
+
+  y=rbAutoTable(doc,y,
+    ['Εκδήλωση','Hub','Έσοδα','Έξοδα','Αποτέλεσμα'],
+    rows.length?rows:[['Δεν υπάρχουν εκδηλώσεις','','','','']],
+    {columnStyles:{0:{cellWidth:65},1:{cellWidth:22}}}
+  );
   return y+8;
 }
 function rbBuildEventsXL(wb){
   const hl={cinehub:'CineHub',logohub:'LogoHub',musichub:'MusicHub',arthub:'ArtHub',stagehub:'StageHub'};
-  const data=[['Τίτλος','Κατηγορία','Ημερομηνία','Χώρος','Ώρα']];
-  _events.forEach(e=>data.push([e.title||'',hl[(e.category||'').toLowerCase()]||'',e.date||'',e.venue||'',e.time||'']));
+  const data=[['Εκδήλωση','Hub','Ημερομηνία','Χώρος','Έσοδα','Έξοδα','Αποτέλεσμα']];
+  _events.forEach(e=>{
+    const eb=_eventBudgets.find(b=>b.eventId===e.id);
+    let inc=0,exp=0;
+    if(eb){inc=ebIncomeTotal(eb,'actual')||ebIncomeTotal(eb,'planned');exp=ebExpenseGrossTotal(eb,'actual')||ebExpenseGrossTotal(eb,'planned');}
+    inc+=_finance.filter(f=>f.eventId===e.id&&f.type==='income').reduce((a,b)=>a+Number(b.amount),0);
+    exp+=_finance.filter(f=>f.eventId===e.id&&f.type==='expense').reduce((a,b)=>a+Number(b.amount),0);
+    data.push([e.title||'',hl[(e.category||'').toLowerCase()]||'',e.date||'',e.venue||'',inc,exp,inc-exp]);
+  });
   rbAddSheet(wb,data,'Εκδηλώσεις');
-  if(_eventBudgets.length){
-    const bd=[['Εκδήλωση','Πρ.Εσόδων','Πραγμ.Εσόδων','Πρ.Εξόδων','Πραγμ.Εξόδων','Κ/Ζ']];
-    _eventBudgets.forEach(b=>{const ev=_events.find(e=>e.id===b.eventId);const aI=ebIncomeTotal(b,'actual'),aE=ebExpenseGrossTotal(b,'actual');bd.push([ev?ev.title:'—',ebIncomeTotal(b,'planned'),aI,ebExpenseGrossTotal(b,'planned'),aE,aI-aE]);});
-    rbAddSheet(wb,bd,'Event Budgets');
-  }
 }
 
 function rbBuildTickets(doc,y){
@@ -5101,12 +5116,12 @@ function rbBuildSponsors(doc,y){
   }
   if(_artists.length){
     y+=6;if(y>240){doc.addPage();y=20;}
-    doc.setFontSize(9);doc.setTextColor(200,169,110);doc.text('Καλλιτέχνες / Προμηθευτές',14,y);y+=4;
+    doc.setFont('DejaVuSans','bold');doc.setFontSize(9);doc.setTextColor(200,169,110);doc.text('Καλλιτέχνες / Προμηθευτές',14,y);y+=4;
     const rows=_artists.map(a=>{const ev=a.eventId?_events.find(e=>e.id===a.eventId):null;return[ev?ev.title:'Φορέας',a.name||'—',fmtMoney(a.planned||0),fmtMoney(a.actual||0),a.status||'—'];});
     y=rbAutoTable(doc,y,['Εκδήλωση','Αντισυμβαλλόμενος','Πρόβλεψη','Πραγματικά','Κατάσταση'],rows);
   }
   if(!_sponsors.length&&!_artists.length){
-    doc.setFontSize(9);doc.setTextColor(150,140,120);doc.text('Δεν υπάρχουν εγγραφές.',14,y);y+=8;
+    doc.setFont('DejaVuSans','normal');doc.setFontSize(9);doc.setTextColor(150,140,120);doc.text('Δεν υπάρχουν εγγραφές.',14,y);y+=8;
   }
   return y+8;
 }
