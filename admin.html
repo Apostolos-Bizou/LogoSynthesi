@@ -3201,7 +3201,9 @@ function getMonthlyBreakdown(items,year){
     months[m].expense+=ebExpenseGrossTotal(b,'actual')||ebExpenseGrossTotal(b,'planned');
   });
   // From sponsors (with installments)
+  // ONLY include Φορέας-level sponsors (no eventId) to avoid double-counting with event budget income
   _sponsors.forEach(s=>{
+    if(s.eventId && s.eventId!=='' && s.eventId!=='foreas' && s.eventId!=='Φορέας') return;
     const total=Number(s.actual||s.planned||0);
     if(!total)return;
     if(s.payType==='installments'||s.payType==='monthly'){
@@ -3217,7 +3219,9 @@ function getMonthlyBreakdown(items,year){
     }
   });
   // From artists/vendors (with installments) — expenses
+  // ONLY include Φορέας-level artists (no eventId) to avoid double-counting with event budget expenses
   _artists.forEach(a=>{
+    if(a.eventId && a.eventId!=='' && a.eventId!=='foreas' && a.eventId!=='Φορέας') return;
     const total=Number(a.actual||a.planned||0);
     if(!total)return;
     if(a.payType==='installments'||a.payType==='monthly'){
