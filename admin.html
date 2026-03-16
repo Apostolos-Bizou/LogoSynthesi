@@ -1015,6 +1015,28 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
           </div>
           <div style="position:relative;height:320px;"><canvas id="fin-events-chart"></canvas></div>
           <div class="section-div"></div>
+          <div class="section-div"></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Σχεδιασμός Χορηγιών</div>
+          <div style="padding:12px 16px;border:1px solid rgba(200,169,110,0.25);border-radius:6px;background:rgba(200,169,110,0.04);margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <div style="font-size:11px;color:rgba(255,255,255,0.5)">Επιλέξτε εκδηλώσεις για υπολογισμό συνολικής χορηγίας</div>
+              <div style="display:flex;gap:8px">
+                <button class="btn-sm" style="padding:3px 10px;font-size:10px" onclick="toggleAllSponsorChecks(true)">Όλες</button>
+                <button class="btn-sm" style="padding:3px 10px;font-size:10px" onclick="toggleAllSponsorChecks(false)">Καμία</button>
+              </div>
+            </div>
+            <div class="table-wrapper"><table class="data-table">
+              <thead><tr><th style="width:30px"></th><th>Εκδήλωση</th><th>Πραγμ. τιμή εισιτ.</th><th>Πρόβλεψη εισιτ.</th><th>Έσοδα εισιτηρίων</th><th>Σύνολο εξόδων</th><th style="color:var(--gold)">Ανάγκη χορηγίας</th></tr></thead>
+              <tbody id="fd-sponsor-tbody"></tbody>
+              <tfoot>
+                <tr style="border-top:2px solid var(--gold)">
+                  <td colspan="6" style="text-align:right;font-weight:700;font-size:13px;padding:12px 8px">Σύνολο Χορηγιών Επιλεγμένων:</td>
+                  <td style="font-family:var(--font-serif);font-size:24px;font-weight:700;color:var(--gold);padding:12px 8px" id="fd-sponsor-total">0 €</td>
+                </tr>
+              </tfoot>
+            </table></div>
+          </div>
+          <div class="section-div"></div>
           <div style="font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">Σύνοψη ανά Εκδήλωση</div>
           <div class="table-wrapper"><table class="data-table">
             <thead><tr><th>Εκδήλωση</th><th>Τύπος</th><th>Πρόβλεψη Κ/Ζ</th><th>Πραγματικό Κ/Ζ</th><th>Απόκλιση</th><th>Κατάσταση</th></tr></thead>
@@ -1286,7 +1308,7 @@ body{background:var(--black);color:var(--cream);font-family:var(--font-sans);min
       </div>
       <div class="form-2col">
         <div class="form-group"><label class="form-label">Τύπος</label>
-          <select class="form-select" id="eb-type"><option>Κινηματογράφος</option><option>Συναυλία</option><option>Θέατρο</option><option>Workshop</option><option>Ομιλία</option><option>Φεστιβάλ</option><option>Έκθεση</option><option>Παιδική δράση</option><option>Άλλο</option></select></div>
+          <select class="form-select" id="eb-type"><option value="CineHub">CineHub</option><option value="LogoHub">LogoHub</option><option value="MusicHub">MusicHub</option><option value="StageHub">StageHub</option><option value="ArtHub">ArtHub</option></select></div>
         <div class="form-group"><label class="form-label">Ημερομηνία</label><input type="date" class="form-input" id="eb-date"></div>
       </div>
       <div class="form-2col">
@@ -2459,9 +2481,52 @@ function renderFinDashboard(){
     const st=b.status||'Σχεδιασμός';
     return '<tr><td>'+getEventTitle(b)+'</td><td style="font-size:11px">'+(b.eventType||'—')+'</td><td style="color:'+(pR>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(pR)+'</td><td style="color:'+(aR>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(aR)+'</td><td style="color:'+(v>=0?'var(--green)':'var(--red)')+'">'+fmtMoney(v)+'</td><td><span class="status '+statusClass(st)+'">'+st+'</span></td></tr>';
   }).join('');
+  // --- Sponsor Planner Table ---
+  renderSponsorPlanner();
 }
 
-// --- Org Budget Tab ---
+function calcSponsorForBudget(b){
+  const realPrice=b.realTicketPrice||0;
+  const tickets=b.plannedTickets||0;
+  const totalExp=ebExpenseGrossTotal(b,'planned');
+  const otherInc=(b.income||[]).reduce((s,r,i)=>i===0?s:s+Number(r.planned||0),0);
+  const ticketInc=realPrice*tickets;
+  const need=Math.max(totalExp-ticketInc-otherInc,0);
+  return {realPrice,tickets,ticketInc,totalExp,otherInc,need};
+}
+
+function renderSponsorPlanner(){
+  const tbody=document.getElementById('fd-sponsor-tbody');
+  if(!_eventBudgets.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-style:italic">Δεν υπάρχουν event budgets</td></tr>';updateSponsorTotal();return;}
+  tbody.innerHTML=_eventBudgets.map(b=>{
+    const s=calcSponsorForBudget(b);
+    const checked=b._sponsorChecked!==false?'checked':'';
+    return '<tr><td style="text-align:center"><input type="checkbox" '+checked+' onchange="toggleSponsorCheck(\''+b.id+'\',this.checked)" style="cursor:pointer;width:16px;height:16px;accent-color:var(--gold)"></td><td>'+getEventTitle(b)+'</td><td style="text-align:right">'+(s.realPrice?fmtMoney(s.realPrice):'<span style="color:rgba(255,255,255,0.3)">—</span>')+'</td><td style="text-align:right">'+s.tickets+'</td><td style="text-align:right;color:var(--green)">'+fmtMoney(s.ticketInc)+'</td><td style="text-align:right;color:var(--red)">'+fmtMoney(s.totalExp)+'</td><td style="text-align:right;font-weight:700;color:'+(s.need>0?'var(--gold)':'var(--green)')+'">'+fmtMoney(s.need)+'</td></tr>';
+  }).join('');
+  updateSponsorTotal();
+}
+
+function toggleSponsorCheck(id,checked){
+  const b=_eventBudgets.find(x=>x.id===id);
+  if(b) b._sponsorChecked=checked;
+  updateSponsorTotal();
+}
+
+function toggleAllSponsorChecks(val){
+  _eventBudgets.forEach(b=>b._sponsorChecked=val);
+  renderSponsorPlanner();
+}
+
+function updateSponsorTotal(){
+  let total=0;
+  _eventBudgets.forEach(b=>{
+    if(b._sponsorChecked===false) return;
+    total+=calcSponsorForBudget(b).need;
+  });
+  const el=document.getElementById('fd-sponsor-total');
+  el.textContent=fmtMoney(total);
+  el.style.color=total>0?'var(--gold)':'var(--green)';
+}
 function renderOrgBudget(){
   if(!_orgBudget)return;
   let evInc=0,evExp=0,evIncA=0,evExpA=0;
@@ -2575,8 +2640,8 @@ function renderEventBudgets(){
 
 function openEventBudgetModal(id){
   document.getElementById('eb-id').value='';
-  ['eb-title','eb-date','eb-venue','eb-capacity','eb-ticket-price','eb-planned-tickets','eb-actual-tickets'].forEach(f=>document.getElementById(f).value='');
-  document.getElementById('eb-vat').value='24';document.getElementById('eb-status').value='Σχεδιασμός';document.getElementById('eb-type').value='Κινηματογράφος';
+  ['eb-title','eb-date','eb-venue','eb-capacity','eb-ticket-price','eb-planned-tickets','eb-actual-tickets','ebc-real-price'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('eb-vat').value='24';document.getElementById('eb-status').value='Σχεδιασμός';document.getElementById('eb-type').value='CineHub';
   const evSel=document.getElementById('eb-event');
   evSel.innerHTML='<option value="">— Νέα Εκδήλωση —</option>';
   _events.forEach(e=>evSel.insertAdjacentHTML('beforeend','<option value="'+e.id+'">'+e.title+'</option>'));
@@ -2713,7 +2778,7 @@ function loadEventBudgetIntoModal(id){
   document.getElementById('eb-id').value=b.id;
   document.getElementById('eb-event').value=b.eventId||'';
   document.getElementById('eb-title').value=b.title||'';
-  document.getElementById('eb-type').value=b.eventType||'Κινηματογράφος';
+  document.getElementById('eb-type').value=b.eventType||'CineHub';
   document.getElementById('eb-date').value=b.date||'';
   document.getElementById('eb-venue').value=b.venue||'';
   document.getElementById('eb-status').value=b.status||'Σχεδιασμός';
@@ -2738,8 +2803,10 @@ function loadEventBudgetIntoModal(id){
   document.getElementById('modal-eb-title').textContent='Επεξεργασία Budget';
   // Sync calculator
   document.getElementById('ebc-tickets').value=b.plannedTickets||'';
+  document.getElementById('ebc-real-price').value=b.realTicketPrice||'';
   calcTicketPrice();
   syncTicketIncome();
+  calcSponsorNeed();
 }
 function editEventBudget(id){openEventBudgetModal(id);}
 
@@ -2748,7 +2815,7 @@ async function saveEventBudget(){
   const vatDef=(parseFloat(document.getElementById('eb-vat').value)||24)/100;
   const income=EB_INCOME_CATS.map((_,i)=>({category:EB_INCOME_CATS[i],planned:parseFloat(document.getElementById('ebi-p-'+i).value)||0,actual:parseFloat(document.getElementById('ebi-a-'+i).value)||0,notes:document.getElementById('ebi-n-'+i).value||''}));
   const expenses=EB_EXPENSE_CATS.map((_,i)=>({category:EB_EXPENSE_CATS[i],plannedNet:parseFloat(document.getElementById('ebe-pn-'+i).value)||0,plannedVat:(parseFloat(document.getElementById('ebe-pv-'+i).value)||24)/100,actualNet:parseFloat(document.getElementById('ebe-an-'+i).value)||0,actualVat:(parseFloat(document.getElementById('ebe-av-'+i).value)||24)/100,notes:document.getElementById('ebe-n-'+i).value||''}));
-  const rec={eventId:document.getElementById('eb-event').value||'',title:document.getElementById('eb-title').value.trim(),eventType:document.getElementById('eb-type').value,date:document.getElementById('eb-date').value,venue:document.getElementById('eb-venue').value.trim(),status:document.getElementById('eb-status').value,capacity:parseInt(document.getElementById('eb-capacity').value)||0,ticketPrice:parseFloat(document.getElementById('eb-ticket-price').value)||0,plannedTickets:parseInt(document.getElementById('eb-planned-tickets').value)||0,actualTickets:parseInt(document.getElementById('eb-actual-tickets').value)||0,vatDefault:vatDef,income,expenses};
+  const rec={eventId:document.getElementById('eb-event').value||'',title:document.getElementById('eb-title').value.trim(),eventType:document.getElementById('eb-type').value,date:document.getElementById('eb-date').value,venue:document.getElementById('eb-venue').value.trim(),status:document.getElementById('eb-status').value,capacity:parseInt(document.getElementById('eb-capacity').value)||0,ticketPrice:parseFloat(document.getElementById('eb-ticket-price').value)||0,realTicketPrice:parseFloat(document.getElementById('ebc-real-price').value)||0,plannedTickets:parseInt(document.getElementById('eb-planned-tickets').value)||0,actualTickets:parseInt(document.getElementById('eb-actual-tickets').value)||0,vatDefault:vatDef,income,expenses};
   try{
     if(id){await erpUpdate('event_budgets',id,rec);const idx=_eventBudgets.findIndex(x=>x.id===id);if(idx!==-1)_eventBudgets[idx]={id,...rec};}
     else{const nid=await erpAdd('event_budgets',rec);_eventBudgets.unshift({id:nid,...rec,createdAt:Date.now()});}
