@@ -5204,6 +5204,94 @@ function rbProgress(pct,step){
 }
 function rbWait(ms){return new Promise(r=>setTimeout(r,ms));}
 
+// ─── Chart capture helpers ───
+let _rbChartImages={};
+
+async function rbCaptureCharts(){
+  _rbChartImages={};
+  const reportsView=document.getElementById('view-erp-reports');
+  const wasActive=reportsView.classList.contains('active');
+  
+  // Temporarily make reports view visible off-screen so charts render
+  if(!wasActive){
+    reportsView.style.position='absolute';
+    reportsView.style.left='-9999px';
+    reportsView.style.top='0';
+    reportsView.style.width='1200px';
+    reportsView.classList.add('active');
+  }
+  
+  // Trigger chart rendering
+  renderReports();
+  renderReportsCharts();
+  
+  // Also render finance and tickets charts — need their panels visible
+  const finView=document.getElementById('view-erp-finance');
+  const finWasActive=finView&&finView.classList.contains('active');
+  if(finView&&!finWasActive){
+    finView.style.position='absolute';finView.style.left='-9999px';finView.style.width='1200px';
+    finView.classList.add('active');
+    // Show the dashboard and tickets sub-panels
+    const fdp=document.getElementById('fin-dashboard');if(fdp)fdp.classList.add('active');
+    const ftp=document.getElementById('fin-tickets');if(ftp)ftp.classList.add('active');
+  }
+  try{renderFinDashboard();}catch(e){}
+  try{renderTickets();}catch(e){}
+  
+  // Wait for all charts to finish rendering
+  await rbWait(1200);
+  
+  // Capture each chart canvas
+  const chartMap={
+    'rpt-monthly-chart':'finance_monthly',
+    'rpt-quarterly-detail-chart':'finance_quarterly',
+    'rpt-hub-chart':'hubs',
+    'rpt-tasks-chart':'tasks',
+    'rpt-votes-chart':'votes',
+    'fin-events-chart':'events',
+    'tickets-chart':'tickets'
+  };
+  
+  for(const [canvasId,key] of Object.entries(chartMap)){
+    try{
+      const canvas=document.getElementById(canvasId);
+      if(canvas && canvas.width>0 && canvas.height>0){
+        _rbChartImages[key]=canvas.toDataURL('image/png');
+      }
+    }catch(e){console.warn('Chart capture failed:',canvasId,e);}
+  }
+  
+  // Restore view state
+  if(!wasActive){
+    reportsView.classList.remove('active');
+    reportsView.style.position='';
+    reportsView.style.left='';
+    reportsView.style.top='';
+    reportsView.style.width='';
+  }
+  if(finView&&!finWasActive){
+    finView.classList.remove('active');
+    finView.style.position='';finView.style.left='';finView.style.width='';
+    const fdp=document.getElementById('fin-dashboard');if(fdp)fdp.classList.remove('active');
+    const ftp=document.getElementById('fin-tickets');if(ftp)ftp.classList.remove('active');
+  }
+  
+  console.log('Charts captured:',Object.keys(_rbChartImages));
+  return _rbChartImages;
+}
+
+function rbAddChart(doc,y,imageKey,chartHeight){
+  const img=_rbChartImages[imageKey];
+  if(!img) return y;
+  const h=chartHeight||55;
+  if(y+h+10>doc.internal.pageSize.getHeight()-20){doc.addPage();y=20;}
+  const w=doc.internal.pageSize.getWidth()-28;
+  try{
+    doc.addImage(img,'PNG',14,y,w,h);
+  }catch(e){console.warn('addImage failed:',imageKey,e);}
+  return y+h+6;
+}
+
 // ─── Generate ───
 async function rbGenerate(){
   const secs=rbGetSelectedSections();
@@ -5219,6 +5307,14 @@ async function rbGenerate(){
 
   closeReportBuilder();
   rbShowProgress();
+
+  // Capture charts before generating PDF
+  if(_rbFormat==='pdf'||_rbFormat==='both'){
+    rbProgress(3,'Προετοιμασία γραφημάτων...');
+    await rbCaptureCharts();
+    await rbWait(200);
+  }
+
   const total=secs.length;
   let step=0;
 
@@ -5234,6 +5330,15 @@ async function rbGenerate(){
         rbProgress(Math.round((step/total)*80),'Ενότητα: '+(rbSectionLabels[sec]||sec)+'...');
         await rbWait(150);
         if(rbPdfBuilders[sec]) y=rbPdfBuilders[sec](doc,y);
+        // Add relevant chart after each section
+        if(sec==='finance'){
+          y=rbAddChart(doc,y,'finance_monthly',58);
+          y=rbAddChart(doc,y,'finance_quarterly',58);
+        }
+        if(sec==='events') y=rbAddChart(doc,y,'events',55);
+        if(sec==='tickets') y=rbAddChart(doc,y,'tickets',50);
+        if(sec==='hubs') y=rbAddChart(doc,y,'hubs',55);
+        if(sec==='tasks') y=rbAddChart(doc,y,'tasks',50);
       }
       rbProgress(85,'Τελική μορφοποίηση PDF...');
       await rbWait(200);
