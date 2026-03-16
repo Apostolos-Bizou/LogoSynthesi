@@ -3409,14 +3409,14 @@ function renderFinCal(){
 function getMonthlyBreakdown(items,year){
   // Returns array of 12 months {month,income,expense}
   const months=Array.from({length:12},(_,i)=>({month:i,income:0,expense:0}));
-  // From event budgets
+  // From event budgets — use actual values only (planned shown separately in Budget Engine)
   _eventBudgets.forEach(b=>{
     if(!b.date)return;
     const d=new Date(b.date);
     if(d.getFullYear()!==year)return;
     const m=d.getMonth();
-    months[m].income+=ebIncomeTotal(b,'actual')||ebIncomeTotal(b,'planned');
-    months[m].expense+=ebExpenseGrossTotal(b,'actual')||ebExpenseGrossTotal(b,'planned');
+    months[m].income+=ebIncomeTotal(b,'actual');
+    months[m].expense+=ebExpenseGrossTotal(b,'actual');
   });
   // From sponsors (with installments)
   // ONLY include Φορέας-level sponsors (no eventId) to avoid double-counting with event budget income
